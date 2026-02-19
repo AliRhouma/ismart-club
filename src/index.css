@@ -518,10 +518,16 @@
 
 .columns-block {
   margin: 1.5rem 0;
-  border: 1px solid #e5e7eb;
+  border: 2px solid #e5e7eb;
   border-radius: 0.5rem;
   overflow: visible;
   background: white;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+  transition: border-color 0.2s;
+}
+
+.columns-block:hover {
+  border-color: #cbd5e1;
 }
 
 .columns-toolbar {
@@ -568,9 +574,16 @@
 
 .columns-flex {
   display: flex !important;
+  flex-direction: row !important;
   align-items: stretch;
   min-height: 80px;
   position: relative;
+  gap: 0;
+}
+
+.ProseMirror .columns-flex {
+  display: flex !important;
+  flex-direction: row !important;
 }
 
 .column-node {
@@ -578,7 +591,11 @@
   flex-shrink: 0;
   min-width: 80px;
   border-right: 1px solid #e5e7eb;
-  transition: background-color 0.15s;
+  transition: background-color 0.2s;
+}
+
+.column-node:hover {
+  background-color: #f9fafb;
 }
 
 .column-node:last-child {
@@ -639,20 +656,24 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #9ca3af;
-  opacity: 0;
-  transition: opacity 0.15s;
+  color: #d1d5db;
+  opacity: 0.3;
+  transition: all 0.2s;
   user-select: none;
+  background: linear-gradient(to right, transparent 40%, #f3f4f6 50%, transparent 60%);
 }
 
 .column-node:hover .column-resize-handle {
   opacity: 1;
+  background: linear-gradient(to right, transparent 30%, #e5e7eb 50%, transparent 70%);
 }
 
 .column-resize-handle:hover,
 .column-resize-handle:active {
   opacity: 1;
-  color: #0091ff;
+  color: #3b82f6;
+  background: linear-gradient(to right, transparent 20%, #dbeafe 50%, transparent 80%);
+  transform: scaleX(1.5);
 }
 
 .column-node:last-child .column-resize-handle {
