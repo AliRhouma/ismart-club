@@ -5,6 +5,7 @@ import { CalloutBlock } from '../extensions/CalloutBlock';
 import { HighlightBlock } from '../extensions/HighlightBlock';
 import { ImageDescriptionBlock } from '../extensions/ImageDescriptionBlock';
 import { TableBlock } from '../extensions/TableBlock';
+import { Columns, Column } from '../extensions/ColumnsBlock';
 import { EditorToolbar } from './EditorToolbar';
 import { useEffect } from 'react';
 import { Extension } from '@tiptap/core';
@@ -12,7 +13,7 @@ import Suggestion from '@tiptap/suggestion';
 import { ReactRenderer } from '@tiptap/react';
 import tippy, { Instance as TippyInstance } from 'tippy.js';
 import { BlockSlashMenu } from './BlockSlashMenu';
-import { AlertCircle, Highlighter, Image, Table } from 'lucide-react';
+import { AlertCircle, Highlighter, Image, Table, Columns as ColumnsIcon } from 'lucide-react';
 
 interface DocumentEditorProps {
   content: any;
@@ -82,6 +83,30 @@ const SlashCommandExtension = Extension.create({
                   .deleteRange(range)
                   .setTableBlock()
                   .run();
+              },
+            },
+            {
+              title: '2 Columns',
+              description: 'Split content into two side-by-side columns',
+              icon: ColumnsIcon,
+              command: ({ editor, range }: any) => {
+                editor.chain().focus().deleteRange(range).setColumns(2).run();
+              },
+            },
+            {
+              title: '3 Columns',
+              description: 'Split content into three side-by-side columns',
+              icon: ColumnsIcon,
+              command: ({ editor, range }: any) => {
+                editor.chain().focus().deleteRange(range).setColumns(3).run();
+              },
+            },
+            {
+              title: '4 Columns',
+              description: 'Split content into four side-by-side columns',
+              icon: ColumnsIcon,
+              command: ({ editor, range }: any) => {
+                editor.chain().focus().deleteRange(range).setColumns(4).run();
               },
             },
           ];
@@ -163,6 +188,8 @@ export function DocumentEditor({ content, onUpdate }: DocumentEditorProps) {
       HighlightBlock,
       ImageDescriptionBlock,
       TableBlock,
+      Column,
+      Columns,
       SlashCommandExtension,
     ],
     content,
