@@ -368,3 +368,146 @@
     -webkit-print-color-adjust: exact;
   }
 }
+
+/* ============================================
+   TABLE BLOCK STYLES
+   ============================================ */
+
+.table-block {
+  margin: 1.5rem 0;
+}
+
+.table-block-container {
+  background-color: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.75rem;
+  padding: 1rem;
+}
+
+.table-controls {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.table-control-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.5rem 0.875rem;
+  background-color: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.table-control-btn:hover {
+  background-color: #2563eb;
+}
+
+.table-control-done {
+  background-color: #10b981;
+}
+
+.table-control-done:hover {
+  background-color: #059669;
+}
+
+.table-wrapper {
+  overflow-x: auto;
+  cursor: pointer;
+}
+
+.table-wrapper[title] {
+  cursor: pointer;
+}
+
+.custom-table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+}
+
+.custom-table-cell {
+  border: 1px solid #e5e7eb;
+  padding: 0.75rem;
+  text-align: left;
+}
+
+.table-cell-input {
+  width: 100%;
+  border: none;
+  outline: none;
+  padding: 0.25rem;
+  font-size: 0.875rem;
+  background-color: transparent;
+  color: #1f2937;
+}
+
+.table-cell-input:focus {
+  background-color: #f3f4f6;
+  border-radius: 0.25rem;
+}
+
+.custom-table-cell span {
+  display: block;
+  min-height: 1.25rem;
+  color: #1f2937;
+}
+
+.table-action-cell {
+  border: 1px solid #e5e7eb;
+  padding: 0.5rem;
+  text-align: center;
+  background-color: #f9fafb;
+}
+
+.table-delete-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.25rem;
+  background-color: transparent;
+  color: #ef4444;
+  border: none;
+  border-radius: 0.25rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.table-delete-btn:hover:not(:disabled) {
+  background-color: #fee2e2;
+  color: #dc2626;
+}
+
+.table-delete-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+@media print {
+  .table-block-container {
+    background-color: white;
+    border: none;
+    padding: 0;
+  }
+
+  .table-controls {
+    display: none;
+  }
+
+  .table-action-cell {
+    display: none;
+  }
+
+  .custom-table {
+    page-break-inside: avoid;
+  }
+}

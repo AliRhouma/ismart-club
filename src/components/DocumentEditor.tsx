@@ -4,6 +4,7 @@ import Placeholder from '@tiptap/extension-placeholder';
 import { CalloutBlock } from '../extensions/CalloutBlock';
 import { HighlightBlock } from '../extensions/HighlightBlock';
 import { ImageDescriptionBlock } from '../extensions/ImageDescriptionBlock';
+import { TableBlock } from '../extensions/TableBlock';
 import { EditorToolbar } from './EditorToolbar';
 import { useEffect } from 'react';
 import { Extension } from '@tiptap/core';
@@ -11,7 +12,7 @@ import Suggestion from '@tiptap/suggestion';
 import { ReactRenderer } from '@tiptap/react';
 import tippy, { Instance as TippyInstance } from 'tippy.js';
 import { BlockSlashMenu } from './BlockSlashMenu';
-import { AlertCircle, Highlighter, Image } from 'lucide-react';
+import { AlertCircle, Highlighter, Image, Table } from 'lucide-react';
 
 interface DocumentEditorProps {
   content: any;
@@ -67,6 +68,19 @@ const SlashCommandExtension = Extension.create({
                   .focus()
                   .deleteRange(range)
                   .setImageDescriptionBlock()
+                  .run();
+              },
+            },
+            {
+              title: 'Table',
+              description: 'Insert a table with rows and columns',
+              icon: Table,
+              command: ({ editor, range }: any) => {
+                editor
+                  .chain()
+                  .focus()
+                  .deleteRange(range)
+                  .setTableBlock()
                   .run();
               },
             },
@@ -148,6 +162,7 @@ export function DocumentEditor({ content, onUpdate }: DocumentEditorProps) {
       CalloutBlock,
       HighlightBlock,
       ImageDescriptionBlock,
+      TableBlock,
       SlashCommandExtension,
     ],
     content,
