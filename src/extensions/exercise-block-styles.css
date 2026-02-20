@@ -1,0 +1,470 @@
+/* ============================================
+   EXERCISE BLOCK STYLES
+   ============================================ */
+
+.ex-block {
+  margin: 1.5rem 0;
+  border: 1.5px solid #d1d5db;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #ffffff;
+  font-family: 'Rubik', system-ui, sans-serif;
+  font-size: 0.875rem;
+  color: #111827;
+}
+
+/* ── Header ──────────────────────────────────────────────────────────────── */
+.ex-header {
+  display: flex;
+  flex-direction: column;
+  border-bottom: 1.5px solid #d1d5db;
+  background: #f9fafb;
+}
+
+.ex-header-row {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr; /* Titre wide | Type medium | Dimensions narrow */
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.ex-header-row:last-child {
+  border-bottom: none;
+}
+
+/* 4-column row for row 3 */
+.ex-header-row--4col {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+/* ── Field cell ──────────────────────────────────────────────────────────── */
+.ex-field {
+  display: flex;
+  flex-direction: column;
+  padding: 0.6rem 0.85rem;
+  border-right: 1px solid #e5e7eb;
+  gap: 0.3rem;
+}
+
+.ex-field:last-child {
+  border-right: none;
+}
+
+/* Grow/shrink variants */
+.ex-field--grow2 { /* Titre — take more space */ }
+.ex-field--grow1 { /* normal */ }
+.ex-field--shrink { /* Dimensions / Effectif */ }
+
+.ex-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+}
+
+/* ── Inputs ──────────────────────────────────────────────────────────────── */
+.ex-input {
+  width: 100%;
+  padding: 0.35rem 0.5rem;
+  font-size: 0.875rem;
+  font-family: inherit;
+  color: #111827;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  box-sizing: border-box;
+  min-width: 0;
+}
+
+.ex-input:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59,130,246,0.15);
+}
+
+/* Title input — slightly larger text */
+.ex-input--title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #111827;
+  background: transparent;
+  border-color: transparent;
+  padding-left: 0;
+}
+.ex-input--title:focus {
+  background: white;
+  border-color: #3b82f6;
+  padding-left: 0.5rem;
+}
+
+/* Select (free-text dropdown) */
+.ex-input--select {
+  cursor: text;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  padding-right: 24px;
+}
+
+/* Number inputs */
+.ex-input--num {
+  width: 56px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.ex-inline-group {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-wrap: nowrap;
+}
+
+.ex-unit {
+  font-size: 0.72rem;
+  color: #9ca3af;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* ── Body ────────────────────────────────────────────────────────────────── */
+.ex-body {
+  display: grid;
+  grid-template-columns: 160px 1fr 240px;
+  min-height: 320px;
+}
+
+/* ── Panel base ──────────────────────────────────────────────────────────── */
+.ex-panel {
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.ex-panel--left {
+  border-right: 1.5px solid #e5e7eb;
+  background: #f9fafb;
+}
+
+.ex-panel--center {
+  background: #e5f0e0; /* pitch green tint */
+  padding: 0.75rem;
+}
+
+.ex-panel--right {
+  border-left: 1.5px solid #e5e7eb;
+  overflow-y: auto;
+  max-height: 480px;
+}
+
+.ex-panel-title {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #374151;
+  margin: 0 0 0.25rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* ── Materials ───────────────────────────────────────────────────────────── */
+.ex-materials-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  flex: 1;
+}
+
+.ex-material-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 0.4rem 0.5rem;
+}
+
+.ex-material-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.ex-material-qty {
+  width: 48px !important;
+  font-weight: 600;
+}
+
+/* ── Image panel ─────────────────────────────────────────────────────────── */
+.ex-image-input-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1.5rem 1rem;
+  border: 2px dashed #9ca3af;
+  border-radius: 8px;
+  background: rgba(255,255,255,0.6);
+  text-align: center;
+  height: 100%;
+  box-sizing: border-box;
+  justify-content: center;
+}
+
+.ex-image-input-icon {
+  color: #6b7280;
+}
+
+.ex-image-input-title {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #374151;
+  margin: 0;
+}
+
+.ex-image-input-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.ex-image-preview {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.ex-image-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+  background: #d4e8c2;
+}
+
+.ex-image-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  background: rgba(0,0,0,0.45);
+  color: white;
+  font-size: 0.75rem;
+  font-weight: 600;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.ex-image-preview:hover .ex-image-overlay {
+  opacity: 1;
+}
+
+/* ── Sections (right panel) ──────────────────────────────────────────────── */
+.ex-sections-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  flex: 1;
+}
+
+.ex-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 0.6rem 0.75rem;
+}
+
+.ex-section-header {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.ex-section-title-input {
+  flex: 1;
+  font-weight: 700;
+  font-size: 0.82rem;
+  border-color: transparent;
+  background: transparent;
+  padding-left: 0;
+  color: #374151;
+}
+
+.ex-section-title-input:focus {
+  background: white;
+  border-color: #3b82f6;
+  padding-left: 0.5rem;
+}
+
+.ex-textarea {
+  width: 100%;
+  padding: 0.4rem 0.5rem;
+  font-size: 0.82rem;
+  font-family: inherit;
+  color: #374151;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  resize: vertical;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  box-sizing: border-box;
+  line-height: 1.5;
+}
+
+.ex-textarea:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59,130,246,0.15);
+}
+
+/* ── Buttons ─────────────────────────────────────────────────────────────── */
+.ex-btn-primary {
+  padding: 0.4rem 1rem;
+  background: #0091ff;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.15s;
+  font-family: inherit;
+}
+.ex-btn-primary:hover { background: #0077d4; }
+
+.ex-btn-ghost {
+  padding: 0.4rem 1rem;
+  background: transparent;
+  color: #6b7280;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  font-size: 0.82rem;
+  cursor: pointer;
+  font-family: inherit;
+}
+.ex-btn-ghost:hover { background: #f3f4f6; }
+
+.ex-btn-secondary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  padding: 0.4rem 0.75rem;
+  background: white;
+  color: #374151;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.15s;
+  font-family: inherit;
+}
+.ex-btn-secondary:hover { background: #f3f4f6; }
+
+.ex-btn--full { width: 100%; }
+
+.ex-btn-add-section {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  width: 100%;
+  padding: 0.55rem;
+  background: #22c55e;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.15s;
+  font-family: inherit;
+  margin-top: auto;
+}
+.ex-btn-add-section:hover { background: #16a34a; }
+
+/* Icon-only buttons */
+.ex-icon-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background-color 0.12s;
+}
+.ex-icon-btn--danger { color: #ef4444; }
+.ex-icon-btn--danger:hover { background: #fee2e2; }
+
+/* ── Print ────────────────────────────────────────────────────────────────── */
+@media print {
+  .ex-block {
+    border: 1px solid #d1d5db;
+    box-shadow: none;
+    break-inside: avoid;
+  }
+
+  .ex-btn-primary,
+  .ex-btn-ghost,
+  .ex-btn-secondary,
+  .ex-btn-add-section,
+  .ex-icon-btn,
+  .ex-image-overlay,
+  .ex-image-input-panel {
+    display: none !important;
+  }
+
+  .ex-input,
+  .ex-textarea {
+    border: none;
+    padding: 0;
+    background: transparent;
+  }
+
+  .ex-body {
+    grid-template-columns: 140px 1fr 220px;
+  }
+}
+
+/* ── Mobile ───────────────────────────────────────────────────────────────── */
+@media screen and (max-width: 768px) {
+  .ex-header-row,
+  .ex-header-row--4col {
+    grid-template-columns: 1fr;
+  }
+
+  .ex-field {
+    border-right: none;
+    border-bottom: 1px solid #e5e7eb;
+  }
+
+  .ex-body {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto auto;
+  }
+
+  .ex-panel--left,
+  .ex-panel--right {
+    border: none;
+    border-top: 1.5px solid #e5e7eb;
+    max-height: none;
+  }
+}
