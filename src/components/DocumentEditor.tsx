@@ -194,6 +194,8 @@ const SlashCommandExtension = Extension.create({
 export function DocumentEditor({ content, onUpdate }: DocumentEditorProps) {
   const editor = useEditor({
     extensions: [
+      TextStyle,
+      Color,
       StarterKit.configure({
         heading: {
           levels: [1, 2, 3],
@@ -203,8 +205,6 @@ export function DocumentEditor({ content, onUpdate }: DocumentEditorProps) {
         placeholder: 'Start typing or press / for commands...',
       }),
       Underline,
-      TextStyle,
-      Color,
       TextAlign.configure({
         types: ['heading', 'paragraph'],
         alignments: ['left', 'center', 'right', 'justify'],
