@@ -1,7 +1,7 @@
 import { Node, mergeAttributes } from '@tiptap/core';
 import { ReactNodeViewRenderer, NodeViewWrapper } from '@tiptap/react';
 import { useState, useCallback } from 'react';
-import { Plus, Trash2, ImageIcon, X } from 'lucide-react';
+import { Plus, Trash2, ImageIcon, X, Edit2, FileText } from 'lucide-react';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // MATERIAL SVG ICON (embedded — same icon for every material item)
@@ -71,6 +71,7 @@ interface ExerciseAttrs {
   materiaux: MaterialItem[];
   imageSrc: string;
   sections: Section[];
+  viewMode: 'edit' | 'document';
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -111,12 +112,155 @@ const FreeSelect = ({
 );
 
 // ─────────────────────────────────────────────────────────────────────────────
-// MAIN COMPONENT
+// DOCUMENT VIEW (PDF-FRIENDLY) COMPONENT
 // ─────────────────────────────────────────────────────────────────────────────
-const ExerciseBlockComponent = ({ node, updateAttributes }: any) => {
-  const attrs = node.attrs as ExerciseAttrs;
+const DocumentView = ({ attrs }: { attrs: ExerciseAttrs }) => {
+  const materiaux: MaterialItem[] = Array.isArray(attrs.materiaux) ? attrs.materiaux : [];
+  const sections: Section[] = Array.isArray(attrs.sections) ? attrs.sections : [];
 
-  // Ensure arrays are always real arrays (TipTap serialises attrs as JSON)
+  return (
+    <div className="ex-document-view">
+      <div className="ex-doc-header">
+        <h2 className="ex-doc-title">{attrs.titre || 'Sans titre'}</h2>
+        {attrs.type && <span className="ex-doc-badge">{attrs.type}</span>}
+      </div>
+
+      <div className="ex-doc-grid">
+        <div className="ex-doc-section">
+          <h3 className="ex-doc-section-title">Informations Terrain</h3>
+
+          {(attrs.dimensionLong || attrs.dimensionLarg) && (
+            <div className="ex-doc-item">
+              <span className="ex-doc-label">Dimensions:</span>
+              <span className="ex-doc-value">
+                {attrs.dimensionLong}m × {attrs.dimensionLarg}m
+              </span>
+            </div>
+          )}
+
+          {attrs.phaseDeJeu && (
+            <div className="ex-doc-item">
+              <span className="ex-doc-label">Phase de Jeu:</span>
+              <span className="ex-doc-value">{attrs.phaseDeJeu}</span>
+            </div>
+          )}
+
+          {attrs.principeDeJeu && (
+            <div className="ex-doc-item">
+              <span className="ex-doc-label">Principe de Jeu:</span>
+              <span className="ex-doc-value">{attrs.principeDeJeu}</span>
+            </div>
+          )}
+
+          {attrs.joueurs && (
+            <div className="ex-doc-item">
+              <span className="ex-doc-label">Joueurs:</span>
+              <span className="ex-doc-value">{attrs.joueurs}</span>
+            </div>
+          )}
+
+          {attrs.gb && (
+            <div className="ex-doc-item">
+              <span className="ex-doc-label">GB:</span>
+              <span className="ex-doc-value">{attrs.gb}</span>
+            </div>
+          )}
+
+          {attrs.educateur && (
+            <div className="ex-doc-item">
+              <span className="ex-doc-label">Éducateur:</span>
+              <span className="ex-doc-value">{attrs.educateur}</span>
+            </div>
+          )}
+        </div>
+
+        <div className="ex-doc-section">
+          <h3 className="ex-doc-section-title">Timing & Organisation</h3>
+
+          {attrs.duree && (
+            <div className="ex-doc-item">
+              <span className="ex-doc-label">Durée:</span>
+              <span className="ex-doc-value">{attrs.duree} min</span>
+            </div>
+          )}
+
+          {attrs.seqCount && (
+            <div className="ex-doc-item">
+              <span className="ex-doc-label">Nombre de séquences:</span>
+              <span className="ex-doc-value">{attrs.seqCount}</span>
+            </div>
+          )}
+
+          {attrs.seqMin && (
+            <div className="ex-doc-item">
+              <span className="ex-doc-label">Durée par séquence:</span>
+              <span className="ex-doc-value">{attrs.seqMin} min</span>
+            </div>
+          )}
+
+          {attrs.recuperation && (
+            <div className="ex-doc-item">
+              <span className="ex-doc-label">Récupération:</span>
+              <span className="ex-doc-value">{attrs.recuperation}s</span>
+            </div>
+          )}
+
+          {materiaux.length > 0 && (
+            <div className="ex-doc-materials">
+              <h4 className="ex-doc-subtitle">Matériaux nécessaires:</h4>
+              <div className="ex-doc-materials-list">
+                {materiaux.map((m) => (
+                  <div key={m.id} className="ex-doc-material-item">
+                    <MaterialIcon size={24} />
+                    <span>×{m.quantity}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {attrs.imageSrc && (
+        <div className="ex-doc-image-section">
+          <h3 className="ex-doc-section-title">Schéma du terrain</h3>
+          <img
+            src={attrs.imageSrc}
+            alt="Terrain"
+            className="ex-doc-image"
+            onError={(e) => {
+              (e.currentTarget as HTMLImageElement).style.display = 'none';
+            }}
+          />
+        </div>
+      )}
+
+      {sections.length > 0 && (
+        <div className="ex-doc-sections">
+          {sections.map((s) => (
+            <div key={s.id} className="ex-doc-section-block">
+              <h3 className="ex-doc-section-title">{s.title || 'Section'}</h3>
+              <p className="ex-doc-section-text">
+                {s.description || 'Aucune description'}
+              </p>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// EDIT VIEW (CURRENT DESIGN) COMPONENT
+// ─────────────────────────────────────────────────────────────────────────────
+const EditView = ({
+  attrs,
+  updateAttributes
+}: {
+  attrs: ExerciseAttrs;
+  updateAttributes: (attrs: Partial<ExerciseAttrs>) => void
+}) => {
   const materiaux: MaterialItem[] = Array.isArray(attrs.materiaux) ? attrs.materiaux : [];
   const sections: Section[] = Array.isArray(attrs.sections) ? attrs.sections : [];
 
@@ -157,11 +301,8 @@ const ExerciseBlockComponent = ({ node, updateAttributes }: any) => {
     setEditingImage(false);
   };
 
-  // ─────────────────────────────────────────────────────────────────────────
-  // RENDER
-  // ─────────────────────────────────────────────────────────────────────────
   return (
-    <NodeViewWrapper as="div" className="ex-block">
+    <>
 
       {/* ══════════════════════════════════════════════════════════════════
           HEADER GRID — 3 rows × 3 columns
@@ -478,6 +619,43 @@ const ExerciseBlockComponent = ({ node, updateAttributes }: any) => {
         </div>
 
       </div>
+    </>
+  );
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// MAIN COMPONENT WITH VIEW TOGGLE
+// ─────────────────────────────────────────────────────────────────────────────
+const ExerciseBlockComponent = ({ node, updateAttributes }: any) => {
+  const attrs = node.attrs as ExerciseAttrs;
+  const viewMode = attrs.viewMode || 'edit';
+
+  return (
+    <NodeViewWrapper as="div" className="ex-block">
+      <div className="ex-view-toggle print:hidden">
+        <button
+          className={`ex-toggle-btn ${viewMode === 'edit' ? 'active' : ''}`}
+          onClick={() => updateAttributes({ viewMode: 'edit' })}
+          title="Mode édition"
+        >
+          <Edit2 size={16} />
+          Édition
+        </button>
+        <button
+          className={`ex-toggle-btn ${viewMode === 'document' ? 'active' : ''}`}
+          onClick={() => updateAttributes({ viewMode: 'document' })}
+          title="Mode document (PDF)"
+        >
+          <FileText size={16} />
+          Document
+        </button>
+      </div>
+
+      {viewMode === 'document' ? (
+        <DocumentView attrs={attrs} />
+      ) : (
+        <EditView attrs={attrs} updateAttributes={updateAttributes} />
+      )}
     </NodeViewWrapper>
   );
 };
@@ -510,6 +688,7 @@ export const ExerciseBlock = Node.create({
       materiaux:      { default: [] },
       imageSrc:       { default: '' },
       sections:       { default: [] },
+      viewMode:       { default: 'edit' },
     };
   },
 
@@ -525,7 +704,7 @@ export const ExerciseBlock = Node.create({
     return ReactNodeViewRenderer(ExerciseBlockComponent);
   },
 
-  addCommands() { 
+  addCommands() {
     return {
       setExerciseBlock:
         () =>
@@ -549,6 +728,7 @@ export const ExerciseBlock = Node.create({
               materiaux: [],
               imageSrc: '',
               sections: [{ id: 'default', title: 'Objectif', description: '' }],
+              viewMode: 'edit',
             },
           }),
     } as any;

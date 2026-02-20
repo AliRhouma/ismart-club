@@ -416,6 +416,34 @@
 
 /* ── Print ────────────────────────────────────────────────────────────────── */
 @media print {
+  .ex-view-toggle {
+    display: none !important;
+  }
+
+  .ex-document-view {
+    border: none;
+    padding: 0;
+    page-break-inside: avoid;
+  }
+
+  .ex-doc-header {
+    page-break-after: avoid;
+  }
+
+  .ex-doc-section-block {
+    page-break-inside: avoid;
+  }
+
+  .ex-doc-image-section {
+    page-break-inside: avoid;
+  }
+
+  .ex-doc-badge,
+  .ex-doc-section-block {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
   .ex-block {
     border: 1px solid #d1d5db;
     box-shadow: none;
@@ -442,6 +470,200 @@
   .ex-body {
     grid-template-columns: 140px 1fr 220px;
   }
+}
+
+/* ── View Mode Toggle ─────────────────────────────────────────────────────── */
+.ex-view-toggle {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  padding: 0.5rem;
+  background: #f3f4f6;
+  border-radius: 0.5rem;
+}
+
+.ex-toggle-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: transparent;
+  border: none;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #6b7280;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.ex-toggle-btn:hover {
+  background: #e5e7eb;
+  color: #374151;
+}
+
+.ex-toggle-btn.active {
+  background: white;
+  color: #0091ff;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+/* ── Document View (PDF-Friendly) ─────────────────────────────────────────── */
+.ex-document-view {
+  background: white;
+  padding: 2rem;
+  border-radius: 0.5rem;
+  border: 1px solid #e5e7eb;
+}
+
+.ex-doc-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid #e5e7eb;
+}
+
+.ex-doc-title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #111827;
+  margin: 0;
+  flex: 1;
+}
+
+.ex-doc-badge {
+  display: inline-block;
+  padding: 0.375rem 0.75rem;
+  background: #0091ff;
+  color: white;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.ex-doc-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  margin-bottom: 2rem;
+}
+
+@media (max-width: 768px) {
+  .ex-doc-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+}
+
+.ex-doc-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.ex-doc-section-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #111827;
+  margin: 0 0 0.5rem 0;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.ex-doc-subtitle {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #374151;
+  margin: 1rem 0 0.5rem 0;
+}
+
+.ex-doc-item {
+  display: flex;
+  gap: 0.5rem;
+  font-size: 0.9375rem;
+  line-height: 1.6;
+}
+
+.ex-doc-label {
+  font-weight: 500;
+  color: #6b7280;
+  min-width: 140px;
+}
+
+.ex-doc-value {
+  font-weight: 400;
+  color: #111827;
+  flex: 1;
+}
+
+.ex-doc-materials {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #f3f4f6;
+}
+
+.ex-doc-materials-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.ex-doc-material-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #374151;
+}
+
+.ex-doc-image-section {
+  margin: 2rem 0;
+}
+
+.ex-doc-image {
+  width: 100%;
+  max-height: 400px;
+  object-fit: contain;
+  border-radius: 0.5rem;
+  border: 1px solid #e5e7eb;
+  margin-top: 1rem;
+}
+
+.ex-doc-sections {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  margin-top: 2rem;
+}
+
+.ex-doc-section-block {
+  padding: 1.5rem;
+  background: #f9fafb;
+  border-left: 4px solid #0091ff;
+  border-radius: 0 0.5rem 0.5rem 0;
+}
+
+.ex-doc-section-block .ex-doc-section-title {
+  border-bottom: none;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0;
+  color: #0091ff;
+}
+
+.ex-doc-section-text {
+  font-size: 0.9375rem;
+  line-height: 1.7;
+  color: #374151;
+  margin: 0;
+  white-space: pre-wrap;
 }
 
 /* ── Mobile ───────────────────────────────────────────────────────────────── */
