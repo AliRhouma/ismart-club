@@ -12,6 +12,7 @@ import { TableBlock } from '../extensions/TableBlock';
 import { Columns, Column } from '../extensions/ColumnsBlock';
 import { ImageBlock } from '../extensions/ImageBlock';
 import { ExerciseBlock } from '../extensions/ExerciseBlock';
+import { ProcedeBlock } from '../extensions/ProcedeBlock';
 import { PageHeaderBlock } from './PageHeaderBlock';
 import { EditorToolbar } from './EditorToolbar';
 import { useEffect } from 'react';
@@ -20,7 +21,7 @@ import Suggestion from '@tiptap/suggestion';
 import { ReactRenderer } from '@tiptap/react';
 import tippy, { Instance as TippyInstance } from 'tippy.js';
 import { BlockSlashMenu } from './BlockSlashMenu';
-import { AlertCircle, Highlighter, Image, ImagePlus, Table, Columns as ColumnsIcon, LayoutTemplate, ClipboardList } from 'lucide-react';
+import { AlertCircle, Highlighter, Image, ImagePlus, Table, Columns as ColumnsIcon, LayoutTemplate, ClipboardList, BookOpen } from 'lucide-react';
 
 interface DocumentEditorProps {
   content: any;
@@ -116,6 +117,19 @@ const SlashCommandExtension = Extension.create({
                   .focus()
                   .deleteRange(range)
                   .setExerciseBlock()
+                  .run();
+              },
+            },
+            {
+              title: 'Procédé',
+              description: 'Fiche de procédé tactique (terrain, organisation, sections)',
+              icon: BookOpen,
+              command: ({ editor, range }: any) => {
+                editor
+                  .chain()
+                  .focus()
+                  .deleteRange(range)
+                  .setProcedeBlock()
                   .run();
               },
             },
@@ -243,6 +257,7 @@ export function DocumentEditor({ content, onUpdate, padding = 'normal' }: Docume
       ImageDescriptionBlock,
       ImageBlock,
       ExerciseBlock,
+      ProcedeBlock,
       PageHeaderBlock,
       TableBlock,
       Column,
