@@ -112,112 +112,154 @@ const FreeSelect = ({
 );
 
 // ─────────────────────────────────────────────────────────────────────────────
-// DOCUMENT VIEW (PDF-FRIENDLY) COMPONENT
+// DOCUMENT VIEW — Fiche de séance style
 // ─────────────────────────────────────────────────────────────────────────────
 const DocumentView = ({ attrs }: { attrs: ProcedeAttrs }) => {
   const materiaux: MaterialItem[] = Array.isArray(attrs.materiaux) ? attrs.materiaux : [];
   const sections: Section[] = Array.isArray(attrs.sections) ? attrs.sections : [];
 
-  return (
-    <div className="procede-document-view">
-      {/* Header with title */}
-      <div className="procede-doc-header">
-        <h2 className="procede-doc-title">{attrs.titre || 'Sans titre'}</h2>
-        {attrs.type && <span className="procede-doc-badge">{attrs.type}</span>}
-      </div>
+  // Compute total duration for display
+  const totalDuree = attrs.duree
+    ? `${attrs.duree} min`
+    : attrs.seqCount && attrs.seqMin
+    ? `${Number(attrs.seqCount) * Number(attrs.seqMin)} min`
+    : null;
 
-      {/* Main info grid */}
-      <div className="procede-doc-grid">
-        {/* Left column - Field info */}
-        <div className="procede-doc-section">
-          <h3 className="procede-doc-section-title">Informations Terrain</h3>
-          
-          {(attrs.dimensionLong || attrs.dimensionLarg) && (
-            <div className="procede-doc-item">
-              <span className="procede-doc-label">Dimensions:</span>
-              <span className="procede-doc-value">
-                {attrs.dimensionLong}m × {attrs.dimensionLarg}m
+  return (
+    <div className="fd-doc">
+
+      {/* ── HEADER ── */}
+      <div className="fd-header">
+        <div className="fd-header-top">
+          {attrs.type && <span className="fd-type-badge">{attrs.type}</span>}
+          {attrs.educateur && (
+            <span className="fd-educateur">
+              <span className="fd-educateur-label">Éducateur</span>
+              <span className="fd-educateur-name">{attrs.educateur}</span>
+            </span>
+          )}
+        </div>
+        <h1 className="fd-title">{attrs.titre || 'Sans titre'}</h1>
+
+        {/* ── META BAR ── */}
+        <div className="fd-meta-bar">
+          {attrs.phaseDeJeu && (
+            <div className="fd-meta-item">
+              <span className="fd-meta-label">Phase de jeu</span>
+              <span className="fd-meta-value">{attrs.phaseDeJeu}</span>
+            </div>
+          )}
+          {attrs.principeDeJeu && (
+            <div className="fd-meta-item">
+              <span className="fd-meta-label">Principe de jeu</span>
+              <span className="fd-meta-value">{attrs.principeDeJeu}</span>
+            </div>
+          )}
+          {(attrs.joueurs || attrs.gb) && (
+            <div className="fd-meta-item fd-meta-item--sm">
+              <span className="fd-meta-label">Joueurs</span>
+              <span className="fd-meta-value">
+                {attrs.joueurs || '—'}
+                {attrs.gb ? ` + ${attrs.gb} GB` : ''}
               </span>
             </div>
           )}
-
-          {attrs.phaseDeJeu && (
-            <div className="procede-doc-item">
-              <span className="procede-doc-label">Phase de Jeu:</span>
-              <span className="procede-doc-value">{attrs.phaseDeJeu}</span>
+          {(attrs.dimensionLong || attrs.dimensionLarg) && (
+            <div className="fd-meta-item fd-meta-item--sm">
+              <span className="fd-meta-label">Terrain</span>
+              <span className="fd-meta-value">
+                {attrs.dimensionLong || '?'}m × {attrs.dimensionLarg || '?'}m
+              </span>
             </div>
           )}
-
-          {attrs.principeDeJeu && (
-            <div className="procede-doc-item">
-              <span className="procede-doc-label">Principe de Jeu:</span>
-              <span className="procede-doc-value">{attrs.principeDeJeu}</span>
+          {totalDuree && (
+            <div className="fd-meta-item fd-meta-item--sm">
+              <span className="fd-meta-label">Durée</span>
+              <span className="fd-meta-value">{totalDuree}</span>
             </div>
           )}
+        </div>
+      </div>
 
-          {attrs.joueurs && (
-            <div className="procede-doc-item">
-              <span className="procede-doc-label">Joueurs:</span>
-              <span className="procede-doc-value">{attrs.joueurs}</span>
-            </div>
-          )}
+      {/* ── BODY: TERRAIN + ORGANISATION ── */}
+      <div className="fd-body">
 
-          {attrs.gb && (
-            <div className="procede-doc-item">
-              <span className="procede-doc-label">GB:</span>
-              <span className="procede-doc-value">{attrs.gb}</span>
-            </div>
-          )}
-
-          {attrs.educateur && (
-            <div className="procede-doc-item">
-              <span className="procede-doc-label">Éducateur:</span>
-              <span className="procede-doc-value">{attrs.educateur}</span>
+        {/* Left: terrain schema */}
+        <div className="fd-terrain">
+          {attrs.imageSrc ? (
+            <img
+              src={attrs.imageSrc}
+              alt="Schéma du terrain"
+              className="fd-terrain-img"
+              onError={(e) => {
+                (e.currentTarget as HTMLImageElement).style.display = 'none';
+              }}
+            />
+          ) : (
+            <div className="fd-terrain-placeholder">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2">
+                <rect x="3" y="3" width="18" height="18" rx="1"/>
+                <line x1="12" y1="3" x2="12" y2="21"/>
+                <circle cx="12" cy="12" r="3"/>
+                <line x1="3" y1="9" x2="6" y2="9"/>
+                <line x1="3" y1="15" x2="6" y2="15"/>
+                <line x1="18" y1="9" x2="21" y2="9"/>
+                <line x1="18" y1="15" x2="21" y2="15"/>
+              </svg>
+              <span>Schéma du terrain</span>
             </div>
           )}
         </div>
 
-        {/* Right column - Timing info */}
-        <div className="procede-doc-section">
-          <h3 className="procede-doc-section-title">Timing & Organisation</h3>
-          
-          {attrs.duree && (
-            <div className="procede-doc-item">
-              <span className="procede-doc-label">Durée:</span>
-              <span className="procede-doc-value">{attrs.duree} min</span>
-            </div>
-          )}
+        {/* Right: organisation panel */}
+        <div className="fd-org">
 
-          {attrs.seqCount && (
-            <div className="procede-doc-item">
-              <span className="procede-doc-label">Nombre de séquences:</span>
-              <span className="procede-doc-value">{attrs.seqCount}</span>
+          {/* Timing */}
+          <div className="fd-org-block">
+            <div className="fd-org-block-title">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+                <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+              </svg>
+              Organisation
             </div>
-          )}
-
-          {attrs.seqMin && (
-            <div className="procede-doc-item">
-              <span className="procede-doc-label">Durée par séquence:</span>
-              <span className="procede-doc-value">{attrs.seqMin} min</span>
+            <div className="fd-org-rows">
+              {attrs.duree && (
+                <div className="fd-org-row">
+                  <span className="fd-org-key">Durée totale</span>
+                  <span className="fd-org-val">{attrs.duree} min</span>
+                </div>
+              )}
+              {(attrs.seqCount || attrs.seqMin) && (
+                <div className="fd-org-row">
+                  <span className="fd-org-key">Séquences</span>
+                  <span className="fd-org-val">
+                    {attrs.seqCount || '?'} × {attrs.seqMin || '?'} min
+                  </span>
+                </div>
+              )}
+              {attrs.recuperation && (
+                <div className="fd-org-row">
+                  <span className="fd-org-key">Récupération</span>
+                  <span className="fd-org-val">{attrs.recuperation} s</span>
+                </div>
+              )}
             </div>
-          )}
-
-          {attrs.recuperation && (
-            <div className="procede-doc-item">
-              <span className="procede-doc-label">Récupération:</span>
-              <span className="procede-doc-value">{attrs.recuperation}s</span>
-            </div>
-          )}
+          </div>
 
           {/* Materials */}
           {materiaux.length > 0 && (
-            <div className="procede-doc-materials">
-              <h4 className="procede-doc-subtitle">Matériaux nécessaires:</h4>
-              <div className="procede-doc-materials-list">
+            <div className="fd-org-block">
+              <div className="fd-org-block-title">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+                  <circle cx="12" cy="12" r="10"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/><line x1="2" y1="12" x2="22" y2="12"/>
+                </svg>
+                Matériaux
+              </div>
+              <div className="fd-materials-grid">
                 {materiaux.map((m) => (
-                  <div key={m.id} className="procede-doc-material-item">
-                    <MaterialIcon size={24} />
-                    <span>×{m.quantity}</span>
+                  <div key={m.id} className="fd-material-chip">
+                    <MaterialIcon size={22} />
+                    <span className="fd-material-qty">×{m.quantity}</span>
                   </div>
                 ))}
               </div>
@@ -226,29 +268,17 @@ const DocumentView = ({ attrs }: { attrs: ProcedeAttrs }) => {
         </div>
       </div>
 
-      {/* Image section */}
-      {attrs.imageSrc && (
-        <div className="procede-doc-image-section">
-          <h3 className="procede-doc-section-title">Schéma du terrain</h3>
-          <img
-            src={attrs.imageSrc}
-            alt="Terrain"
-            className="procede-doc-image"
-            onError={(e) => {
-              (e.currentTarget as HTMLImageElement).style.display = 'none';
-            }}
-          />
-        </div>
-      )}
-
-      {/* Sections (Objectifs, Consignes, etc.) */}
+      {/* ── SECTIONS: Objectif, Consignes, etc. ── */}
       {sections.length > 0 && (
-        <div className="procede-doc-sections">
-          {sections.map((s) => (
-            <div key={s.id} className="procede-doc-section-block">
-              <h3 className="procede-doc-section-title">{s.title || 'Section'}</h3>
-              <p className="procede-doc-section-text">
-                {s.description || 'Aucune description'}
+        <div className="fd-sections">
+          {sections.map((s, i) => (
+            <div key={s.id} className="fd-section-block">
+              <div className="fd-section-header">
+                <span className="fd-section-num">{String(i + 1).padStart(2, '0')}</span>
+                <span className="fd-section-title">{s.title || 'Section'}</span>
+              </div>
+              <p className="fd-section-body">
+                {s.description || <em style={{ color: '#9ca3af' }}>Aucune description.</em>}
               </p>
             </div>
           ))}
