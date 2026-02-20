@@ -11,6 +11,7 @@ import { ImageDescriptionBlock } from '../extensions/ImageDescriptionBlock';
 import { TableBlock } from '../extensions/TableBlock';
 import { Columns, Column } from '../extensions/ColumnsBlock';
 import { ImageBlock } from '../extensions/ImageBlock';
+import { ExerciseBlock } from '../extensions/ExerciseBlock';
 import { PageHeaderBlock } from './PageHeaderBlock';
 import { EditorToolbar } from './EditorToolbar';
 import { useEffect } from 'react';
@@ -19,7 +20,7 @@ import Suggestion from '@tiptap/suggestion';
 import { ReactRenderer } from '@tiptap/react';
 import tippy, { Instance as TippyInstance } from 'tippy.js';
 import { BlockSlashMenu } from './BlockSlashMenu';
-import { AlertCircle, Highlighter, Image, ImagePlus, Table, Columns as ColumnsIcon, LayoutTemplate } from 'lucide-react';
+import { AlertCircle, Highlighter, Image, ImagePlus, Table, Columns as ColumnsIcon, LayoutTemplate, ClipboardList } from 'lucide-react';
 
 interface DocumentEditorProps {
   content: any;
@@ -101,6 +102,19 @@ const SlashCommandExtension = Extension.create({
                   .focus()
                   .deleteRange(range)
                   .setPageHeaderBlock()
+                  .run();
+              },
+            },
+            {
+              title: 'Exercice',
+              description: 'Fiche d\'exercice complète (terrain, matériaux, objectifs)',
+              icon: ClipboardList,
+              command: ({ editor, range }: any) => {
+                editor
+                  .chain()
+                  .focus()
+                  .deleteRange(range)
+                  .setExerciseBlock()
                   .run();
               },
             },
@@ -227,6 +241,7 @@ export function DocumentEditor({ content, onUpdate }: DocumentEditorProps) {
       HighlightBlock,
       ImageDescriptionBlock,
       ImageBlock,
+      ExerciseBlock,
       PageHeaderBlock,
       TableBlock,
       Column,

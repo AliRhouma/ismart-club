@@ -1,4 +1,5 @@
 @import './components/page-header-styles.css';
+@import './extensions/exercise-block-styles.css';
 
 @tailwind base;
 @tailwind components;
