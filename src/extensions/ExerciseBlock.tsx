@@ -1,7 +1,7 @@
 import { Node, mergeAttributes } from '@tiptap/core';
 import { ReactNodeViewRenderer, NodeViewWrapper } from '@tiptap/react';
 import { useState, useCallback } from 'react';
-import { Plus, Trash2, ImageIcon, X } from 'lucide-react';
+import { Plus, Trash2, ImageIcon, X, Edit2, FileText } from 'lucide-react';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // MATERIAL SVG ICON (embedded — same icon for every material item)
@@ -54,7 +54,7 @@ interface Section {
   description: string;
 }
 
-interface ExerciseAttrs {
+interface ProcedeAttrs {
   titre: string;
   type: string;
   dimensionLong: number | string;
@@ -71,6 +71,7 @@ interface ExerciseAttrs {
   materiaux: MaterialItem[];
   imageSrc: string;
   sections: Section[];
+  viewMode: 'edit' | 'document'; // ✅ NEW: View mode toggle
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -111,27 +112,174 @@ const FreeSelect = ({
 );
 
 // ─────────────────────────────────────────────────────────────────────────────
-// MAIN COMPONENT
+// DOCUMENT VIEW (PDF-FRIENDLY) COMPONENT
 // ─────────────────────────────────────────────────────────────────────────────
-const ExerciseBlockComponent = ({ node, updateAttributes }: any) => {
-  const attrs = node.attrs as ExerciseAttrs;
-
-  // Ensure arrays are always real arrays (TipTap serialises attrs as JSON)
+const DocumentView = ({ attrs }: { attrs: ProcedeAttrs }) => {
   const materiaux: MaterialItem[] = Array.isArray(attrs.materiaux) ? attrs.materiaux : [];
   const sections: Section[] = Array.isArray(attrs.sections) ? attrs.sections : [];
 
-  // Local state for image URL edit mode
+  return (
+    <div className="procede-document-view">
+      {/* Header with title */}
+      <div className="procede-doc-header">
+        <h2 className="procede-doc-title">{attrs.titre || 'Sans titre'}</h2>
+        {attrs.type && <span className="procede-doc-badge">{attrs.type}</span>}
+      </div>
+
+      {/* Main info grid */}
+      <div className="procede-doc-grid">
+        {/* Left column - Field info */}
+        <div className="procede-doc-section">
+          <h3 className="procede-doc-section-title">Informations Terrain</h3>
+          
+          {(attrs.dimensionLong || attrs.dimensionLarg) && (
+            <div className="procede-doc-item">
+              <span className="procede-doc-label">Dimensions:</span>
+              <span className="procede-doc-value">
+                {attrs.dimensionLong}m × {attrs.dimensionLarg}m
+              </span>
+            </div>
+          )}
+
+          {attrs.phaseDeJeu && (
+            <div className="procede-doc-item">
+              <span className="procede-doc-label">Phase de Jeu:</span>
+              <span className="procede-doc-value">{attrs.phaseDeJeu}</span>
+            </div>
+          )}
+
+          {attrs.principeDeJeu && (
+            <div className="procede-doc-item">
+              <span className="procede-doc-label">Principe de Jeu:</span>
+              <span className="procede-doc-value">{attrs.principeDeJeu}</span>
+            </div>
+          )}
+
+          {attrs.joueurs && (
+            <div className="procede-doc-item">
+              <span className="procede-doc-label">Joueurs:</span>
+              <span className="procede-doc-value">{attrs.joueurs}</span>
+            </div>
+          )}
+
+          {attrs.gb && (
+            <div className="procede-doc-item">
+              <span className="procede-doc-label">GB:</span>
+              <span className="procede-doc-value">{attrs.gb}</span>
+            </div>
+          )}
+
+          {attrs.educateur && (
+            <div className="procede-doc-item">
+              <span className="procede-doc-label">Éducateur:</span>
+              <span className="procede-doc-value">{attrs.educateur}</span>
+            </div>
+          )}
+        </div>
+
+        {/* Right column - Timing info */}
+        <div className="procede-doc-section">
+          <h3 className="procede-doc-section-title">Timing & Organisation</h3>
+          
+          {attrs.duree && (
+            <div className="procede-doc-item">
+              <span className="procede-doc-label">Durée:</span>
+              <span className="procede-doc-value">{attrs.duree} min</span>
+            </div>
+          )}
+
+          {attrs.seqCount && (
+            <div className="procede-doc-item">
+              <span className="procede-doc-label">Nombre de séquences:</span>
+              <span className="procede-doc-value">{attrs.seqCount}</span>
+            </div>
+          )}
+
+          {attrs.seqMin && (
+            <div className="procede-doc-item">
+              <span className="procede-doc-label">Durée par séquence:</span>
+              <span className="procede-doc-value">{attrs.seqMin} min</span>
+            </div>
+          )}
+
+          {attrs.recuperation && (
+            <div className="procede-doc-item">
+              <span className="procede-doc-label">Récupération:</span>
+              <span className="procede-doc-value">{attrs.recuperation}s</span>
+            </div>
+          )}
+
+          {/* Materials */}
+          {materiaux.length > 0 && (
+            <div className="procede-doc-materials">
+              <h4 className="procede-doc-subtitle">Matériaux nécessaires:</h4>
+              <div className="procede-doc-materials-list">
+                {materiaux.map((m) => (
+                  <div key={m.id} className="procede-doc-material-item">
+                    <MaterialIcon size={24} />
+                    <span>×{m.quantity}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Image section */}
+      {attrs.imageSrc && (
+        <div className="procede-doc-image-section">
+          <h3 className="procede-doc-section-title">Schéma du terrain</h3>
+          <img
+            src={attrs.imageSrc}
+            alt="Terrain"
+            className="procede-doc-image"
+            onError={(e) => {
+              (e.currentTarget as HTMLImageElement).style.display = 'none';
+            }}
+          />
+        </div>
+      )}
+
+      {/* Sections (Objectifs, Consignes, etc.) */}
+      {sections.length > 0 && (
+        <div className="procede-doc-sections">
+          {sections.map((s) => (
+            <div key={s.id} className="procede-doc-section-block">
+              <h3 className="procede-doc-section-title">{s.title || 'Section'}</h3>
+              <p className="procede-doc-section-text">
+                {s.description || 'Aucune description'}
+              </p>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// EDIT VIEW (CURRENT DESIGN) COMPONENT
+// ─────────────────────────────────────────────────────────────────────────────
+const EditView = ({ 
+  attrs, 
+  updateAttributes 
+}: { 
+  attrs: ProcedeAttrs; 
+  updateAttributes: (attrs: Partial<ProcedeAttrs>) => void 
+}) => {
+  const materiaux: MaterialItem[] = Array.isArray(attrs.materiaux) ? attrs.materiaux : [];
+  const sections: Section[] = Array.isArray(attrs.sections) ? attrs.sections : [];
+
   const [editingImage, setEditingImage] = useState(!attrs.imageSrc);
   const [imgInput, setImgInput] = useState(attrs.imageSrc || '');
 
-  // ── Generic field updater ────────────────────────────────────────────────
   const set = useCallback(
-    (field: keyof ExerciseAttrs) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
+    (field: keyof ProcedeAttrs) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
       updateAttributes({ [field]: e.target.value }),
     [updateAttributes]
   );
 
-  // ── Materials ────────────────────────────────────────────────────────────
   const addMaterial = () =>
     updateAttributes({ materiaux: [...materiaux, { id: uid(), quantity: 1 }] });
 
@@ -141,7 +289,6 @@ const ExerciseBlockComponent = ({ node, updateAttributes }: any) => {
   const deleteMaterial = (id: string) =>
     updateAttributes({ materiaux: materiaux.filter((m) => m.id !== id) });
 
-  // ── Sections (Objectif / Consignes / …) ─────────────────────────────────
   const addSection = () =>
     updateAttributes({ sections: [...sections, { id: uid(), title: 'Objectif', description: '' }] });
 
@@ -151,26 +298,17 @@ const ExerciseBlockComponent = ({ node, updateAttributes }: any) => {
   const deleteSection = (id: string) =>
     updateAttributes({ sections: sections.filter((s) => s.id !== id) });
 
-  // ── Image ────────────────────────────────────────────────────────────────
   const applyImage = () => {
     updateAttributes({ imageSrc: imgInput.trim() });
     setEditingImage(false);
   };
 
-  // ─────────────────────────────────────────────────────────────────────────
-  // RENDER
-  // ─────────────────────────────────────────────────────────────────────────
   return (
-    <NodeViewWrapper as="div" className="ex-block">
-
-      {/* ══════════════════════════════════════════════════════════════════
-          HEADER GRID — 3 rows × 3 columns
-      ══════════════════════════════════════════════════════════════════ */}
+    <>
+      {/* HEADER GRID */}
       <div className="ex-header">
-
-        {/* ── Row 1 ─────────────────────────────────────────────────────── */}
+        {/* Row 1 */}
         <div className="ex-header-row">
-          {/* Titre */}
           <div className="ex-field ex-field--grow2">
             <label className="ex-label">Titre</label>
             <input
@@ -181,7 +319,6 @@ const ExerciseBlockComponent = ({ node, updateAttributes }: any) => {
             />
           </div>
 
-          {/* Type */}
           <div className="ex-field ex-field--grow1">
             <label className="ex-label">Type</label>
             <FreeSelect
@@ -193,7 +330,6 @@ const ExerciseBlockComponent = ({ node, updateAttributes }: any) => {
             />
           </div>
 
-          {/* Dimensions */}
           <div className="ex-field ex-field--shrink">
             <label className="ex-label">Dimensions</label>
             <div className="ex-inline-group">
@@ -217,9 +353,8 @@ const ExerciseBlockComponent = ({ node, updateAttributes }: any) => {
           </div>
         </div>
 
-        {/* ── Row 2 ─────────────────────────────────────────────────────── */}
+        {/* Row 2 */}
         <div className="ex-header-row">
-          {/* Phase de Jeu */}
           <div className="ex-field ex-field--grow1">
             <label className="ex-label">Phase De Jeu</label>
             <FreeSelect
@@ -227,17 +362,16 @@ const ExerciseBlockComponent = ({ node, updateAttributes }: any) => {
               value={attrs.phaseDeJeu}
               onChange={(v) => updateAttributes({ phaseDeJeu: v })}
               options={[
-                'Déséquilibrer - Finir',
-                'Construire',
+                'Récupération du ballon',
+                'Construction',
+                'Finition',
                 'Transition offensive',
                 'Transition défensive',
                 'Organisation défensive',
               ]}
-              placeholder="Déséquilibrer - Finir"
             />
           </div>
 
-          {/* Principe de Jeu */}
           <div className="ex-field ex-field--grow1">
             <label className="ex-label">Principe De Jeu</label>
             <FreeSelect
@@ -245,45 +379,43 @@ const ExerciseBlockComponent = ({ node, updateAttributes }: any) => {
               value={attrs.principeDeJeu}
               onChange={(v) => updateAttributes({ principeDeJeu: v })}
               options={[
-                'Jouer combiné pour créer un surnombre',
                 'Conservation du ballon',
-                'Pressing haut',
-                'Jeu direct',
-                'Permutation',
+                'Progression',
+                'Prise de l\'intervalle',
+                'Jeu dans le dos',
+                'Pressing',
+                'Couverture',
               ]}
-              placeholder="Jouer combiné pour créer un surnombre"
             />
           </div>
 
-          {/* Effectif */}
-          <div className="ex-field ex-field--shrink">
-            <label className="ex-label">Effectif</label>
-            <div className="ex-inline-group">
-              <input
-                className="ex-input ex-input--num"
-                type="number"
-                value={attrs.joueurs}
-                onChange={set('joueurs')}
-                placeholder="8"
-              />
-              <span className="ex-unit">Joueurs</span>
-              <input
-                className="ex-input ex-input--num"
-                type="number"
-                value={attrs.gb}
-                onChange={set('gb')}
-                placeholder="2"
-              />
-              <span className="ex-unit">GB</span>
-            </div>
+          <div className="ex-field">
+            <label className="ex-label">Joueurs</label>
+            <input
+              className="ex-input"
+              type="number"
+              value={attrs.joueurs}
+              onChange={set('joueurs')}
+              placeholder="12"
+            />
+          </div>
+
+          <div className="ex-field">
+            <label className="ex-label">GB</label>
+            <input
+              className="ex-input"
+              type="number"
+              value={attrs.gb}
+              onChange={set('gb')}
+              placeholder="2"
+            />
           </div>
         </div>
 
-        {/* ── Row 3 ─────────────────────────────────────────────────────── */}
-        <div className="ex-header-row ex-header-row--4col">
-          {/* Educateur */}
-          <div className="ex-field">
-            <label className="ex-label">Educateur</label>
+        {/* Row 3 */}
+        <div className="ex-header-row">
+          <div className="ex-field ex-field--grow1">
+            <label className="ex-label">Éducateur</label>
             <input
               className="ex-input"
               value={attrs.educateur}
@@ -292,19 +424,17 @@ const ExerciseBlockComponent = ({ node, updateAttributes }: any) => {
             />
           </div>
 
-          {/* Durée */}
           <div className="ex-field">
-            <label className="ex-label">Durée (Minutes)</label>
+            <label className="ex-label">Durée (Min)</label>
             <input
               className="ex-input"
               type="number"
               value={attrs.duree}
               onChange={set('duree')}
-              placeholder="12"
+              placeholder="min"
             />
           </div>
 
-          {/* Séquence */}
           <div className="ex-field">
             <label className="ex-label">Séquence</label>
             <div className="ex-inline-group">
@@ -313,7 +443,7 @@ const ExerciseBlockComponent = ({ node, updateAttributes }: any) => {
                 type="number"
                 value={attrs.seqCount}
                 onChange={set('seqCount')}
-                placeholder="4"
+                placeholder="X"
               />
               <span className="ex-unit">×</span>
               <input
@@ -321,13 +451,11 @@ const ExerciseBlockComponent = ({ node, updateAttributes }: any) => {
                 type="number"
                 value={attrs.seqMin}
                 onChange={set('seqMin')}
-                placeholder="3"
+                placeholder="Min"
               />
-              <span className="ex-unit">seq.min</span>
             </div>
           </div>
 
-          {/* Récupération */}
           <div className="ex-field">
             <label className="ex-label">Récupération (Secondes)</label>
             <input
@@ -341,23 +469,17 @@ const ExerciseBlockComponent = ({ node, updateAttributes }: any) => {
         </div>
       </div>
 
-      {/* ══════════════════════════════════════════════════════════════════
-          BODY — 3 panels: Materials | Image | Sections
-      ══════════════════════════════════════════════════════════════════ */}
+      {/* BODY */}
       <div className="ex-body">
-
-        {/* ── LEFT: Matériaux ───────────────────────────────────────────── */}
+        {/* Materials */}
         <div className="ex-panel ex-panel--left">
           <p className="ex-panel-title">Matériaux</p>
-
           <div className="ex-materials-list">
             {materiaux.map((m) => (
               <div key={m.id} className="ex-material-row">
-                {/* SVG icon */}
                 <div className="ex-material-icon">
                   <MaterialIcon size={36} />
                 </div>
-                {/* Quantity */}
                 <input
                   className="ex-input ex-input--num ex-material-qty"
                   type="number"
@@ -365,7 +487,6 @@ const ExerciseBlockComponent = ({ node, updateAttributes }: any) => {
                   value={m.quantity}
                   onChange={(e) => updateMaterialQty(m.id, Number(e.target.value))}
                 />
-                {/* Delete */}
                 <button
                   className="ex-icon-btn ex-icon-btn--danger"
                   onMouseDown={(e) => e.preventDefault()}
@@ -377,14 +498,13 @@ const ExerciseBlockComponent = ({ node, updateAttributes }: any) => {
               </div>
             ))}
           </div>
-
           <button className="ex-btn-secondary ex-btn--full" onClick={addMaterial}>
             <Plus size={14} />
             Gérer
           </button>
         </div>
 
-        {/* ── CENTER: Image ─────────────────────────────────────────────── */}
+        {/* Image */}
         <div className="ex-panel ex-panel--center">
           {editingImage ? (
             <div className="ex-image-input-panel">
@@ -405,10 +525,7 @@ const ExerciseBlockComponent = ({ node, updateAttributes }: any) => {
                   Insérer
                 </button>
                 {attrs.imageSrc && (
-                  <button
-                    className="ex-btn-ghost"
-                    onClick={() => setEditingImage(false)}
-                  >
+                  <button className="ex-btn-ghost" onClick={() => setEditingImage(false)}>
                     Annuler
                   </button>
                 )}
@@ -436,12 +553,11 @@ const ExerciseBlockComponent = ({ node, updateAttributes }: any) => {
           )}
         </div>
 
-        {/* ── RIGHT: Sections (Objectif / Consignes / …) ────────────────── */}
+        {/* Sections */}
         <div className="ex-panel ex-panel--right">
           <div className="ex-sections-list">
             {sections.map((s) => (
               <div key={s.id} className="ex-section">
-                {/* Section title row */}
                 <div className="ex-section-header">
                   <input
                     className="ex-input ex-section-title-input"
@@ -458,7 +574,6 @@ const ExerciseBlockComponent = ({ node, updateAttributes }: any) => {
                     <Trash2 size={13} />
                   </button>
                 </div>
-                {/* Section description */}
                 <textarea
                   className="ex-textarea"
                   value={s.description}
@@ -469,15 +584,51 @@ const ExerciseBlockComponent = ({ node, updateAttributes }: any) => {
               </div>
             ))}
           </div>
-
-          {/* Add section button */}
           <button className="ex-btn-add-section" onClick={addSection}>
             <Plus size={15} />
             Ajouter un champ
           </button>
         </div>
-
       </div>
+    </>
+  );
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// MAIN COMPONENT WITH VIEW TOGGLE
+// ─────────────────────────────────────────────────────────────────────────────
+const ProcedeBlockComponent = ({ node, updateAttributes }: any) => {
+  const attrs = node.attrs as ProcedeAttrs;
+  const viewMode = attrs.viewMode || 'edit';
+
+  return (
+    <NodeViewWrapper as="div" className="ex-block">
+      {/* VIEW MODE TOGGLE */}
+      <div className="procede-view-toggle print:hidden">
+        <button
+          className={`procede-toggle-btn ${viewMode === 'edit' ? 'active' : ''}`}
+          onClick={() => updateAttributes({ viewMode: 'edit' })}
+          title="Mode édition"
+        >
+          <Edit2 size={16} />
+          Édition
+        </button>
+        <button
+          className={`procede-toggle-btn ${viewMode === 'document' ? 'active' : ''}`}
+          onClick={() => updateAttributes({ viewMode: 'document' })}
+          title="Mode document (PDF)"
+        >
+          <FileText size={16} />
+          Document
+        </button>
+      </div>
+
+      {/* RENDER APPROPRIATE VIEW */}
+      {viewMode === 'document' ? (
+        <DocumentView attrs={attrs} />
+      ) : (
+        <EditView attrs={attrs} updateAttributes={updateAttributes} />
+      )}
     </NodeViewWrapper>
   );
 };
@@ -485,8 +636,8 @@ const ExerciseBlockComponent = ({ node, updateAttributes }: any) => {
 // ─────────────────────────────────────────────────────────────────────────────
 // TIPTAP NODE
 // ─────────────────────────────────────────────────────────────────────────────
-export const ExerciseBlock = Node.create({
-  name: 'exerciseBlock',
+export const ProcedeBlock = Node.create({
+  name: 'procedeBlock',
   group: 'block',
   atom: true,
   draggable: true,
@@ -510,24 +661,25 @@ export const ExerciseBlock = Node.create({
       materiaux:      { default: [] },
       imageSrc:       { default: '' },
       sections:       { default: [] },
+      viewMode:       { default: 'edit' }, // ✅ NEW
     };
   },
 
   parseHTML() {
-    return [{ tag: 'div[data-type="exercise-block"]' }];
+    return [{ tag: 'div[data-type="procede-block"]' }];
   },
 
   renderHTML({ HTMLAttributes }) {
-    return ['div', mergeAttributes(HTMLAttributes, { 'data-type': 'exercise-block' })];
+    return ['div', mergeAttributes(HTMLAttributes, { 'data-type': 'procede-block' })];
   },
 
   addNodeView() {
-    return ReactNodeViewRenderer(ExerciseBlockComponent);
+    return ReactNodeViewRenderer(ProcedeBlockComponent);
   },
 
   addCommands() {
     return {
-      setExerciseBlock:
+      setProcedeBlock:
         () =>
         ({ commands }: any) =>
           commands.insertContent({
@@ -549,6 +701,7 @@ export const ExerciseBlock = Node.create({
               materiaux: [],
               imageSrc: '',
               sections: [{ id: 'default', title: 'Objectif', description: '' }],
+              viewMode: 'edit',
             },
           }),
     } as any;
