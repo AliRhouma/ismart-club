@@ -3,6 +3,38 @@
    Add these to your index.css
    ============================================ */
 
+/* ── IMPORT BANNER ── */
+.ex-import-banner {
+  display: flex;
+  justify-content: flex-start;
+}
+
+.ex-btn-import {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  background: linear-gradient(135deg, #0091ff 0%, #0070d2 100%);
+  color: white;
+  border: none;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 2px 8px rgba(0, 145, 255, 0.3);
+}
+
+.ex-btn-import:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 145, 255, 0.4);
+}
+
+.ex-btn-import:active {
+  transform: translateY(0);
+  box-shadow: 0 1px 4px rgba(0, 145, 255, 0.3);
+}
+
 /* ── VIEW TOGGLE ── */
 .procede-view-toggle {
   display: flex;

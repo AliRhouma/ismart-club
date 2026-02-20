@@ -1,7 +1,7 @@
 import { Node, mergeAttributes } from '@tiptap/core';
 import { ReactNodeViewRenderer, NodeViewWrapper } from '@tiptap/react';
 import { useState, useCallback } from 'react';
-import { Plus, Trash2, ImageIcon, X, Edit2, FileText } from 'lucide-react';
+import { Plus, Trash2, ImageIcon, X, Edit2, FileText, Download } from 'lucide-react';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // MATERIAL SVG ICON (embedded — same icon for every material item)
@@ -335,6 +335,14 @@ const EditView = ({
 
   return (
     <>
+      {/* IMPORT BUTTON */}
+      <div className="ex-import-banner" style={{ marginBottom: '1.5rem' }}>
+        <button className="ex-btn-import">
+          <Download size={16} />
+          Importer un procédé
+        </button>
+      </div>
+
       {/* HEADER GRID */}
       <div className="ex-header">
         {/* Row 1 */}
