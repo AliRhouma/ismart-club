@@ -1,504 +1,470 @@
-import { Node, mergeAttributes } from '@tiptap/core';
-import { ReactNodeViewRenderer, NodeViewWrapper } from '@tiptap/react';
-import { useState } from 'react';
-import {
-  Plus, Trash2, Settings, Check, X,
-  FileText, Monitor,
-  BookOpen, Pencil, CheckSquare, AlignLeft,
-  ChevronDown, ChevronUp,
-} from 'lucide-react';
+/* ============================================
+   EXERCISE BLOCK STYLES
+   ============================================ */
 
-// ─────────────────────────────────────────────────────────────────────────────
-// TYPES
-// ─────────────────────────────────────────────────────────────────────────────
-type QuestionType = 'mcq' | 'short' | 'long' | 'truefalse' | 'fill';
-
-interface Choice { id: string; text: string; correct: boolean; }
-interface Question {
-  id: string; type: QuestionType; prompt: string;
-  choices: Choice[]; lines: number; hint: string;
-}
-interface ExerciseAttrs {
-  title: string; instructions: string; subject: string; level: string;
-  accentColor: string; questions: Question[];
-  viewMode: 'screen' | 'document'; showAnswers: boolean; exerciseNumber: string;
+.ex-block {
+  margin: 1.5rem 0;
+  border: 1.5px solid #d1d5db;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #ffffff;
+  font-family: 'Rubik', system-ui, sans-serif;
+  font-size: 0.875rem;
+  color: #111827;
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// HELPERS
-// ─────────────────────────────────────────────────────────────────────────────
-const ACCENT_COLORS = [
-  { value: '#0091ff', label: 'Blue'    },
-  { value: '#10b981', label: 'Green'   },
-  { value: '#f59e0b', label: 'Amber'   },
-  { value: '#ef4444', label: 'Red'     },
-  { value: '#8b5cf6', label: 'Purple'  },
-  { value: '#0f766e', label: 'Teal'    },
-  { value: '#1a3a6b', label: 'Navy'    },
-  { value: '#1f2937', label: 'Slate'   },
-];
-
-const QUESTION_TYPES: { value: QuestionType; label: string }[] = [
-  { value: 'mcq',       label: 'Multiple choice' },
-  { value: 'truefalse', label: 'True / False'    },
-  { value: 'short',     label: 'Short answer'    },
-  { value: 'long',      label: 'Long answer'     },
-  { value: 'fill',      label: 'Fill in blank'   },
-];
-
-const uid = () => Math.random().toString(36).slice(2, 8);
-
-function makeQuestion(type: QuestionType = 'mcq'): Question {
-  return {
-    id: uid(), type, prompt: '', hint: '', lines: type === 'long' ? 4 : 2,
-    choices:
-      type === 'mcq'       ? [{ id: uid(), text: '', correct: false }, { id: uid(), text: '', correct: false }]
-      : type === 'truefalse' ? [{ id: uid(), text: 'True', correct: false }, { id: uid(), text: 'False', correct: false }]
-      : [],
-  };
+/* ── Header ──────────────────────────────────────────────────────────────── */
+.ex-header {
+  display: flex;
+  flex-direction: column;
+  border-bottom: 1.5px solid #d1d5db;
+  background: #f9fafb;
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// SCREEN VIEW
-// ─────────────────────────────────────────────────────────────────────────────
-const ScreenView = ({ attrs, onEdit, onToggleAnswers }: {
-  attrs: ExerciseAttrs; onEdit: () => void; onToggleAnswers: () => void;
-}) => {
-  const { title, instructions, subject, level, accentColor, questions, showAnswers, exerciseNumber } = attrs;
-  const [openHints, setOpenHints] = useState<Record<string, boolean>>({});
-  const toggleHint = (id: string) => setOpenHints(p => ({ ...p, [id]: !p[id] }));
+.ex-header-row {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr; /* Titre wide | Type medium | Dimensions narrow */
+  border-bottom: 1px solid #e5e7eb;
+}
 
-  return (
-    <div className="ex-screen-wrap">
-      {/* ── Header card ── */}
-      <div className="ex-screen-header" style={{ borderLeftColor: accentColor }}>
-        <div className="ex-screen-header-top">
-          <div className="ex-screen-badges">
-            {exerciseNumber && (
-              <span className="ex-screen-badge-num" style={{ background: accentColor }}>
-                Exercise {exerciseNumber}
-              </span>
-            )}
-            {subject && <span className="ex-screen-badge">{subject}</span>}
-            {level   && <span className="ex-screen-badge">{level}</span>}
-          </div>
-          <div className="ex-screen-hdr-actions">
-            <button
-              className={`ex-screen-action-btn ${showAnswers ? 'active' : ''}`}
-              style={showAnswers ? { color: accentColor, borderColor: accentColor } : {}}
-              onClick={onToggleAnswers}
-            >
-              <CheckSquare size={12} />
-              {showAnswers ? 'Hide answers' : 'Show answers'}
-            </button>
-            <button className="ex-screen-action-btn" onClick={onEdit}>
-              <Settings size={12} /> Edit
-            </button>
-          </div>
-        </div>
-        <h3 className="ex-screen-title" style={{ color: accentColor }}>
-          {title || 'Untitled Exercise'}
-        </h3>
-        {instructions && <p className="ex-screen-instructions">{instructions}</p>}
-      </div>
+.ex-header-row:last-child {
+  border-bottom: none;
+}
 
-      {/* ── Questions ── */}
-      <div className="ex-screen-questions">
-        {questions.length === 0 && (
-          <div className="ex-screen-empty">No questions yet — click Edit to add some.</div>
-        )}
-        {questions.map((q, qi) => (
-          <div key={q.id} className="ex-screen-qcard">
-            <div className="ex-screen-qnum" style={{ background: accentColor }}>{qi + 1}</div>
-            <div className="ex-screen-qbody">
-              <span className="ex-screen-qtype-tag">
-                {QUESTION_TYPES.find(t => t.value === q.type)?.label}
-              </span>
-              <p className="ex-screen-qprompt">
-                {q.prompt || <em style={{ color: '#9ca3af' }}>No question text</em>}
-              </p>
+/* 4-column row for row 3 */
+.ex-header-row--4col {
+  grid-template-columns: repeat(4, 1fr);
+}
 
-              {/* MCQ / T-F */}
-              {(q.type === 'mcq' || q.type === 'truefalse') && (
-                <div className="ex-screen-choices">
-                  {q.choices.map((c, ci) => (
-                    <div
-                      key={c.id}
-                      className={`ex-screen-choice ${showAnswers && c.correct ? 'correct' : ''}`}
-                      style={showAnswers && c.correct ? { borderColor: accentColor, background: accentColor + '15' } : {}}
-                    >
-                      <span className="ex-screen-choice-letter"
-                        style={showAnswers && c.correct ? { background: accentColor, color: '#fff' } : {}}>
-                        {String.fromCharCode(65 + ci)}
-                      </span>
-                      <span className="ex-screen-choice-text">{c.text || '…'}</span>
-                      {showAnswers && c.correct && <Check size={13} style={{ marginLeft: 'auto', color: accentColor, flexShrink: 0 }} />}
-                    </div>
-                  ))}
-                </div>
-              )}
+/* ── Field cell ──────────────────────────────────────────────────────────── */
+.ex-field {
+  display: flex;
+  flex-direction: column;
+  padding: 0.6rem 0.85rem;
+  border-right: 1px solid #e5e7eb;
+  gap: 0.3rem;
+}
 
-              {/* Answer lines */}
-              {(q.type === 'short' || q.type === 'long') && (
-                <div className="ex-screen-lines">
-                  {Array.from({ length: q.lines }).map((_, i) => <div key={i} className="ex-screen-line" />)}
-                </div>
-              )}
+.ex-field:last-child {
+  border-right: none;
+}
 
-              {/* Fill blank */}
-              {q.type === 'fill' && <div className="ex-screen-fill-box">_______________</div>}
+/* Grow/shrink variants */
+.ex-field--grow2 { /* Titre — take more space */ }
+.ex-field--grow1 { /* normal */ }
+.ex-field--shrink { /* Dimensions / Effectif */ }
 
-              {/* Hint */}
-              {q.hint && (
-                <div className="ex-screen-hint-wrap">
-                  <button className="ex-screen-hint-toggle" style={{ color: accentColor }} onClick={() => toggleHint(q.id)}>
-                    {openHints[q.id] ? <ChevronUp size={11}/> : <ChevronDown size={11}/>} Hint
-                  </button>
-                  {openHints[q.id] && (
-                    <div className="ex-screen-hint-text" style={{ borderLeftColor: accentColor }}>
-                      {q.hint}
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-};
+.ex-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+}
 
-// ─────────────────────────────────────────────────────────────────────────────
-// DOCUMENT VIEW
-// ─────────────────────────────────────────────────────────────────────────────
-const DocumentView = ({ attrs, onEdit }: { attrs: ExerciseAttrs; onEdit: () => void }) => {
-  const { title, instructions, subject, level, accentColor, questions, showAnswers, exerciseNumber } = attrs;
+/* ── Inputs ──────────────────────────────────────────────────────────────── */
+.ex-input {
+  width: 100%;
+  padding: 0.35rem 0.5rem;
+  font-size: 0.875rem;
+  font-family: inherit;
+  color: #111827;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  box-sizing: border-box;
+  min-width: 0;
+}
 
-  return (
-    <div className="ex-doc-wrap">
-      <button className="ex-doc-edit-btn" onClick={onEdit} contentEditable={false}>
-        <Settings size={11} /> Edit
-      </button>
+.ex-input:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59,130,246,0.15);
+}
 
-      {/* ── Document header ── */}
-      <div className="ex-doc-header">
-        <div className="ex-doc-accent-bar" style={{ background: accentColor }} />
-        <div className="ex-doc-header-body">
-          {(subject || level) && (
-            <div className="ex-doc-meta-row">
-              {subject && <span className="ex-doc-meta-chip">{subject}</span>}
-              {level   && <span className="ex-doc-meta-chip">{level}</span>}
-            </div>
-          )}
-          <h3 className="ex-doc-title">
-            {exerciseNumber && (
-              <span className="ex-doc-exnum" style={{ color: accentColor }}>
-                Exercice {exerciseNumber} —{' '}
-              </span>
-            )}
-            {title || 'Untitled Exercise'}
-          </h3>
-          {instructions && (
-            <p className="ex-doc-instructions">
-              <span className="ex-doc-instructions-label">Instructions :</span> {instructions}
-            </p>
-          )}
-        </div>
-      </div>
+/* Title input — slightly larger text */
+.ex-input--title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #111827;
+  background: transparent;
+  border-color: transparent;
+  padding-left: 0;
+}
+.ex-input--title:focus {
+  background: white;
+  border-color: #3b82f6;
+  padding-left: 0.5rem;
+}
 
-      {/* ── Questions ── */}
-      <div className="ex-doc-questions">
-        {questions.length === 0 && <p className="ex-doc-empty">No questions added yet.</p>}
-        {questions.map((q, qi) => (
-          <div key={q.id} className="ex-doc-question">
-            <div className="ex-doc-q-row">
-              <span className="ex-doc-q-num" style={{ color: accentColor }}>
-                {qi + 1}.
-              </span>
-              <div className="ex-doc-q-content">
-                <p className="ex-doc-q-prompt">
-                  {q.prompt || <em className="ex-doc-q-empty">Question text…</em>}
-                  {q.type === 'fill' && <span className="ex-doc-blank"> ___________________</span>}
-                </p>
+/* Select (free-text dropdown) */
+.ex-input--select {
+  cursor: text;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  padding-right: 24px;
+}
 
-                {/* MCQ list */}
-                {(q.type === 'mcq' || q.type === 'truefalse') && (
-                  <ol className="ex-doc-choices" type="A">
-                    {q.choices.map((c) => (
-                      <li
-                        key={c.id}
-                        className={`ex-doc-choice ${showAnswers && c.correct ? 'correct' : ''}`}
-                        style={showAnswers && c.correct ? { color: accentColor, fontWeight: 700 } : {}}
-                      >
-                        {c.text || '…'}
-                        {showAnswers && c.correct && <span className="ex-doc-tick"> ✓</span>}
-                      </li>
-                    ))}
-                  </ol>
-                )}
+/* Number inputs */
+.ex-input--num {
+  width: 56px;
+  text-align: center;
+  flex-shrink: 0;
+}
 
-                {/* Answer lines */}
-                {(q.type === 'short' || q.type === 'long') && (
-                  <div className="ex-doc-answer-lines">
-                    {Array.from({ length: q.lines }).map((_, i) => <div key={i} className="ex-doc-answer-line" />)}
-                  </div>
-                )}
+.ex-inline-group {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-wrap: nowrap;
+}
 
-                {/* Hint when answers shown */}
-                {q.hint && showAnswers && (
-                  <p className="ex-doc-hint"><strong>Hint :</strong> {q.hint}</p>
-                )}
-              </div>
-            </div>
-            {qi < questions.length - 1 && <div className="ex-doc-divider" />}
-          </div>
-        ))}
-      </div>
+.ex-unit {
+  font-size: 0.72rem;
+  color: #9ca3af;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
 
-      {/* ── Footer score ── */}
-      <div className="ex-doc-footer">
-        <span className="ex-doc-score-label">Score :</span>
-        <span className="ex-doc-score-line" />
-        <span className="ex-doc-score-total">/ {questions.length}</span>
-      </div>
-    </div>
-  );
-};
+/* ── Body ────────────────────────────────────────────────────────────────── */
+.ex-body {
+  display: grid;
+  grid-template-columns: 160px 1fr 240px;
+  min-height: 320px;
+}
 
-// ─────────────────────────────────────────────────────────────────────────────
-// EDIT PANEL
-// ─────────────────────────────────────────────────────────────────────────────
-const EditPanel = ({ attrs, onSave, onCancel }: {
-  attrs: ExerciseAttrs;
-  onSave: (p: Partial<ExerciseAttrs>) => void;
-  onCancel: () => void;
-}) => {
-  const [title, setTitle]               = useState(attrs.title);
-  const [instructions, setInstructions] = useState(attrs.instructions);
-  const [subject, setSubject]           = useState(attrs.subject);
-  const [level, setLevel]               = useState(attrs.level);
-  const [accentColor, setAccentColor]   = useState(attrs.accentColor);
-  const [exNum, setExNum]               = useState(attrs.exerciseNumber);
-  const [questions, setQuestions]       = useState<Question[]>(
-    attrs.questions.length ? attrs.questions : [makeQuestion('mcq')]
-  );
+/* ── Panel base ──────────────────────────────────────────────────────────── */
+.ex-panel {
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
 
-  const addQ = () => setQuestions(p => [...p, makeQuestion('mcq')]);
-  const removeQ = (id: string) => setQuestions(p => p.filter(q => q.id !== id));
-  const updateQ = (id: string, patch: Partial<Question>) =>
-    setQuestions(p => p.map(q => q.id === id ? { ...q, ...patch } : q));
-  const changeType = (id: string, type: QuestionType) => {
-    const fresh = makeQuestion(type);
-    setQuestions(p => p.map(q => q.id === id ? { ...fresh, id: q.id, prompt: q.prompt } : q));
-  };
-  const addChoice = (qid: string) =>
-    setQuestions(p => p.map(q => q.id === qid ? { ...q, choices: [...q.choices, { id: uid(), text: '', correct: false }] } : q));
-  const removeChoice = (qid: string, cid: string) =>
-    setQuestions(p => p.map(q => q.id === qid ? { ...q, choices: q.choices.filter(c => c.id !== cid) } : q));
-  const updateChoice = (qid: string, cid: string, patch: Partial<Choice>) =>
-    setQuestions(p => p.map(q => q.id === qid ? { ...q, choices: q.choices.map(c => c.id === cid ? { ...c, ...patch } : c) } : q));
-  const setCorrect = (qid: string, cid: string) =>
-    setQuestions(p => p.map(q => q.id === qid ? { ...q, choices: q.choices.map(c => ({ ...c, correct: c.id === cid })) } : q));
+.ex-panel--left {
+  border-right: 1.5px solid #e5e7eb;
+  background: #f9fafb;
+}
 
-  return (
-    <div className="ex-edit-wrap" contentEditable={false}>
-      {/* Meta */}
-      <div className="ex-edit-section">
-        <p className="ex-edit-section-title">Exercise details</p>
-        <div className="ex-edit-row-3">
-          <div>
-            <label className="ex-edit-label">Exercise #</label>
-            <input className="ex-edit-input" value={exNum} onChange={e => setExNum(e.target.value)} placeholder="1" />
-          </div>
-          <div>
-            <label className="ex-edit-label">Subject</label>
-            <input className="ex-edit-input" value={subject} onChange={e => setSubject(e.target.value)} placeholder="Maths" />
-          </div>
-          <div>
-            <label className="ex-edit-label">Level</label>
-            <input className="ex-edit-input" value={level} onChange={e => setLevel(e.target.value)} placeholder="Grade 8" />
-          </div>
-        </div>
-        <label className="ex-edit-label">Title</label>
-        <input className="ex-edit-input" value={title} onChange={e => setTitle(e.target.value)} placeholder="Exercise title…" />
-        <label className="ex-edit-label" style={{ marginTop: 10 }}>Instructions</label>
-        <textarea className="ex-edit-textarea" value={instructions} onChange={e => setInstructions(e.target.value)} placeholder="Answer all questions…" rows={2} />
-        <label className="ex-edit-label" style={{ marginTop: 10 }}>Accent color</label>
-        <div className="ex-edit-colors">
-          {ACCENT_COLORS.map(c => (
-            <button
-              key={c.value}
-              className={`ex-edit-color-swatch ${accentColor === c.value ? 'selected' : ''}`}
-              style={{ background: c.value }}
-              onClick={() => setAccentColor(c.value)}
-              title={c.label}
-            >
-              {accentColor === c.value && <Check size={11} color="#fff" />}
-            </button>
-          ))}
-        </div>
-      </div>
+.ex-panel--center {
+  background: #e5f0e0; /* pitch green tint */
+  padding: 0.75rem;
+}
 
-      {/* Questions */}
-      <div className="ex-edit-section">
-        <div className="ex-edit-section-header">
-          <p className="ex-edit-section-title">Questions ({questions.length})</p>
-          <button className="ex-edit-add-q-btn" style={{ borderColor: accentColor, color: accentColor }} onClick={addQ}>
-            <Plus size={13} /> Add question
-          </button>
-        </div>
+.ex-panel--right {
+  border-left: 1.5px solid #e5e7eb;
+  overflow-y: auto;
+  max-height: 480px;
+}
 
-        {questions.map((q, qi) => (
-          <div key={q.id} className="ex-edit-qblock">
-            <div className="ex-edit-qblock-hdr">
-              <span className="ex-edit-qblock-num" style={{ background: accentColor }}>Q{qi + 1}</span>
-              <select className="ex-edit-select" value={q.type} onChange={e => changeType(q.id, e.target.value as QuestionType)}>
-                {QUESTION_TYPES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
-              </select>
-              <button className="ex-edit-remove-btn" onClick={() => removeQ(q.id)}><Trash2 size={13} /></button>
-            </div>
-            <textarea className="ex-edit-textarea" value={q.prompt} onChange={e => updateQ(q.id, { prompt: e.target.value })} placeholder="Question text…" rows={2} />
+.ex-panel-title {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #374151;
+  margin: 0 0 0.25rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
 
-            {/* MCQ */}
-            {q.type === 'mcq' && (
-              <div className="ex-edit-choices">
-                {q.choices.map((c, ci) => (
-                  <div key={c.id} className="ex-edit-choice-row">
-                    <button
-                      className={`ex-edit-correct-btn ${c.correct ? 'is-correct' : ''}`}
-                      style={c.correct ? { background: accentColor, borderColor: accentColor } : {}}
-                      onClick={() => setCorrect(q.id, c.id)}
-                      title="Mark as correct"
-                    >
-                      {c.correct ? <Check size={11} color="#fff" /> : String.fromCharCode(65 + ci)}
-                    </button>
-                    <input className="ex-edit-input" value={c.text} onChange={e => updateChoice(q.id, c.id, { text: e.target.value })} placeholder={`Choice ${String.fromCharCode(65 + ci)}…`} />
-                    <button className="ex-edit-remove-btn" onClick={() => removeChoice(q.id, c.id)} disabled={q.choices.length <= 2}><X size={12} /></button>
-                  </div>
-                ))}
-                <button className="ex-edit-ghost-btn" onClick={() => addChoice(q.id)}><Plus size={12} /> Add choice</button>
-              </div>
-            )}
+/* ── Materials ───────────────────────────────────────────────────────────── */
+.ex-materials-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  flex: 1;
+}
 
-            {/* True/False */}
-            {q.type === 'truefalse' && (
-              <div className="ex-edit-choices">
-                {q.choices.map(c => (
-                  <div key={c.id} className="ex-edit-choice-row">
-                    <button
-                      className={`ex-edit-correct-btn ${c.correct ? 'is-correct' : ''}`}
-                      style={c.correct ? { background: accentColor, borderColor: accentColor } : {}}
-                      onClick={() => setCorrect(q.id, c.id)}
-                    >
-                      {c.correct ? <Check size={11} color="#fff" /> : c.text[0]}
-                    </button>
-                    <span className="ex-edit-tf-label">{c.text}</span>
-                  </div>
-                ))}
-              </div>
-            )}
+.ex-material-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 0.4rem 0.5rem;
+}
 
-            {/* Lines */}
-            {(q.type === 'short' || q.type === 'long') && (
-              <div className="ex-edit-inline-row">
-                <label className="ex-edit-label">Answer lines</label>
-                <input type="number" className="ex-edit-input ex-edit-input-sm" value={q.lines} min={1} max={10} onChange={e => updateQ(q.id, { lines: Number(e.target.value) })} />
-              </div>
-            )}
+.ex-material-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
 
-            <div style={{ marginTop: 8 }}>
-              <label className="ex-edit-label">Hint (optional)</label>
-              <input className="ex-edit-input" value={q.hint} onChange={e => updateQ(q.id, { hint: e.target.value })} placeholder="Optional hint…" />
-            </div>
-          </div>
-        ))}
-      </div>
+.ex-material-qty {
+  width: 48px !important;
+  font-weight: 600;
+}
 
-      {/* Actions */}
-      <div className="ex-edit-actions">
-        <button className="ex-edit-save-btn" style={{ background: accentColor }}
-          onClick={() => onSave({ title, instructions, subject, level, accentColor, questions, exerciseNumber: exNum })}>
-          <Check size={14} /> Save Exercise
-        </button>
-        <button className="ex-edit-cancel-btn" onClick={onCancel}><X size={14} /> Cancel</button>
-      </div>
-    </div>
-  );
-};
+/* ── Image panel ─────────────────────────────────────────────────────────── */
+.ex-image-input-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1.5rem 1rem;
+  border: 2px dashed #9ca3af;
+  border-radius: 8px;
+  background: rgba(255,255,255,0.6);
+  text-align: center;
+  height: 100%;
+  box-sizing: border-box;
+  justify-content: center;
+}
 
-// ─────────────────────────────────────────────────────────────────────────────
-// ROOT COMPONENT
-// ─────────────────────────────────────────────────────────────────────────────
-const ExerciseBlockComponent = ({ node, updateAttributes }: any) => {
-  const attrs = node.attrs as ExerciseAttrs;
-  const [isEditing, setIsEditing] = useState(!attrs.title && attrs.questions.length === 0);
+.ex-image-input-icon {
+  color: #6b7280;
+}
 
-  return (
-    <NodeViewWrapper as="div" className="exercise-block-wrapper">
-      {!isEditing && (
-        <div className="ex-view-switcher" contentEditable={false}>
-          <button
-            className={`ex-view-btn ${attrs.viewMode === 'screen' ? 'active' : ''}`}
-            onClick={() => updateAttributes({ viewMode: 'screen' })}
-          >
-            <Monitor size={13} /> Screen
-          </button>
-          <button
-            className={`ex-view-btn ${attrs.viewMode === 'document' ? 'active' : ''}`}
-            onClick={() => updateAttributes({ viewMode: 'document' })}
-          >
-            <FileText size={13} /> Document
-          </button>
-        </div>
-      )}
+.ex-image-input-title {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #374151;
+  margin: 0;
+}
 
-      {isEditing ? (
-        <EditPanel attrs={attrs} onSave={p => { updateAttributes(p); setIsEditing(false); }} onCancel={() => setIsEditing(false)} />
-      ) : attrs.viewMode === 'document' ? (
-        <DocumentView attrs={attrs} onEdit={() => setIsEditing(true)} />
-      ) : (
-        <ScreenView attrs={attrs} onEdit={() => setIsEditing(true)} onToggleAnswers={() => updateAttributes({ showAnswers: !attrs.showAnswers })} />
-      )}
-    </NodeViewWrapper>
-  );
-};
+.ex-image-input-actions {
+  display: flex;
+  gap: 0.5rem;
+}
 
-// ─────────────────────────────────────────────────────────────────────────────
-// NODE DEFINITION
-// ─────────────────────────────────────────────────────────────────────────────
-export const ExerciseBlock = Node.create({
-  name: 'exerciseBlock',
-  group: 'block',
-  atom: true,
+.ex-image-preview {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+  border-radius: 6px;
+  overflow: hidden;
+}
 
-  addAttributes() {
-    return {
-      title:          { default: '' },
-      instructions:   { default: '' },
-      subject:        { default: '' },
-      level:          { default: '' },
-      accentColor:    { default: '#0091ff' },
-      questions:      { default: [] },
-      viewMode:       { default: 'screen' },
-      showAnswers:    { default: false },
-      exerciseNumber: { default: '' },
-    };
-  },
+.ex-image-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+  background: #d4e8c2;
+}
 
-  parseHTML() { return [{ tag: 'div[data-type="exercise-block"]' }]; },
-  renderHTML({ HTMLAttributes }) {
-    return ['div', mergeAttributes(HTMLAttributes, { 'data-type': 'exercise-block' }), 0];
-  },
-  addNodeView() { return ReactNodeViewRenderer(ExerciseBlockComponent); },
+.ex-image-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  background: rgba(0,0,0,0.45);
+  color: white;
+  font-size: 0.75rem;
+  font-weight: 600;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
 
-  addCommands() {
-    return {
-      setExerciseBlock: () => ({ commands }: any) =>
-        commands.insertContent({
-          type: this.name,
-          attrs: { title: '', instructions: '', subject: '', level: '', accentColor: '#0091ff', questions: [], viewMode: 'screen', showAnswers: false, exerciseNumber: '' },
-        }),
-    } as any;
-  },
-});
+.ex-image-preview:hover .ex-image-overlay {
+  opacity: 1;
+}
+
+/* ── Sections (right panel) ──────────────────────────────────────────────── */
+.ex-sections-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  flex: 1;
+}
+
+.ex-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 0.6rem 0.75rem;
+}
+
+.ex-section-header {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.ex-section-title-input {
+  flex: 1;
+  font-weight: 700;
+  font-size: 0.82rem;
+  border-color: transparent;
+  background: transparent;
+  padding-left: 0;
+  color: #374151;
+}
+
+.ex-section-title-input:focus {
+  background: white;
+  border-color: #3b82f6;
+  padding-left: 0.5rem;
+}
+
+.ex-textarea {
+  width: 100%;
+  padding: 0.4rem 0.5rem;
+  font-size: 0.82rem;
+  font-family: inherit;
+  color: #374151;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  resize: vertical;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  box-sizing: border-box;
+  line-height: 1.5;
+}
+
+.ex-textarea:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59,130,246,0.15);
+}
+
+/* ── Buttons ─────────────────────────────────────────────────────────────── */
+.ex-btn-primary {
+  padding: 0.4rem 1rem;
+  background: #0091ff;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.15s;
+  font-family: inherit;
+}
+.ex-btn-primary:hover { background: #0077d4; }
+
+.ex-btn-ghost {
+  padding: 0.4rem 1rem;
+  background: transparent;
+  color: #6b7280;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  font-size: 0.82rem;
+  cursor: pointer;
+  font-family: inherit;
+}
+.ex-btn-ghost:hover { background: #f3f4f6; }
+
+.ex-btn-secondary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  padding: 0.4rem 0.75rem;
+  background: white;
+  color: #374151;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.15s;
+  font-family: inherit;
+}
+.ex-btn-secondary:hover { background: #f3f4f6; }
+
+.ex-btn--full { width: 100%; }
+
+.ex-btn-add-section {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  width: 100%;
+  padding: 0.55rem;
+  background: #22c55e;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.15s;
+  font-family: inherit;
+  margin-top: auto;
+}
+.ex-btn-add-section:hover { background: #16a34a; }
+
+/* Icon-only buttons */
+.ex-icon-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background-color 0.12s;
+}
+.ex-icon-btn--danger { color: #ef4444; }
+.ex-icon-btn--danger:hover { background: #fee2e2; }
+
+/* ── Print ────────────────────────────────────────────────────────────────── */
+@media print {
+  .ex-block {
+    border: 1px solid #d1d5db;
+    box-shadow: none;
+    break-inside: avoid;
+  }
+
+  .ex-btn-primary,
+  .ex-btn-ghost,
+  .ex-btn-secondary,
+  .ex-btn-add-section,
+  .ex-icon-btn,
+  .ex-image-overlay,
+  .ex-image-input-panel {
+    display: none !important;
+  }
+
+  .ex-input,
+  .ex-textarea {
+    border: none;
+    padding: 0;
+    background: transparent;
+  }
+
+  .ex-body { 
+    grid-template-columns: 140px 1fr 220px;
+  }
+}
+
+/* ── Mobile ───────────────────────────────────────────────────────────────── */
+@media screen and (max-width: 768px) {
+  .ex-header-row,
+  .ex-header-row--4col {
+    grid-template-columns: 1fr;
+  }
+
+  .ex-field {
+    border-right: none;
+    border-bottom: 1px solid #e5e7eb;
+  }
+
+  .ex-body {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto auto;
+  }
+
+  .ex-panel--left,
+  .ex-panel--right {
+    border: none;
+    border-top: 1.5px solid #e5e7eb;
+    max-height: none;
+  }
+}
