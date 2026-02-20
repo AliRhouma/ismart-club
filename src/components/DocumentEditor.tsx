@@ -11,6 +11,7 @@ import { ImageDescriptionBlock } from '../extensions/ImageDescriptionBlock';
 import { TableBlock } from '../extensions/TableBlock';
 import { Columns, Column } from '../extensions/ColumnsBlock';
 import { ImageBlock } from '../extensions/ImageBlock';
+import { PageHeaderBlock } from './PageHeaderBlock';
 import { EditorToolbar } from './EditorToolbar';
 import { useEffect } from 'react';
 import { Extension } from '@tiptap/core';
@@ -18,7 +19,7 @@ import Suggestion from '@tiptap/suggestion';
 import { ReactRenderer } from '@tiptap/react';
 import tippy, { Instance as TippyInstance } from 'tippy.js';
 import { BlockSlashMenu } from './BlockSlashMenu';
-import { AlertCircle, Highlighter, Image, ImagePlus, Table, Columns as ColumnsIcon } from 'lucide-react';
+import { AlertCircle, Highlighter, Image, ImagePlus, Table, Columns as ColumnsIcon, LayoutTemplate } from 'lucide-react';
 
 interface DocumentEditorProps {
   content: any;
@@ -87,6 +88,19 @@ const SlashCommandExtension = Extension.create({
                   .focus()
                   .deleteRange(range)
                   .setImageDescriptionBlock()
+                  .run();
+              },
+            },
+            {
+              title: 'Page Header',
+              description: 'Insert a logo + title header banner for your page',
+              icon: LayoutTemplate,
+              command: ({ editor, range }: any) => {
+                editor
+                  .chain()
+                  .focus()
+                  .deleteRange(range)
+                  .setPageHeaderBlock()
                   .run();
               },
             },
@@ -213,6 +227,7 @@ export function DocumentEditor({ content, onUpdate }: DocumentEditorProps) {
       HighlightBlock,
       ImageDescriptionBlock,
       ImageBlock,
+      PageHeaderBlock,
       TableBlock,
       Column,
       Columns,
