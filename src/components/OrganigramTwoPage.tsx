@@ -41,11 +41,15 @@ interface OrgNodeData {
   showTasks?: boolean;
   expandedMembers?: Set<string>;
   onToggleMember?: (nodeId: string, memberName: string) => void;
+  onPreviewGroup?: (nodeId: string) => void;
+  onPreviewPlayer?: (nodeId: string, memberName: string) => void;
+  onPreviewTask?: (nodeId: string, memberName: string, taskId: string) => void;
 }
 
 interface RelationNodeData {
   description: string;
   isRelationNode: boolean;
+  onPreviewRelation?: (nodeId: string) => void;
 }
 
 const dagreGraph = new dagre.graphlib.Graph();
@@ -267,6 +271,18 @@ function OrgChartNode({ data, id, selected }: NodeProps<OrgNodeData>) {
             placeholder="Name / Title"
             className="flex-1 bg-transparent border-none outline-none text-body-bold text-default-font placeholder:text-subtext-color"
           />
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              if (data.onPreviewGroup) {
+                data.onPreviewGroup(id);
+              }
+            }}
+            className="p-1.5 hover:bg-brand-100 rounded-lg transition-colors"
+            title="Preview group"
+          >
+            <Eye className="w-4 h-4 text-brand-600" />
+          </button>
         </div>
 
         {data.showMembers && (
@@ -293,6 +309,18 @@ function OrgChartNode({ data, id, selected }: NodeProps<OrgNodeData>) {
                         <div className="text-default-font font-medium truncate">{member.name}</div>
                         <div className="text-subtext-color text-xs truncate">{member.role}</div>
                       </div>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (data.onPreviewPlayer) {
+                            data.onPreviewPlayer(id, member.name);
+                          }
+                        }}
+                        className="p-1 hover:bg-brand-100 rounded transition-colors flex-shrink-0"
+                        title="Preview player"
+                      >
+                        <Eye className="w-3.5 h-3.5 text-brand-600" />
+                      </button>
                       {data.showTasks && member.tasks && member.tasks.length > 0 && (
                         <div className="flex items-center gap-1">
                           <span className="text-xs text-brand-600 font-medium">{member.tasks.length}</span>
@@ -310,7 +338,7 @@ function OrgChartNode({ data, id, selected }: NodeProps<OrgNodeData>) {
                         {member.tasks.map((task) => (
                           <div
                             key={task.id}
-                            className="bg-neutral-100 border border-neutral-300 rounded p-2 text-xs hover:shadow-sm transition-shadow"
+                            className="bg-neutral-100 border border-neutral-300 rounded p-2 text-xs hover:shadow-sm transition-shadow group/task"
                           >
                             <div className="flex items-start gap-2 mb-1">
                               <div className={`mt-0.5 ${getStatusColor(task.status)}`}>
@@ -319,6 +347,18 @@ function OrgChartNode({ data, id, selected }: NodeProps<OrgNodeData>) {
                               <div className="flex-1 min-w-0">
                                 <div className="text-default-font font-medium truncate">{task.title}</div>
                               </div>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  if (data.onPreviewTask) {
+                                    data.onPreviewTask(id, member.name, task.id);
+                                  }
+                                }}
+                                className="p-1 hover:bg-brand-100 rounded transition-colors opacity-0 group-hover/task:opacity-100"
+                                title="Preview task"
+                              >
+                                <Eye className="w-3 h-3 text-brand-600" />
+                              </button>
                             </div>
                             <div className="flex items-center gap-2 ml-5">
                               <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${getPriorityColor(task.priority)}`}>
@@ -354,12 +394,12 @@ function OrgChartNode({ data, id, selected }: NodeProps<OrgNodeData>) {
   );
 }
 
-function RelationNode({ data, selected }: NodeProps<RelationNodeData>) {
+function RelationNode({ data, selected, id }: NodeProps<RelationNodeData>) {
   const [description, setDescription] = useState(data.description || '');
 
   return (
     <div
-      className={`bg-purple-50 rounded-lg shadow-md border-2 transition-all duration-200 ${
+      className={`bg-purple-50 rounded-lg shadow-md border-2 transition-all duration-200 group/relation ${
         selected ? 'border-purple-600 shadow-lg' : 'border-purple-300'
       }`}
       style={{ width: relationNodeWidth, height: relationNodeHeight }}
@@ -367,14 +407,26 @@ function RelationNode({ data, selected }: NodeProps<RelationNodeData>) {
       <Handle type="source" position={Position.Left} className="w-3 h-3 bg-purple-600" id="left" />
       <Handle type="target" position={Position.Right} className="w-3 h-3 bg-purple-600" id="right" />
 
-      <div className="p-3 h-full flex items-center justify-center">
+      <div className="p-3 h-full flex items-center justify-center gap-2">
         <input
           type="text"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           placeholder="Relation description..."
-          className="w-full bg-transparent border-none outline-none text-center text-caption-bold text-purple-700 placeholder:text-purple-400"
+          className="flex-1 bg-transparent border-none outline-none text-center text-caption-bold text-purple-700 placeholder:text-purple-400"
         />
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            if (data.onPreviewRelation) {
+              data.onPreviewRelation(id);
+            }
+          }}
+          className="p-1 hover:bg-purple-200 rounded transition-colors opacity-0 group-hover/relation:opacity-100 flex-shrink-0"
+          title="Preview relation"
+        >
+          <Eye className="w-3.5 h-3.5 text-purple-700" />
+        </button>
       </div>
     </div>
   );
@@ -477,15 +529,36 @@ export default function OrganigramTwoPage() {
     sourceMember: string;
     task: Task | null;
   } | null>(null);
-  
+
   const [isCreatingRelation, setIsCreatingRelation] = useState(false);
   const [relationSelectionStep, setRelationSelectionStep] = useState<number>(0);
   const [selectedNodesForRelation, setSelectedNodesForRelation] = useState<string[]>([]);
   const [showRelations, setShowRelations] = useState(true);
 
+  const [showGroupModal, setShowGroupModal] = useState(false);
+  const [showPlayerModal, setShowPlayerModal] = useState(false);
+  const [showTaskModal, setShowTaskModal] = useState(false);
+  const [showRelationModal, setShowRelationModal] = useState(false);
+
   useEffect(() => {
     updateOrganigram(nodes, edges);
   }, [nodes, edges, updateOrganigram]);
+
+  const handlePreviewGroup = useCallback((nodeId: string) => {
+    setShowGroupModal(true);
+  }, []);
+
+  const handlePreviewPlayer = useCallback((nodeId: string, memberName: string) => {
+    setShowPlayerModal(true);
+  }, []);
+
+  const handlePreviewTask = useCallback((nodeId: string, memberName: string, taskId: string) => {
+    setShowTaskModal(true);
+  }, []);
+
+  const handlePreviewRelation = useCallback((nodeId: string) => {
+    setShowRelationModal(true);
+  }, []);
 
   const onConnect = useCallback(
     (params: Connection) => setEdges((eds) => addEdge(params, eds)),
@@ -571,6 +644,7 @@ export default function OrganigramTwoPage() {
       data: {
         description: '',
         isRelationNode: true,
+        onPreviewRelation: handlePreviewRelation,
       },
       position: { x: midX, y: midY },
     };
@@ -648,6 +722,9 @@ export default function OrganigramTwoPage() {
             showMembers: newValue,
             onAddMembers: handleAddMembersClick,
             onToggleMember: handleToggleMember,
+            onPreviewGroup: handlePreviewGroup,
+            onPreviewPlayer: handlePreviewPlayer,
+            onPreviewTask: handlePreviewTask,
             showTasks: showTasks,
           },
         }))
@@ -671,7 +748,7 @@ export default function OrganigramTwoPage() {
 
       return newValue;
     });
-  }, [setNodes, setEdges, edges, handleAddMembersClick, handleToggleMember, spacingMultiplier, showTasks]);
+  }, [setNodes, setEdges, edges, handleAddMembersClick, handleToggleMember, handlePreviewGroup, handlePreviewPlayer, handlePreviewTask, spacingMultiplier, showTasks]);
 
   const toggleShowTasks = useCallback(() => {
     setShowTasks((prev) => {
@@ -683,6 +760,9 @@ export default function OrganigramTwoPage() {
             ...node.data,
             showTasks: newValue,
             onToggleMember: handleToggleMember,
+            onPreviewGroup: handlePreviewGroup,
+            onPreviewPlayer: handlePreviewPlayer,
+            onPreviewTask: handlePreviewTask,
           },
         }))
       );
@@ -705,7 +785,7 @@ export default function OrganigramTwoPage() {
 
       return newValue;
     });
-  }, [setNodes, setEdges, edges, handleToggleMember, spacingMultiplier]);
+  }, [setNodes, setEdges, edges, handleToggleMember, handlePreviewGroup, handlePreviewPlayer, handlePreviewTask, spacingMultiplier]);
 
   const applyLayout = useCallback((nodesToLayout: Node[], edgesToLayout: Edge[]) => {
     if (nodesToLayout.length === 0) return;
@@ -731,6 +811,9 @@ export default function OrganigramTwoPage() {
         showTasks: showTasks,
         onAddMembers: handleAddMembersClick,
         onToggleMember: handleToggleMember,
+        onPreviewGroup: handlePreviewGroup,
+        onPreviewPlayer: handlePreviewPlayer,
+        onPreviewTask: handlePreviewTask,
         isRelationNode: false,
         expandedMembers: new Set(),
       },
@@ -746,7 +829,7 @@ export default function OrganigramTwoPage() {
         return currentNodes;
       });
     }, 0);
-  }, [setNodes, edges, applyLayout, showMembers, showTasks, handleAddMembersClick, handleToggleMember]);
+  }, [setNodes, edges, applyLayout, showMembers, showTasks, handleAddMembersClick, handleToggleMember, handlePreviewGroup, handlePreviewPlayer, handlePreviewTask]);
 
   const handleAddChild = useCallback(() => {
     if (!selectedNode) {
@@ -770,6 +853,9 @@ export default function OrganigramTwoPage() {
         showTasks: showTasks,
         onAddMembers: handleAddMembersClick,
         onToggleMember: handleToggleMember,
+        onPreviewGroup: handlePreviewGroup,
+        onPreviewPlayer: handlePreviewPlayer,
+        onPreviewTask: handlePreviewTask,
         isRelationNode: false,
         expandedMembers: new Set(),
       },
@@ -798,7 +884,7 @@ export default function OrganigramTwoPage() {
         return currentNodes;
       });
     }, 0);
-  }, [selectedNode, nodes, setNodes, setEdges, edges, applyLayout, showMembers, showTasks, handleAddMembersClick, handleToggleMember]);
+  }, [selectedNode, nodes, setNodes, setEdges, edges, applyLayout, showMembers, showTasks, handleAddMembersClick, handleToggleMember, handlePreviewGroup, handlePreviewPlayer, handlePreviewTask]);
 
   const handleToggleMemberInModal = (member: Member) => {
     setSelectedMembers((current) => {
@@ -1512,6 +1598,118 @@ export default function OrganigramTwoPage() {
                 className="flex-1 px-4 py-2 bg-neutral-100 border border-neutral-200 rounded-lg text-body text-default-font hover:bg-neutral-150 transition-colors"
               >
                 Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Group Preview Modal */}
+      {showGroupModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 p-4">
+          <div className="bg-neutral-50 rounded-lg max-w-md w-full">
+            <div className="p-6 border-b border-neutral-200 flex items-center justify-between">
+              <h2 className="text-heading-2 text-default-font">Group Preview</h2>
+              <button
+                onClick={() => setShowGroupModal(false)}
+                className="p-2 hover:bg-neutral-100 rounded-lg transition-colors"
+              >
+                <X className="w-5 h-5 text-subtext-color" />
+              </button>
+            </div>
+            <div className="p-6">
+              <p className="text-body text-default-font">this is the group modal</p>
+            </div>
+            <div className="border-t border-neutral-200 p-6 flex justify-end">
+              <button
+                onClick={() => setShowGroupModal(false)}
+                className="px-4 py-2 bg-brand-600 text-white rounded-lg text-body hover:bg-brand-700 transition-colors"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Player Preview Modal */}
+      {showPlayerModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 p-4">
+          <div className="bg-neutral-50 rounded-lg max-w-md w-full">
+            <div className="p-6 border-b border-neutral-200 flex items-center justify-between">
+              <h2 className="text-heading-2 text-default-font">Player Preview</h2>
+              <button
+                onClick={() => setShowPlayerModal(false)}
+                className="p-2 hover:bg-neutral-100 rounded-lg transition-colors"
+              >
+                <X className="w-5 h-5 text-subtext-color" />
+              </button>
+            </div>
+            <div className="p-6">
+              <p className="text-body text-default-font">this is the player modal</p>
+            </div>
+            <div className="border-t border-neutral-200 p-6 flex justify-end">
+              <button
+                onClick={() => setShowPlayerModal(false)}
+                className="px-4 py-2 bg-brand-600 text-white rounded-lg text-body hover:bg-brand-700 transition-colors"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Task Preview Modal */}
+      {showTaskModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 p-4">
+          <div className="bg-neutral-50 rounded-lg max-w-md w-full">
+            <div className="p-6 border-b border-neutral-200 flex items-center justify-between">
+              <h2 className="text-heading-2 text-default-font">Task Preview</h2>
+              <button
+                onClick={() => setShowTaskModal(false)}
+                className="p-2 hover:bg-neutral-100 rounded-lg transition-colors"
+              >
+                <X className="w-5 h-5 text-subtext-color" />
+              </button>
+            </div>
+            <div className="p-6">
+              <p className="text-body text-default-font">this is the task modal</p>
+            </div>
+            <div className="border-t border-neutral-200 p-6 flex justify-end">
+              <button
+                onClick={() => setShowTaskModal(false)}
+                className="px-4 py-2 bg-brand-600 text-white rounded-lg text-body hover:bg-brand-700 transition-colors"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Relation Preview Modal */}
+      {showRelationModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 p-4">
+          <div className="bg-neutral-50 rounded-lg max-w-md w-full">
+            <div className="p-6 border-b border-neutral-200 flex items-center justify-between">
+              <h2 className="text-heading-2 text-default-font">Relation Preview</h2>
+              <button
+                onClick={() => setShowRelationModal(false)}
+                className="p-2 hover:bg-neutral-100 rounded-lg transition-colors"
+              >
+                <X className="w-5 h-5 text-subtext-color" />
+              </button>
+            </div>
+            <div className="p-6">
+              <p className="text-body text-default-font">this is the relation modal</p>
+            </div>
+            <div className="border-t border-neutral-200 p-6 flex justify-end">
+              <button
+                onClick={() => setShowRelationModal(false)}
+                className="px-4 py-2 bg-brand-600 text-white rounded-lg text-body hover:bg-brand-700 transition-colors"
+              >
+                Close
               </button>
             </div>
           </div>
