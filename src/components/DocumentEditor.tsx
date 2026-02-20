@@ -6,6 +6,7 @@ import { HighlightBlock } from '../extensions/HighlightBlock';
 import { ImageDescriptionBlock } from '../extensions/ImageDescriptionBlock';
 import { TableBlock } from '../extensions/TableBlock';
 import { Columns, Column } from '../extensions/ColumnsBlock';
+import { ImageBlock } from '../extensions/ImageBlock';
 import { EditorToolbar } from './EditorToolbar';
 import { useEffect } from 'react';
 import { Extension } from '@tiptap/core';
@@ -13,7 +14,7 @@ import Suggestion from '@tiptap/suggestion';
 import { ReactRenderer } from '@tiptap/react';
 import tippy, { Instance as TippyInstance } from 'tippy.js';
 import { BlockSlashMenu } from './BlockSlashMenu';
-import { AlertCircle, Highlighter, Image, Table, Columns as ColumnsIcon } from 'lucide-react';
+import { AlertCircle, Highlighter, Image, ImagePlus, Table, Columns as ColumnsIcon } from 'lucide-react';
 
 interface DocumentEditorProps {
   content: any;
@@ -56,6 +57,19 @@ const SlashCommandExtension = Extension.create({
                   .focus()
                   .deleteRange(range)
                   .setHighlightBlock()
+                  .run();
+              },
+            },
+            {
+              title: 'Image',
+              description: 'Insert a resizable image with alignment controls',
+              icon: ImagePlus,
+              command: ({ editor, range }: any) => {
+                editor
+                  .chain()
+                  .focus()
+                  .deleteRange(range)
+                  .setImageBlock()
                   .run();
               },
             },
@@ -187,6 +201,7 @@ export function DocumentEditor({ content, onUpdate }: DocumentEditorProps) {
       CalloutBlock,
       HighlightBlock,
       ImageDescriptionBlock,
+      ImageBlock,
       TableBlock,
       Column,
       Columns,
