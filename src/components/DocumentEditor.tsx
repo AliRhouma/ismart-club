@@ -107,8 +107,8 @@ const SlashCommandExtension = Extension.create({
               },
             },
             {
-              title: 'Exercise',
-              description: 'Insert a multi-question exercise with screen & document views',
+              title: 'Exercice',
+              description: 'Fiche d\'exercice complète (terrain, matériaux, objectifs)',
               icon: ClipboardList,
               command: ({ editor, range }: any) => {
                 editor

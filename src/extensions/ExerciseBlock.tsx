@@ -1,504 +1,556 @@
 import { Node, mergeAttributes } from '@tiptap/core';
 import { ReactNodeViewRenderer, NodeViewWrapper } from '@tiptap/react';
-import { useState } from 'react';
-import {
-  Plus, Trash2, Settings, Check, X,
-  FileText, Monitor,
-  BookOpen, Pencil, CheckSquare, AlignLeft,
-  ChevronDown, ChevronUp,
-} from 'lucide-react';
+import { useState, useCallback } from 'react';
+import { Plus, Trash2, ImageIcon, X } from 'lucide-react';
+
+// ─────────────────────────────────────────────────────────────────────────────
+// MATERIAL SVG ICON (embedded — same icon for every material item)
+// ─────────────────────────────────────────────────────────────────────────────
+const MaterialIcon = ({ size = 32 }: { size?: number }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 11.22 8.71"
+    xmlns="http://www.w3.org/2000/svg"
+    style={{ display: 'block' }}
+  >
+    <defs>
+      <style>{`.cls-1{fill:#010101;}.cls-2{fill:#fff;}.color{fill:#c40000;}`}</style>
+    </defs>
+    <path
+      className="cls-1"
+      d="M6.45-.94l3.81,5,.48.24a.88.88,0,0,1,.48.47l-.48.84-.59.48-.36.12-.48.35-1.55.48L5.37,7.3l-3.1-.36L1.19,6.46,1,6.23.24,5.75a2.27,2.27,0,0,1-.24-1,.52.52,0,0,1,.36-.47l.36-.24.59-.84L2.63,1.33,4.06-.58l.83-.83a.26.26,0,0,1,.24.24l.24.23.36-.12.48-.35.24.24v.23"
+      transform="translate(0 1.41)"
+    />
+    <path
+      className="cls-2"
+      d="M1.19,4.2A1.2,1.2,0,0,1,2.27,4l2-.24H6.68l2,.24a3.38,3.38,0,0,1,1.08.24H1.19"
+      transform="translate(0 1.41)"
+    />
+    <path
+      className="color"
+      d="M9.55,4.32h.12l.48.23.11.24-.59.84A5.16,5.16,0,0,1,8,6.35L5.25,6.7a9.29,9.29,0,0,1-3.58-.59A2.08,2.08,0,0,1,.48,4.79a.31.31,0,0,1,.28-.35h.43v.23l8.36-.35m.12,0c0,.35-.36.71-1.2.95a12.51,12.51,0,0,1-6,0c-.72-.24-1.2-.6-1.2-.95l3.58-5c0-.12.24,0,.24,0l.24.24c.12,0,.12-.12.24-.12L6-.82h.24L9.67,4.32"
+      transform="translate(0 1.41)"
+    />
+    <path
+      className="cls-2"
+      d="M5.85-.46l3.46,5-.24.24L8.47,5l-.71.12H7.4L5.85-.46"
+      transform="translate(0 1.41)"
+    />
+  </svg>
+);
 
 // ─────────────────────────────────────────────────────────────────────────────
 // TYPES
 // ─────────────────────────────────────────────────────────────────────────────
-type QuestionType = 'mcq' | 'short' | 'long' | 'truefalse' | 'fill';
-
-interface Choice { id: string; text: string; correct: boolean; }
-interface Question {
-  id: string; type: QuestionType; prompt: string;
-  choices: Choice[]; lines: number; hint: string;
+interface MaterialItem {
+  id: string;
+  quantity: number;
 }
+
+interface Section {
+  id: string;
+  title: string;
+  description: string;
+}
+
 interface ExerciseAttrs {
-  title: string; instructions: string; subject: string; level: string;
-  accentColor: string; questions: Question[];
-  viewMode: 'screen' | 'document'; showAnswers: boolean; exerciseNumber: string;
+  titre: string;
+  type: string;
+  dimensionLong: number | string;
+  dimensionLarg: number | string;
+  phaseDeJeu: string;
+  principeDeJeu: string;
+  joueurs: number | string;
+  gb: number | string;
+  educateur: string;
+  duree: number | string;
+  seqCount: number | string;
+  seqMin: number | string;
+  recuperation: number | string;
+  materiaux: MaterialItem[];
+  imageSrc: string;
+  sections: Section[];
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// HELPERS
+// HELPER — generate unique ID
 // ─────────────────────────────────────────────────────────────────────────────
-const ACCENT_COLORS = [
-  { value: '#0091ff', label: 'Blue'    },
-  { value: '#10b981', label: 'Green'   },
-  { value: '#f59e0b', label: 'Amber'   },
-  { value: '#ef4444', label: 'Red'     },
-  { value: '#8b5cf6', label: 'Purple'  },
-  { value: '#0f766e', label: 'Teal'    },
-  { value: '#1a3a6b', label: 'Navy'    },
-  { value: '#1f2937', label: 'Slate'   },
-];
-
-const QUESTION_TYPES: { value: QuestionType; label: string }[] = [
-  { value: 'mcq',       label: 'Multiple choice' },
-  { value: 'truefalse', label: 'True / False'    },
-  { value: 'short',     label: 'Short answer'    },
-  { value: 'long',      label: 'Long answer'     },
-  { value: 'fill',      label: 'Fill in blank'   },
-];
-
 const uid = () => Math.random().toString(36).slice(2, 8);
 
-function makeQuestion(type: QuestionType = 'mcq'): Question {
-  return {
-    id: uid(), type, prompt: '', hint: '', lines: type === 'long' ? 4 : 2,
-    choices:
-      type === 'mcq'       ? [{ id: uid(), text: '', correct: false }, { id: uid(), text: '', correct: false }]
-      : type === 'truefalse' ? [{ id: uid(), text: 'True', correct: false }, { id: uid(), text: 'False', correct: false }]
-      : [],
-  };
-}
+// ─────────────────────────────────────────────────────────────────────────────
+// FREE-TEXT DROPDOWN (input + datalist)
+// ─────────────────────────────────────────────────────────────────────────────
+const FreeSelect = ({
+  id,
+  value,
+  onChange,
+  options,
+  placeholder,
+}: {
+  id: string;
+  value: string;
+  onChange: (v: string) => void;
+  options: string[];
+  placeholder?: string;
+}) => (
+  <>
+    <input
+      list={id}
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      placeholder={placeholder ?? '—'}
+      className="ex-input ex-input--select"
+    />
+    <datalist id={id}>
+      {options.map((o) => (
+        <option key={o} value={o} />
+      ))}
+    </datalist>
+  </>
+);
 
 // ─────────────────────────────────────────────────────────────────────────────
-// SCREEN VIEW
-// ─────────────────────────────────────────────────────────────────────────────
-const ScreenView = ({ attrs, onEdit, onToggleAnswers }: {
-  attrs: ExerciseAttrs; onEdit: () => void; onToggleAnswers: () => void;
-}) => {
-  const { title, instructions, subject, level, accentColor, questions, showAnswers, exerciseNumber } = attrs;
-  const [openHints, setOpenHints] = useState<Record<string, boolean>>({});
-  const toggleHint = (id: string) => setOpenHints(p => ({ ...p, [id]: !p[id] }));
-
-  return (
-    <div className="ex-screen-wrap">
-      {/* ── Header card ── */}
-      <div className="ex-screen-header" style={{ borderLeftColor: accentColor }}>
-        <div className="ex-screen-header-top">
-          <div className="ex-screen-badges">
-            {exerciseNumber && (
-              <span className="ex-screen-badge-num" style={{ background: accentColor }}>
-                Exercise {exerciseNumber}
-              </span>
-            )}
-            {subject && <span className="ex-screen-badge">{subject}</span>}
-            {level   && <span className="ex-screen-badge">{level}</span>}
-          </div>
-          <div className="ex-screen-hdr-actions">
-            <button
-              className={`ex-screen-action-btn ${showAnswers ? 'active' : ''}`}
-              style={showAnswers ? { color: accentColor, borderColor: accentColor } : {}}
-              onClick={onToggleAnswers}
-            >
-              <CheckSquare size={12} />
-              {showAnswers ? 'Hide answers' : 'Show answers'}
-            </button>
-            <button className="ex-screen-action-btn" onClick={onEdit}>
-              <Settings size={12} /> Edit
-            </button>
-          </div>
-        </div>
-        <h3 className="ex-screen-title" style={{ color: accentColor }}>
-          {title || 'Untitled Exercise'}
-        </h3>
-        {instructions && <p className="ex-screen-instructions">{instructions}</p>}
-      </div>
-
-      {/* ── Questions ── */}
-      <div className="ex-screen-questions">
-        {questions.length === 0 && (
-          <div className="ex-screen-empty">No questions yet — click Edit to add some.</div>
-        )}
-        {questions.map((q, qi) => (
-          <div key={q.id} className="ex-screen-qcard">
-            <div className="ex-screen-qnum" style={{ background: accentColor }}>{qi + 1}</div>
-            <div className="ex-screen-qbody">
-              <span className="ex-screen-qtype-tag">
-                {QUESTION_TYPES.find(t => t.value === q.type)?.label}
-              </span>
-              <p className="ex-screen-qprompt">
-                {q.prompt || <em style={{ color: '#9ca3af' }}>No question text</em>}
-              </p>
-
-              {/* MCQ / T-F */}
-              {(q.type === 'mcq' || q.type === 'truefalse') && (
-                <div className="ex-screen-choices">
-                  {q.choices.map((c, ci) => (
-                    <div
-                      key={c.id}
-                      className={`ex-screen-choice ${showAnswers && c.correct ? 'correct' : ''}`}
-                      style={showAnswers && c.correct ? { borderColor: accentColor, background: accentColor + '15' } : {}}
-                    >
-                      <span className="ex-screen-choice-letter"
-                        style={showAnswers && c.correct ? { background: accentColor, color: '#fff' } : {}}>
-                        {String.fromCharCode(65 + ci)}
-                      </span>
-                      <span className="ex-screen-choice-text">{c.text || '…'}</span>
-                      {showAnswers && c.correct && <Check size={13} style={{ marginLeft: 'auto', color: accentColor, flexShrink: 0 }} />}
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {/* Answer lines */}
-              {(q.type === 'short' || q.type === 'long') && (
-                <div className="ex-screen-lines">
-                  {Array.from({ length: q.lines }).map((_, i) => <div key={i} className="ex-screen-line" />)}
-                </div>
-              )}
-
-              {/* Fill blank */}
-              {q.type === 'fill' && <div className="ex-screen-fill-box">_______________</div>}
-
-              {/* Hint */}
-              {q.hint && (
-                <div className="ex-screen-hint-wrap">
-                  <button className="ex-screen-hint-toggle" style={{ color: accentColor }} onClick={() => toggleHint(q.id)}>
-                    {openHints[q.id] ? <ChevronUp size={11}/> : <ChevronDown size={11}/>} Hint
-                  </button>
-                  {openHints[q.id] && (
-                    <div className="ex-screen-hint-text" style={{ borderLeftColor: accentColor }}>
-                      {q.hint}
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-};
-
-// ─────────────────────────────────────────────────────────────────────────────
-// DOCUMENT VIEW
-// ─────────────────────────────────────────────────────────────────────────────
-const DocumentView = ({ attrs, onEdit }: { attrs: ExerciseAttrs; onEdit: () => void }) => {
-  const { title, instructions, subject, level, accentColor, questions, showAnswers, exerciseNumber } = attrs;
-
-  return (
-    <div className="ex-doc-wrap">
-      <button className="ex-doc-edit-btn" onClick={onEdit} contentEditable={false}>
-        <Settings size={11} /> Edit
-      </button>
-
-      {/* ── Document header ── */}
-      <div className="ex-doc-header">
-        <div className="ex-doc-accent-bar" style={{ background: accentColor }} />
-        <div className="ex-doc-header-body">
-          {(subject || level) && (
-            <div className="ex-doc-meta-row">
-              {subject && <span className="ex-doc-meta-chip">{subject}</span>}
-              {level   && <span className="ex-doc-meta-chip">{level}</span>}
-            </div>
-          )}
-          <h3 className="ex-doc-title">
-            {exerciseNumber && (
-              <span className="ex-doc-exnum" style={{ color: accentColor }}>
-                Exercice {exerciseNumber} —{' '}
-              </span>
-            )}
-            {title || 'Untitled Exercise'}
-          </h3>
-          {instructions && (
-            <p className="ex-doc-instructions">
-              <span className="ex-doc-instructions-label">Instructions :</span> {instructions}
-            </p>
-          )}
-        </div>
-      </div>
-
-      {/* ── Questions ── */}
-      <div className="ex-doc-questions">
-        {questions.length === 0 && <p className="ex-doc-empty">No questions added yet.</p>}
-        {questions.map((q, qi) => (
-          <div key={q.id} className="ex-doc-question">
-            <div className="ex-doc-q-row">
-              <span className="ex-doc-q-num" style={{ color: accentColor }}>
-                {qi + 1}.
-              </span>
-              <div className="ex-doc-q-content">
-                <p className="ex-doc-q-prompt">
-                  {q.prompt || <em className="ex-doc-q-empty">Question text…</em>}
-                  {q.type === 'fill' && <span className="ex-doc-blank"> ___________________</span>}
-                </p>
-
-                {/* MCQ list */}
-                {(q.type === 'mcq' || q.type === 'truefalse') && (
-                  <ol className="ex-doc-choices" type="A">
-                    {q.choices.map((c) => (
-                      <li
-                        key={c.id}
-                        className={`ex-doc-choice ${showAnswers && c.correct ? 'correct' : ''}`}
-                        style={showAnswers && c.correct ? { color: accentColor, fontWeight: 700 } : {}}
-                      >
-                        {c.text || '…'}
-                        {showAnswers && c.correct && <span className="ex-doc-tick"> ✓</span>}
-                      </li>
-                    ))}
-                  </ol>
-                )}
-
-                {/* Answer lines */}
-                {(q.type === 'short' || q.type === 'long') && (
-                  <div className="ex-doc-answer-lines">
-                    {Array.from({ length: q.lines }).map((_, i) => <div key={i} className="ex-doc-answer-line" />)}
-                  </div>
-                )}
-
-                {/* Hint when answers shown */}
-                {q.hint && showAnswers && (
-                  <p className="ex-doc-hint"><strong>Hint :</strong> {q.hint}</p>
-                )}
-              </div>
-            </div>
-            {qi < questions.length - 1 && <div className="ex-doc-divider" />}
-          </div>
-        ))}
-      </div>
-
-      {/* ── Footer score ── */}
-      <div className="ex-doc-footer">
-        <span className="ex-doc-score-label">Score :</span>
-        <span className="ex-doc-score-line" />
-        <span className="ex-doc-score-total">/ {questions.length}</span>
-      </div>
-    </div>
-  );
-};
-
-// ─────────────────────────────────────────────────────────────────────────────
-// EDIT PANEL
-// ─────────────────────────────────────────────────────────────────────────────
-const EditPanel = ({ attrs, onSave, onCancel }: {
-  attrs: ExerciseAttrs;
-  onSave: (p: Partial<ExerciseAttrs>) => void;
-  onCancel: () => void;
-}) => {
-  const [title, setTitle]               = useState(attrs.title);
-  const [instructions, setInstructions] = useState(attrs.instructions);
-  const [subject, setSubject]           = useState(attrs.subject);
-  const [level, setLevel]               = useState(attrs.level);
-  const [accentColor, setAccentColor]   = useState(attrs.accentColor);
-  const [exNum, setExNum]               = useState(attrs.exerciseNumber);
-  const [questions, setQuestions]       = useState<Question[]>(
-    attrs.questions.length ? attrs.questions : [makeQuestion('mcq')]
-  );
-
-  const addQ = () => setQuestions(p => [...p, makeQuestion('mcq')]);
-  const removeQ = (id: string) => setQuestions(p => p.filter(q => q.id !== id));
-  const updateQ = (id: string, patch: Partial<Question>) =>
-    setQuestions(p => p.map(q => q.id === id ? { ...q, ...patch } : q));
-  const changeType = (id: string, type: QuestionType) => {
-    const fresh = makeQuestion(type);
-    setQuestions(p => p.map(q => q.id === id ? { ...fresh, id: q.id, prompt: q.prompt } : q));
-  };
-  const addChoice = (qid: string) =>
-    setQuestions(p => p.map(q => q.id === qid ? { ...q, choices: [...q.choices, { id: uid(), text: '', correct: false }] } : q));
-  const removeChoice = (qid: string, cid: string) =>
-    setQuestions(p => p.map(q => q.id === qid ? { ...q, choices: q.choices.filter(c => c.id !== cid) } : q));
-  const updateChoice = (qid: string, cid: string, patch: Partial<Choice>) =>
-    setQuestions(p => p.map(q => q.id === qid ? { ...q, choices: q.choices.map(c => c.id === cid ? { ...c, ...patch } : c) } : q));
-  const setCorrect = (qid: string, cid: string) =>
-    setQuestions(p => p.map(q => q.id === qid ? { ...q, choices: q.choices.map(c => ({ ...c, correct: c.id === cid })) } : q));
-
-  return (
-    <div className="ex-edit-wrap" contentEditable={false}>
-      {/* Meta */}
-      <div className="ex-edit-section">
-        <p className="ex-edit-section-title">Exercise details</p>
-        <div className="ex-edit-row-3">
-          <div>
-            <label className="ex-edit-label">Exercise #</label>
-            <input className="ex-edit-input" value={exNum} onChange={e => setExNum(e.target.value)} placeholder="1" />
-          </div>
-          <div>
-            <label className="ex-edit-label">Subject</label>
-            <input className="ex-edit-input" value={subject} onChange={e => setSubject(e.target.value)} placeholder="Maths" />
-          </div>
-          <div>
-            <label className="ex-edit-label">Level</label>
-            <input className="ex-edit-input" value={level} onChange={e => setLevel(e.target.value)} placeholder="Grade 8" />
-          </div>
-        </div>
-        <label className="ex-edit-label">Title</label>
-        <input className="ex-edit-input" value={title} onChange={e => setTitle(e.target.value)} placeholder="Exercise title…" />
-        <label className="ex-edit-label" style={{ marginTop: 10 }}>Instructions</label>
-        <textarea className="ex-edit-textarea" value={instructions} onChange={e => setInstructions(e.target.value)} placeholder="Answer all questions…" rows={2} />
-        <label className="ex-edit-label" style={{ marginTop: 10 }}>Accent color</label>
-        <div className="ex-edit-colors">
-          {ACCENT_COLORS.map(c => (
-            <button
-              key={c.value}
-              className={`ex-edit-color-swatch ${accentColor === c.value ? 'selected' : ''}`}
-              style={{ background: c.value }}
-              onClick={() => setAccentColor(c.value)}
-              title={c.label}
-            >
-              {accentColor === c.value && <Check size={11} color="#fff" />}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Questions */}
-      <div className="ex-edit-section">
-        <div className="ex-edit-section-header">
-          <p className="ex-edit-section-title">Questions ({questions.length})</p>
-          <button className="ex-edit-add-q-btn" style={{ borderColor: accentColor, color: accentColor }} onClick={addQ}>
-            <Plus size={13} /> Add question
-          </button>
-        </div>
-
-        {questions.map((q, qi) => (
-          <div key={q.id} className="ex-edit-qblock">
-            <div className="ex-edit-qblock-hdr">
-              <span className="ex-edit-qblock-num" style={{ background: accentColor }}>Q{qi + 1}</span>
-              <select className="ex-edit-select" value={q.type} onChange={e => changeType(q.id, e.target.value as QuestionType)}>
-                {QUESTION_TYPES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
-              </select>
-              <button className="ex-edit-remove-btn" onClick={() => removeQ(q.id)}><Trash2 size={13} /></button>
-            </div>
-            <textarea className="ex-edit-textarea" value={q.prompt} onChange={e => updateQ(q.id, { prompt: e.target.value })} placeholder="Question text…" rows={2} />
-
-            {/* MCQ */}
-            {q.type === 'mcq' && (
-              <div className="ex-edit-choices">
-                {q.choices.map((c, ci) => (
-                  <div key={c.id} className="ex-edit-choice-row">
-                    <button
-                      className={`ex-edit-correct-btn ${c.correct ? 'is-correct' : ''}`}
-                      style={c.correct ? { background: accentColor, borderColor: accentColor } : {}}
-                      onClick={() => setCorrect(q.id, c.id)}
-                      title="Mark as correct"
-                    >
-                      {c.correct ? <Check size={11} color="#fff" /> : String.fromCharCode(65 + ci)}
-                    </button>
-                    <input className="ex-edit-input" value={c.text} onChange={e => updateChoice(q.id, c.id, { text: e.target.value })} placeholder={`Choice ${String.fromCharCode(65 + ci)}…`} />
-                    <button className="ex-edit-remove-btn" onClick={() => removeChoice(q.id, c.id)} disabled={q.choices.length <= 2}><X size={12} /></button>
-                  </div>
-                ))}
-                <button className="ex-edit-ghost-btn" onClick={() => addChoice(q.id)}><Plus size={12} /> Add choice</button>
-              </div>
-            )}
-
-            {/* True/False */}
-            {q.type === 'truefalse' && (
-              <div className="ex-edit-choices">
-                {q.choices.map(c => (
-                  <div key={c.id} className="ex-edit-choice-row">
-                    <button
-                      className={`ex-edit-correct-btn ${c.correct ? 'is-correct' : ''}`}
-                      style={c.correct ? { background: accentColor, borderColor: accentColor } : {}}
-                      onClick={() => setCorrect(q.id, c.id)}
-                    >
-                      {c.correct ? <Check size={11} color="#fff" /> : c.text[0]}
-                    </button>
-                    <span className="ex-edit-tf-label">{c.text}</span>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {/* Lines */}
-            {(q.type === 'short' || q.type === 'long') && (
-              <div className="ex-edit-inline-row">
-                <label className="ex-edit-label">Answer lines</label>
-                <input type="number" className="ex-edit-input ex-edit-input-sm" value={q.lines} min={1} max={10} onChange={e => updateQ(q.id, { lines: Number(e.target.value) })} />
-              </div>
-            )}
-
-            <div style={{ marginTop: 8 }}>
-              <label className="ex-edit-label">Hint (optional)</label>
-              <input className="ex-edit-input" value={q.hint} onChange={e => updateQ(q.id, { hint: e.target.value })} placeholder="Optional hint…" />
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* Actions */}
-      <div className="ex-edit-actions">
-        <button className="ex-edit-save-btn" style={{ background: accentColor }}
-          onClick={() => onSave({ title, instructions, subject, level, accentColor, questions, exerciseNumber: exNum })}>
-          <Check size={14} /> Save Exercise
-        </button>
-        <button className="ex-edit-cancel-btn" onClick={onCancel}><X size={14} /> Cancel</button>
-      </div>
-    </div>
-  );
-};
-
-// ─────────────────────────────────────────────────────────────────────────────
-// ROOT COMPONENT
+// MAIN COMPONENT
 // ─────────────────────────────────────────────────────────────────────────────
 const ExerciseBlockComponent = ({ node, updateAttributes }: any) => {
   const attrs = node.attrs as ExerciseAttrs;
-  const [isEditing, setIsEditing] = useState(!attrs.title && attrs.questions.length === 0);
 
+  // Ensure arrays are always real arrays (TipTap serialises attrs as JSON)
+  const materiaux: MaterialItem[] = Array.isArray(attrs.materiaux) ? attrs.materiaux : [];
+  const sections: Section[] = Array.isArray(attrs.sections) ? attrs.sections : [];
+
+  // Local state for image URL edit mode
+  const [editingImage, setEditingImage] = useState(!attrs.imageSrc);
+  const [imgInput, setImgInput] = useState(attrs.imageSrc || '');
+
+  // ── Generic field updater ────────────────────────────────────────────────
+  const set = useCallback(
+    (field: keyof ExerciseAttrs) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
+      updateAttributes({ [field]: e.target.value }),
+    [updateAttributes]
+  );
+
+  // ── Materials ────────────────────────────────────────────────────────────
+  const addMaterial = () =>
+    updateAttributes({ materiaux: [...materiaux, { id: uid(), quantity: 1 }] });
+
+  const updateMaterialQty = (id: string, quantity: number) =>
+    updateAttributes({ materiaux: materiaux.map((m) => (m.id === id ? { ...m, quantity } : m)) });
+
+  const deleteMaterial = (id: string) =>
+    updateAttributes({ materiaux: materiaux.filter((m) => m.id !== id) });
+
+  // ── Sections (Objectif / Consignes / …) ─────────────────────────────────
+  const addSection = () =>
+    updateAttributes({ sections: [...sections, { id: uid(), title: 'Objectif', description: '' }] });
+
+  const updateSection = (id: string, field: 'title' | 'description', value: string) =>
+    updateAttributes({ sections: sections.map((s) => (s.id === id ? { ...s, [field]: value } : s)) });
+
+  const deleteSection = (id: string) =>
+    updateAttributes({ sections: sections.filter((s) => s.id !== id) });
+
+  // ── Image ────────────────────────────────────────────────────────────────
+  const applyImage = () => {
+    updateAttributes({ imageSrc: imgInput.trim() });
+    setEditingImage(false);
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // RENDER
+  // ─────────────────────────────────────────────────────────────────────────
   return (
-    <NodeViewWrapper as="div" className="exercise-block-wrapper">
-      {!isEditing && (
-        <div className="ex-view-switcher" contentEditable={false}>
-          <button
-            className={`ex-view-btn ${attrs.viewMode === 'screen' ? 'active' : ''}`}
-            onClick={() => updateAttributes({ viewMode: 'screen' })}
-          >
-            <Monitor size={13} /> Screen
-          </button>
-          <button
-            className={`ex-view-btn ${attrs.viewMode === 'document' ? 'active' : ''}`}
-            onClick={() => updateAttributes({ viewMode: 'document' })}
-          >
-            <FileText size={13} /> Document
+    <NodeViewWrapper as="div" className="ex-block">
+
+      {/* ══════════════════════════════════════════════════════════════════
+          HEADER GRID — 3 rows × 3 columns
+      ══════════════════════════════════════════════════════════════════ */}
+      <div className="ex-header">
+
+        {/* ── Row 1 ─────────────────────────────────────────────────────── */}
+        <div className="ex-header-row">
+          {/* Titre */}
+          <div className="ex-field ex-field--grow2">
+            <label className="ex-label">Titre</label>
+            <input
+              className="ex-input ex-input--title"
+              value={attrs.titre}
+              onChange={set('titre')}
+              placeholder="Attaque en supériorité – par vague"
+            />
+          </div>
+
+          {/* Type */}
+          <div className="ex-field ex-field--grow1">
+            <label className="ex-label">Type</label>
+            <FreeSelect
+              id="ex-type"
+              value={attrs.type}
+              onChange={(v) => updateAttributes({ type: v })}
+              options={['Situation', 'Exercice', 'Jeu réduit', 'Match', 'Circuit']}
+              placeholder="Situation"
+            />
+          </div>
+
+          {/* Dimensions */}
+          <div className="ex-field ex-field--shrink">
+            <label className="ex-label">Dimensions</label>
+            <div className="ex-inline-group">
+              <input
+                className="ex-input ex-input--num"
+                type="number"
+                value={attrs.dimensionLong}
+                onChange={set('dimensionLong')}
+                placeholder="20"
+              />
+              <span className="ex-unit">Long</span>
+              <input
+                className="ex-input ex-input--num"
+                type="number"
+                value={attrs.dimensionLarg}
+                onChange={set('dimensionLarg')}
+                placeholder="20"
+              />
+              <span className="ex-unit">Larg</span>
+            </div>
+          </div>
+        </div>
+
+        {/* ── Row 2 ─────────────────────────────────────────────────────── */}
+        <div className="ex-header-row">
+          {/* Phase de Jeu */}
+          <div className="ex-field ex-field--grow1">
+            <label className="ex-label">Phase De Jeu</label>
+            <FreeSelect
+              id="ex-phase"
+              value={attrs.phaseDeJeu}
+              onChange={(v) => updateAttributes({ phaseDeJeu: v })}
+              options={[
+                'Déséquilibrer - Finir',
+                'Construire',
+                'Transition offensive',
+                'Transition défensive',
+                'Organisation défensive',
+              ]}
+              placeholder="Déséquilibrer - Finir"
+            />
+          </div>
+
+          {/* Principe de Jeu */}
+          <div className="ex-field ex-field--grow1">
+            <label className="ex-label">Principe De Jeu</label>
+            <FreeSelect
+              id="ex-principe"
+              value={attrs.principeDeJeu}
+              onChange={(v) => updateAttributes({ principeDeJeu: v })}
+              options={[
+                'Jouer combiné pour créer un surnombre',
+                'Conservation du ballon',
+                'Pressing haut',
+                'Jeu direct',
+                'Permutation',
+              ]}
+              placeholder="Jouer combiné pour créer un surnombre"
+            />
+          </div>
+
+          {/* Effectif */}
+          <div className="ex-field ex-field--shrink">
+            <label className="ex-label">Effectif</label>
+            <div className="ex-inline-group">
+              <input
+                className="ex-input ex-input--num"
+                type="number"
+                value={attrs.joueurs}
+                onChange={set('joueurs')}
+                placeholder="8"
+              />
+              <span className="ex-unit">Joueurs</span>
+              <input
+                className="ex-input ex-input--num"
+                type="number"
+                value={attrs.gb}
+                onChange={set('gb')}
+                placeholder="2"
+              />
+              <span className="ex-unit">GB</span>
+            </div>
+          </div>
+        </div>
+
+        {/* ── Row 3 ─────────────────────────────────────────────────────── */}
+        <div className="ex-header-row ex-header-row--4col">
+          {/* Educateur */}
+          <div className="ex-field">
+            <label className="ex-label">Educateur</label>
+            <input
+              className="ex-input"
+              value={attrs.educateur}
+              onChange={set('educateur')}
+              placeholder="Nom de l'éducateur"
+            />
+          </div>
+
+          {/* Durée */}
+          <div className="ex-field">
+            <label className="ex-label">Durée (Minutes)</label>
+            <input
+              className="ex-input"
+              type="number"
+              value={attrs.duree}
+              onChange={set('duree')}
+              placeholder="12"
+            />
+          </div>
+
+          {/* Séquence */}
+          <div className="ex-field">
+            <label className="ex-label">Séquence</label>
+            <div className="ex-inline-group">
+              <input
+                className="ex-input ex-input--num"
+                type="number"
+                value={attrs.seqCount}
+                onChange={set('seqCount')}
+                placeholder="4"
+              />
+              <span className="ex-unit">×</span>
+              <input
+                className="ex-input ex-input--num"
+                type="number"
+                value={attrs.seqMin}
+                onChange={set('seqMin')}
+                placeholder="3"
+              />
+              <span className="ex-unit">seq.min</span>
+            </div>
+          </div>
+
+          {/* Récupération */}
+          <div className="ex-field">
+            <label className="ex-label">Récupération (Secondes)</label>
+            <input
+              className="ex-input"
+              type="number"
+              value={attrs.recuperation}
+              onChange={set('recuperation')}
+              placeholder="sec"
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* ══════════════════════════════════════════════════════════════════
+          BODY — 3 panels: Materials | Image | Sections
+      ══════════════════════════════════════════════════════════════════ */}
+      <div className="ex-body">
+
+        {/* ── LEFT: Matériaux ───────────────────────────────────────────── */}
+        <div className="ex-panel ex-panel--left">
+          <p className="ex-panel-title">Matériaux</p>
+
+          <div className="ex-materials-list">
+            {materiaux.map((m) => (
+              <div key={m.id} className="ex-material-row">
+                {/* SVG icon */}
+                <div className="ex-material-icon">
+                  <MaterialIcon size={36} />
+                </div>
+                {/* Quantity */}
+                <input
+                  className="ex-input ex-input--num ex-material-qty"
+                  type="number"
+                  min={1}
+                  value={m.quantity}
+                  onChange={(e) => updateMaterialQty(m.id, Number(e.target.value))}
+                />
+                {/* Delete */}
+                <button
+                  className="ex-icon-btn ex-icon-btn--danger"
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => deleteMaterial(m.id)}
+                  title="Supprimer"
+                >
+                  <X size={12} />
+                </button>
+              </div>
+            ))}
+          </div>
+
+          <button className="ex-btn-secondary ex-btn--full" onClick={addMaterial}>
+            <Plus size={14} />
+            Gérer
           </button>
         </div>
-      )}
 
-      {isEditing ? (
-        <EditPanel attrs={attrs} onSave={p => { updateAttributes(p); setIsEditing(false); }} onCancel={() => setIsEditing(false)} />
-      ) : attrs.viewMode === 'document' ? (
-        <DocumentView attrs={attrs} onEdit={() => setIsEditing(true)} />
-      ) : (
-        <ScreenView attrs={attrs} onEdit={() => setIsEditing(true)} onToggleAnswers={() => updateAttributes({ showAnswers: !attrs.showAnswers })} />
-      )}
+        {/* ── CENTER: Image ─────────────────────────────────────────────── */}
+        <div className="ex-panel ex-panel--center">
+          {editingImage ? (
+            <div className="ex-image-input-panel">
+              <div className="ex-image-input-icon">
+                <ImageIcon size={24} strokeWidth={1.5} />
+              </div>
+              <p className="ex-image-input-title">Ajouter une image du terrain</p>
+              <input
+                className="ex-input"
+                type="url"
+                value={imgInput}
+                onChange={(e) => setImgInput(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && applyImage()}
+                placeholder="https://…/terrain.png"
+              />
+              <div className="ex-image-input-actions">
+                <button className="ex-btn-primary" onClick={applyImage}>
+                  Insérer
+                </button>
+                {attrs.imageSrc && (
+                  <button
+                    className="ex-btn-ghost"
+                    onClick={() => setEditingImage(false)}
+                  >
+                    Annuler
+                  </button>
+                )}
+              </div>
+            </div>
+          ) : (
+            <div
+              className="ex-image-preview"
+              onClick={() => setEditingImage(true)}
+              title="Cliquer pour changer l'image"
+            >
+              <img
+                src={attrs.imageSrc}
+                alt="Terrain"
+                className="ex-image-img"
+                onError={(e) => {
+                  (e.currentTarget as HTMLImageElement).style.opacity = '0.25';
+                }}
+              />
+              <div className="ex-image-overlay">
+                <ImageIcon size={18} />
+                <span>Changer l'image</span>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* ── RIGHT: Sections (Objectif / Consignes / …) ────────────────── */}
+        <div className="ex-panel ex-panel--right">
+          <div className="ex-sections-list">
+            {sections.map((s) => (
+              <div key={s.id} className="ex-section">
+                {/* Section title row */}
+                <div className="ex-section-header">
+                  <input
+                    className="ex-input ex-section-title-input"
+                    value={s.title}
+                    onChange={(e) => updateSection(s.id, 'title', e.target.value)}
+                    placeholder="Objectif"
+                  />
+                  <button
+                    className="ex-icon-btn ex-icon-btn--danger"
+                    onMouseDown={(e) => e.preventDefault()}
+                    onClick={() => deleteSection(s.id)}
+                    title="Supprimer ce champ"
+                  >
+                    <Trash2 size={13} />
+                  </button>
+                </div>
+                {/* Section description */}
+                <textarea
+                  className="ex-textarea"
+                  value={s.description}
+                  onChange={(e) => updateSection(s.id, 'description', e.target.value)}
+                  placeholder="Décrivez l'objectif de l'exercice…"
+                  rows={3}
+                />
+              </div>
+            ))}
+          </div>
+
+          {/* Add section button */}
+          <button className="ex-btn-add-section" onClick={addSection}>
+            <Plus size={15} />
+            Ajouter un champ
+          </button>
+        </div>
+
+      </div>
     </NodeViewWrapper>
   );
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
-// NODE DEFINITION
+// TIPTAP NODE
 // ─────────────────────────────────────────────────────────────────────────────
 export const ExerciseBlock = Node.create({
   name: 'exerciseBlock',
   group: 'block',
   atom: true,
+  draggable: true,
+  selectable: true,
 
   addAttributes() {
     return {
-      title:          { default: '' },
-      instructions:   { default: '' },
-      subject:        { default: '' },
-      level:          { default: '' },
-      accentColor:    { default: '#0091ff' },
-      questions:      { default: [] },
-      viewMode:       { default: 'screen' },
-      showAnswers:    { default: false },
-      exerciseNumber: { default: '' },
+      titre:          { default: '' },
+      type:           { default: '' },
+      dimensionLong:  { default: '' },
+      dimensionLarg:  { default: '' },
+      phaseDeJeu:     { default: '' },
+      principeDeJeu:  { default: '' },
+      joueurs:        { default: '' },
+      gb:             { default: '' },
+      educateur:      { default: '' },
+      duree:          { default: '' },
+      seqCount:       { default: '' },
+      seqMin:         { default: '' },
+      recuperation:   { default: '' },
+      materiaux:      { default: [] },
+      imageSrc:       { default: '' },
+      sections:       { default: [] },
     };
   },
 
-  parseHTML() { return [{ tag: 'div[data-type="exercise-block"]' }]; },
-  renderHTML({ HTMLAttributes }) {
-    return ['div', mergeAttributes(HTMLAttributes, { 'data-type': 'exercise-block' }), 0];
+  parseHTML() {
+    return [{ tag: 'div[data-type="exercise-block"]' }];
   },
-  addNodeView() { return ReactNodeViewRenderer(ExerciseBlockComponent); },
+
+  renderHTML({ HTMLAttributes }) {
+    return ['div', mergeAttributes(HTMLAttributes, { 'data-type': 'exercise-block' })];
+  },
+
+  addNodeView() {
+    return ReactNodeViewRenderer(ExerciseBlockComponent);
+  },
 
   addCommands() {
     return {
-      setExerciseBlock: () => ({ commands }: any) =>
-        commands.insertContent({
-          type: this.name,
-          attrs: { title: '', instructions: '', subject: '', level: '', accentColor: '#0091ff', questions: [], viewMode: 'screen', showAnswers: false, exerciseNumber: '' },
-        }),
+      setExerciseBlock:
+        () =>
+        ({ commands }: any) =>
+          commands.insertContent({
+            type: this.name,
+            attrs: {
+              titre: '',
+              type: '',
+              dimensionLong: '',
+              dimensionLarg: '',
+              phaseDeJeu: '',
+              principeDeJeu: '',
+              joueurs: '',
+              gb: '',
+              educateur: '',
+              duree: '',
+              seqCount: '',
+              seqMin: '',
+              recuperation: '',
+              materiaux: [],
+              imageSrc: '',
+              sections: [{ id: 'default', title: 'Objectif', description: '' }],
+            },
+          }),
     } as any;
   },
 });
