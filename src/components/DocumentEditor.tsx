@@ -25,6 +25,7 @@ import { AlertCircle, Highlighter, Image, ImagePlus, Table, Columns as ColumnsIc
 interface DocumentEditorProps {
   content: any;
   onUpdate: (content: any) => void;
+  padding?: 'narrow' | 'normal' | 'wide';
 }
 
 const SlashCommandExtension = Extension.create({
@@ -219,7 +220,7 @@ const SlashCommandExtension = Extension.create({
   },
 });
 
-export function DocumentEditor({ content, onUpdate }: DocumentEditorProps) {
+export function DocumentEditor({ content, onUpdate, padding = 'normal' }: DocumentEditorProps) {
   const editor = useEditor({
     extensions: [
       TextStyle,
@@ -271,7 +272,13 @@ export function DocumentEditor({ content, onUpdate }: DocumentEditorProps) {
   if (!editor) {
     return null;
   }
- 
+
+  const paddingValues = {
+    narrow: '1.5cm',
+    normal: '2.54cm',
+    wide: '3.5cm',
+  };
+
   return (
     <div className="w-full max-w-[21cm] mx-auto">
       {/* Toolbar - Sticky on scroll, hidden on print */}
@@ -282,7 +289,7 @@ export function DocumentEditor({ content, onUpdate }: DocumentEditorProps) {
       {/* Document Pages Container */}
       <div className="document-pages">
         {/* A4 Page Sheet */}
-        <div className="document-page bg-white shadow-lg print:shadow-none">
+        <div className="document-page bg-white shadow-lg print:shadow-none" style={{ padding: paddingValues[padding] }}>
           <EditorContent editor={editor} />
         </div>
 

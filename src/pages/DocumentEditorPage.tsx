@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Save, CheckCircle2, Download } from 'lucide-react';
+import { ArrowLeft, Save, CheckCircle2, Download, Maximize2 } from 'lucide-react';
 import { DocumentEditor } from '../components/DocumentEditor';
 import { storage } from '../utils/storage';
 import { Document } from '../types/document';
@@ -13,6 +13,7 @@ export function DocumentEditorPage() {
   const [content, setContent] = useState<any>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
+  const [padding, setPadding] = useState<'narrow' | 'normal' | 'wide'>('normal');
 
   useEffect(() => {
     if (id) {
@@ -112,6 +113,21 @@ export function DocumentEditorPage() {
                 </div>
               ) : null}
 
+              {/* Padding Control */}
+              <div className="flex items-center gap-2">
+                <Maximize2 className="w-4 h-4 text-neutral-500" />
+                <select
+                  value={padding}
+                  onChange={(e) => setPadding(e.target.value as 'narrow' | 'normal' | 'wide')}
+                  className="px-3 py-1.5 text-sm border border-neutral-300 rounded-lg bg-white text-neutral-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+                  title="Adjust page margins"
+                >
+                  <option value="narrow">Narrow Margins</option>
+                  <option value="normal">Normal Margins</option>
+                  <option value="wide">Wide Margins</option>
+                </select>
+              </div>
+
               {/* Export PDF Button */}
               <button
                 onClick={handleExportPDF}
@@ -142,7 +158,7 @@ export function DocumentEditorPage() {
 
       {/* Editor Container */}
       <div className="flex-1 w-full py-8 px-4 print:py-0 print:px-0 overflow-y-auto">
-        <DocumentEditor content={content} onUpdate={handleContentUpdate} />
+        <DocumentEditor content={content} onUpdate={handleContentUpdate} padding={padding} />
       </div>
     </div>
   );
