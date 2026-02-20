@@ -1,6 +1,10 @@
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Placeholder from '@tiptap/extension-placeholder';
+import Underline from '@tiptap/extension-underline';
+import TextAlign from '@tiptap/extension-text-align';
+import { TextStyle } from '@tiptap/extension-text-style';
+import { Color } from '@tiptap/extension-color';
 import { CalloutBlock } from '../extensions/CalloutBlock';
 import { HighlightBlock } from '../extensions/HighlightBlock';
 import { ImageDescriptionBlock } from '../extensions/ImageDescriptionBlock';
@@ -197,6 +201,13 @@ export function DocumentEditor({ content, onUpdate }: DocumentEditorProps) {
       }),
       Placeholder.configure({
         placeholder: 'Start typing or press / for commands...',
+      }),
+      Underline,
+      TextStyle,
+      Color,
+      TextAlign.configure({
+        types: ['heading', 'paragraph'],
+        alignments: ['left', 'center', 'right', 'justify'],
       }),
       CalloutBlock,
       HighlightBlock,
