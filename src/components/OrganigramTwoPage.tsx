@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
+import GroupPreviewModal from './GroupPreviewModal';
 import ReactFlow, {
   Node,
   Edge,
@@ -1605,32 +1606,10 @@ export default function OrganigramTwoPage() {
       )}
 
       {/* Group Preview Modal */}
-      {showGroupModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 p-4">
-          <div className="bg-neutral-50 rounded-lg max-w-md w-full">
-            <div className="p-6 border-b border-neutral-200 flex items-center justify-between">
-              <h2 className="text-heading-2 text-default-font">Group Preview</h2>
-              <button
-                onClick={() => setShowGroupModal(false)}
-                className="p-2 hover:bg-neutral-100 rounded-lg transition-colors"
-              >
-                <X className="w-5 h-5 text-subtext-color" />
-              </button>
-            </div>
-            <div className="p-6">
-              <p className="text-body text-default-font">this is the group modal</p>
-            </div>
-            <div className="border-t border-neutral-200 p-6 flex justify-end">
-              <button
-                onClick={() => setShowGroupModal(false)}
-                className="px-4 py-2 bg-brand-600 text-white rounded-lg text-body hover:bg-brand-700 transition-colors"
-              >
-                Close
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <GroupPreviewModal
+        isOpen={showGroupModal}
+        onClose={() => setShowGroupModal(false)}
+      />
 
       {/* Player Preview Modal */}
       {showPlayerModal && (
