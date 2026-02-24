@@ -27,7 +27,7 @@ import { AlertCircle, Highlighter, Image, ImagePlus, Table, Columns as ColumnsIc
 interface DocumentEditorProps {
   content: any;
   onUpdate: (content: any) => void;
-  padding?: 'narrow' | 'normal' | 'wide';
+  padding?: number; // padding in cm
 }
 
 const SlashCommandExtension = Extension.create({
@@ -248,7 +248,7 @@ const SlashCommandExtension = Extension.create({
   },
 });
 
-export function DocumentEditor({ content, onUpdate, padding = 'normal' }: DocumentEditorProps) {
+export function DocumentEditor({ content, onUpdate, padding = 2.54 }: DocumentEditorProps) {
   const editor = useEditor({
     extensions: [
       TextStyle,
@@ -303,11 +303,7 @@ export function DocumentEditor({ content, onUpdate, padding = 'normal' }: Docume
     return null;
   }
 
-  const paddingValues = {
-    narrow: '1.5cm',
-    normal: '2.54cm',
-    wide: '3.5cm',
-  };
+  const paddingValue = `${padding}cm`;
 
   return (
     <div className="w-full max-w-[21cm] mx-auto">
@@ -319,7 +315,7 @@ export function DocumentEditor({ content, onUpdate, padding = 'normal' }: Docume
       {/* Document Pages Container */}
       <div className="document-pages">
         {/* A4 Page Sheet */}
-        <div className="document-page bg-white shadow-lg print:shadow-none" style={{ padding: paddingValues[padding] }}>
+        <div className="document-page bg-white shadow-lg print:shadow-none" style={{ padding: paddingValue }}>
           <EditorContent editor={editor} />
         </div>
 
