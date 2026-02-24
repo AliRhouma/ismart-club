@@ -133,16 +133,18 @@ const SAMPLE_REGLEMENTS: ReglementData[] = [
   },
 ];
 
-const CATEGORY_STYLES: Record<string, { bg: string; text: string; border: string; icon: string }> = {
-  'Discipline':   { bg: '#fef2f2', text: '#991b1b', border: '#fecaca', icon: '#dc2626' },
-  'Administratif': { bg: '#eff6ff', text: '#1e40af', border: '#bfdbfe', icon: '#2563eb' },
-  'Sante':        { bg: '#f0fdf4', text: '#166534', border: '#bbf7d0', icon: '#16a34a' },
-  'Infrastructures': { bg: '#f8fafc', text: '#334155', border: '#e2e8f0', icon: '#64748b' },
-  'Communication': { bg: '#fffbeb', text: '#92400e', border: '#fde68a', icon: '#d97706' },
+const CATEGORY_STYLES: Record<string, { bg: string; text: string; border: string; icon: string; accent: string }> = {
+  'Discipline':      { bg: '#fef2f2', text: '#991b1b', border: '#fecaca', icon: '#dc2626', accent: '#dc2626' },
+  'Administratif':   { bg: '#eff6ff', text: '#1e40af', border: '#bfdbfe', icon: '#2563eb', accent: '#2563eb' },
+  'Sante':           { bg: '#f0fdf4', text: '#166534', border: '#bbf7d0', icon: '#16a34a', accent: '#16a34a' },
+  'Infrastructures': { bg: '#f8fafc', text: '#334155', border: '#e2e8f0', icon: '#64748b', accent: '#64748b' },
+  'Communication':   { bg: '#fffbeb', text: '#92400e', border: '#fde68a', icon: '#d97706', accent: '#d97706' },
 };
 
 const getCatStyle = (cat: string) =>
-  CATEGORY_STYLES[cat] || { bg: '#f8fafc', text: '#334155', border: '#e2e8f0', icon: '#64748b' };
+  CATEGORY_STYLES[cat] || { bg: '#f8fafc', text: '#334155', border: '#e2e8f0', icon: '#64748b', accent: '#64748b' };
+
+// ─── Selection Modal (unchanged) ────────────────────────────────────────────
 
 const SelectionModal = ({
   onSelect,
@@ -262,62 +264,315 @@ const SelectionModal = ({
   );
 };
 
+// ─── PDF-style Rendered Reglement ───────────────────────────────────────────
+
+const PRIORITY_LABELS: Record<string, string> = {
+  High: 'Priorité Haute',
+  Medium: 'Priorité Moyenne',
+  Low: 'Priorité Basse',
+};
+
+const STATUS_LABELS: Record<string, string> = {
+  Active: 'En vigueur',
+  Draft: 'Projet',
+  Archived: 'Archivé',
+};
+
 const RenderedReglement = ({ data }: { data: ReglementData }) => {
   const style = getCatStyle(data.category);
 
   return (
-    <div className="rgl-rendered">
-      <div className="rgl-rendered-header" style={{ borderLeftColor: style.icon }}>
-        <div className="rgl-rendered-header-top">
-          <div className="rgl-rendered-icon" style={{ background: style.bg, color: style.icon }}>
-            <Shield size={20} />
-          </div>
-          <div className="rgl-rendered-header-text">
-            <h3 className="rgl-rendered-title">{data.title}</h3>
-            <div className="rgl-rendered-meta-row">
+    <div
+      style={{
+        fontFamily: "'Georgia', 'Times New Roman', serif",
+        background: '#ffffff',
+        border: '1px solid #d1d5db',
+        borderTop: `4px solid ${style.accent}`,
+        boxShadow: '0 4px 6px -1px rgba(0,0,0,0.07), 0 10px 24px -4px rgba(0,0,0,0.06)',
+        borderRadius: '2px',
+        overflow: 'hidden',
+        maxWidth: '860px',
+        margin: '0 auto',
+      }}
+    >
+      {/* Document Header */}
+      <div
+        style={{
+          background: '#fafaf9',
+          borderBottom: '1px solid #e5e7eb',
+          padding: '32px 48px 24px',
+          textAlign: 'center',
+          position: 'relative',
+        }}
+      >
+        {/* Category + Status row */}
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: '20px',
+          }}
+        >
+          <span
+            style={{
+              fontFamily: "'Arial', sans-serif",
+              fontSize: '10px',
+              fontWeight: 700,
+              letterSpacing: '0.12em',
+              textTransform: 'uppercase',
+              color: style.text,
+              background: style.bg,
+              border: `1px solid ${style.border}`,
+              padding: '3px 10px',
+              borderRadius: '2px',
+            }}
+          >
+            {data.category}
+          </span>
+
+          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+            {data.priority === 'High' && (
               <span
-                className="rgl-rendered-cat"
-                style={{ background: style.bg, color: style.text, borderColor: style.border }}
+                style={{
+                  fontFamily: "'Arial', sans-serif",
+                  fontSize: '10px',
+                  fontWeight: 700,
+                  letterSpacing: '0.1em',
+                  textTransform: 'uppercase',
+                  color: '#b91c1c',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                }}
               >
-                {data.category}
+                <AlertTriangle size={11} />
+                {PRIORITY_LABELS[data.priority]}
               </span>
-              <span className={`rgl-rendered-priority rgl-priority--${data.priority.toLowerCase()}`}>
-                {data.priority === 'High' && <AlertTriangle size={12} />}
-                {data.priority}
-              </span>
-              <span className="rgl-rendered-status">{data.status}</span>
-            </div>
+            )}
+            <span
+              style={{
+                fontFamily: "'Arial', sans-serif",
+                fontSize: '10px',
+                fontWeight: 600,
+                letterSpacing: '0.1em',
+                textTransform: 'uppercase',
+                color: '#374151',
+                background: '#f3f4f6',
+                border: '1px solid #d1d5db',
+                padding: '3px 10px',
+                borderRadius: '2px',
+              }}
+            >
+              {STATUS_LABELS[data.status] ?? data.status}
+            </span>
           </div>
         </div>
-        <p className="rgl-rendered-desc">{data.description}</p>
-        <div className="rgl-rendered-info-bar">
-          <span className="rgl-rendered-info">
-            <Calendar size={13} />
-            En vigueur: {data.effectiveDate}
+
+        {/* Decorative rule */}
+        <div
+          style={{
+            width: '48px',
+            height: '2px',
+            background: style.accent,
+            margin: '0 auto 18px',
+          }}
+        />
+
+        {/* Title */}
+        <h2
+          style={{
+            fontSize: '22px',
+            fontWeight: 700,
+            color: '#111827',
+            letterSpacing: '0.01em',
+            margin: '0 0 14px',
+            lineHeight: 1.3,
+          }}
+        >
+          {data.title}
+        </h2>
+
+        {/* Description */}
+        <p
+          style={{
+            fontSize: '13px',
+            color: '#6b7280',
+            fontStyle: 'italic',
+            lineHeight: 1.65,
+            maxWidth: '580px',
+            margin: '0 auto 20px',
+          }}
+        >
+          {data.description}
+        </p>
+
+        {/* Decorative rule */}
+        <div
+          style={{
+            width: '100%',
+            height: '1px',
+            background: 'linear-gradient(to right, transparent, #d1d5db 20%, #d1d5db 80%, transparent)',
+            margin: '0 0 18px',
+          }}
+        />
+
+        {/* Meta row */}
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'center',
+            gap: '32px',
+            fontFamily: "'Arial', sans-serif",
+            fontSize: '11px',
+            color: '#6b7280',
+          }}
+        >
+          <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+            <Calendar size={12} style={{ color: style.accent }} />
+            <span style={{ fontWeight: 600, color: '#374151' }}>En vigueur :</span>
+            &nbsp;{data.effectiveDate}
           </span>
-          <span className="rgl-rendered-info">
-            <Users size={13} />
-            {data.appliesTo.join(', ')}
+          <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+            <Users size={12} style={{ color: style.accent }} />
+            <span style={{ fontWeight: 600, color: '#374151' }}>Applicable à :</span>
+            &nbsp;{data.appliesTo.join(' · ')}
           </span>
         </div>
       </div>
 
-      <div className="rgl-rendered-articles">
+      {/* Articles */}
+      <div style={{ padding: '0 48px 32px' }}>
+        {/* "ARTICLES" section label */}
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px',
+            padding: '20px 0 12px',
+            marginBottom: '4px',
+          }}
+        >
+          <span
+            style={{
+              fontFamily: "'Arial', sans-serif",
+              fontSize: '9px',
+              fontWeight: 800,
+              letterSpacing: '0.2em',
+              textTransform: 'uppercase',
+              color: '#9ca3af',
+            }}
+          >
+            Dispositions
+          </span>
+          <div style={{ flex: 1, height: '1px', background: '#e5e7eb' }} />
+        </div>
+
         {data.articles.map((a, i) => (
-          <div key={i} className="rgl-rendered-article">
-            <div className="rgl-rendered-article-num" style={{ color: style.icon }}>
-              {a.num}
+          <div
+            key={i}
+            style={{
+              display: 'grid',
+              gridTemplateColumns: '72px 1fr',
+              gap: '0 20px',
+              padding: '16px 0',
+              borderBottom: i < data.articles.length - 1 ? '1px solid #f3f4f6' : 'none',
+            }}
+          >
+            {/* Article number column */}
+            <div
+              style={{
+                paddingTop: '2px',
+                textAlign: 'right',
+              }}
+            >
+              <span
+                style={{
+                  fontFamily: "'Arial', sans-serif",
+                  fontSize: '10px',
+                  fontWeight: 700,
+                  letterSpacing: '0.05em',
+                  textTransform: 'uppercase',
+                  color: style.accent,
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {a.num}
+              </span>
             </div>
-            <div className="rgl-rendered-article-body">
-              <h4 className="rgl-rendered-article-title">{a.title}</h4>
-              <p className="rgl-rendered-article-text">{a.content}</p>
+
+            {/* Article content */}
+            <div>
+              <h4
+                style={{
+                  fontSize: '13px',
+                  fontWeight: 700,
+                  color: '#111827',
+                  margin: '0 0 6px',
+                  fontFamily: "'Georgia', serif",
+                  letterSpacing: '0.01em',
+                }}
+              >
+                {a.title}
+              </h4>
+              <p
+                style={{
+                  fontSize: '13px',
+                  color: '#374151',
+                  lineHeight: 1.75,
+                  margin: 0,
+                  textAlign: 'justify',
+                  hyphens: 'auto',
+                }}
+              >
+                {a.content}
+              </p>
             </div>
           </div>
         ))}
       </div>
+
+      {/* Document footer */}
+      <div
+        style={{
+          background: '#fafaf9',
+          borderTop: '1px solid #e5e7eb',
+          padding: '10px 48px',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+        }}
+      >
+        <span
+          style={{
+            fontFamily: "'Arial', sans-serif",
+            fontSize: '10px',
+            color: '#9ca3af',
+            letterSpacing: '0.05em',
+          }}
+        >
+          {data.articles.length} article{data.articles.length > 1 ? 's' : ''}
+        </span>
+        <span
+          style={{
+            fontFamily: "'Arial', sans-serif",
+            fontSize: '10px',
+            color: '#9ca3af',
+            letterSpacing: '0.05em',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '5px',
+          }}
+        >
+          <Shield size={10} />
+          Document officiel du club
+        </span>
+      </div>
     </div>
   );
 };
+
+// ─── Block Component ─────────────────────────────────────────────────────────
 
 const ReglementBlockComponent = ({ node, updateAttributes }: any) => {
   const attrs = node.attrs;
@@ -387,6 +642,8 @@ const ReglementBlockComponent = ({ node, updateAttributes }: any) => {
     </NodeViewWrapper>
   );
 };
+
+// ─── Tiptap Node Definition ──────────────────────────────────────────────────
 
 export const ReglementBlock = Node.create({
   name: 'reglementBlock',
