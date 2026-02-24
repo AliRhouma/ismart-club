@@ -384,7 +384,7 @@ const ReglementBlockComponent = ({ node, updateAttributes }: any) => {
         <div className="rgl-block-selected">
           {/* ── Toolbar ── */}
           <div
-            className="print:hidden"
+            
             style={{
               display: 'flex',
               alignItems: 'center',
