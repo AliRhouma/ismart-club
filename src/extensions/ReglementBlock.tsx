@@ -1,7 +1,7 @@
 import { Node, mergeAttributes } from '@tiptap/core';
 import { ReactNodeViewRenderer, NodeViewWrapper } from '@tiptap/react';
 import { useState } from 'react';
-import { Search, Shield, Calendar, Users, AlertTriangle, ChevronRight, X, Scale } from 'lucide-react';
+import { Search, Shield, Calendar, Users, ChevronRight, X, Scale, FileText, BookOpen } from 'lucide-react';
 
 interface ReglementData {
   id: number;
@@ -144,7 +144,54 @@ const CATEGORY_STYLES: Record<string, { bg: string; text: string; border: string
 const getCatStyle = (cat: string) =>
   CATEGORY_STYLES[cat] || { bg: '#f8fafc', text: '#334155', border: '#e2e8f0', icon: '#64748b', accent: '#64748b' };
 
-// ─── Selection Modal (unchanged) ────────────────────────────────────────────
+type ViewMode = 'pdf' | 'standard';
+
+// ─── View Toggle ──────────────────────────────────────────────────────────────
+
+const ViewToggle = ({ view, onChange }: { view: ViewMode; onChange: (v: ViewMode) => void }) => (
+  <div
+    className="print:hidden"
+    style={{
+      display: 'inline-flex',
+      border: '1px solid #e5e7eb',
+      borderRadius: '6px',
+      overflow: 'hidden',
+      background: '#f9fafb',
+    }}
+  >
+    {([
+      { id: 'pdf' as ViewMode,      icon: <BookOpen size={12} />, label: 'Document' },
+      { id: 'standard' as ViewMode, icon: <FileText size={12} />, label: 'Texte'    },
+    ] as const).map(({ id, icon, label }, i) => (
+      <button
+        key={id}
+        onClick={() => onChange(id)}
+        title={label}
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '5px',
+          padding: '5px 13px',
+          fontSize: '11px',
+          fontFamily: "'Arial', sans-serif",
+          fontWeight: 600,
+          letterSpacing: '0.03em',
+          border: 'none',
+          borderRight: i === 0 ? '1px solid #e5e7eb' : 'none',
+          cursor: 'pointer',
+          transition: 'background 0.15s, color 0.15s',
+          background: view === id ? '#111827' : 'transparent',
+          color:      view === id ? '#ffffff' : '#6b7280',
+        }}
+      >
+        {icon}
+        {label}
+      </button>
+    ))}
+  </div>
+);
+
+// ─── Selection Modal ──────────────────────────────────────────────────────────
 
 const SelectionModal = ({
   onSelect,
@@ -155,14 +202,9 @@ const SelectionModal = ({
 }) => {
   const [search, setSearch] = useState('');
   const [selectedCat, setSelectedCat] = useState<string | null>(null);
-
   const categories = [...new Set(SAMPLE_REGLEMENTS.map((r) => r.category))];
-
   const filtered = SAMPLE_REGLEMENTS.filter((r) => {
-    const matchSearch =
-      !search ||
-      r.title.toLowerCase().includes(search.toLowerCase()) ||
-      r.category.toLowerCase().includes(search.toLowerCase());
+    const matchSearch = !search || r.title.toLowerCase().includes(search.toLowerCase()) || r.category.toLowerCase().includes(search.toLowerCase());
     const matchCat = !selectedCat || r.category === selectedCat;
     return matchSearch && matchCat;
   });
@@ -175,82 +217,34 @@ const SelectionModal = ({
             <Scale size={20} />
             <h2 className="rgl-modal-title">Inserer un Reglement</h2>
           </div>
-          <button className="rgl-modal-close" onClick={onClose}>
-            <X size={18} />
-          </button>
+          <button className="rgl-modal-close" onClick={onClose}><X size={18} /></button>
         </div>
-
         <div className="rgl-modal-search-bar">
           <Search size={16} className="rgl-modal-search-icon" />
-          <input
-            className="rgl-modal-search-input"
-            placeholder="Rechercher un reglement..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            autoFocus
-          />
+          <input className="rgl-modal-search-input" placeholder="Rechercher un reglement..." value={search} onChange={(e) => setSearch(e.target.value)} autoFocus />
         </div>
-
         <div className="rgl-modal-filters">
-          <button
-            className={`rgl-filter-chip ${!selectedCat ? 'active' : ''}`}
-            onClick={() => setSelectedCat(null)}
-          >
-            Tous
-          </button>
+          <button className={`rgl-filter-chip ${!selectedCat ? 'active' : ''}`} onClick={() => setSelectedCat(null)}>Tous</button>
           {categories.map((cat) => (
-            <button
-              key={cat}
-              className={`rgl-filter-chip ${selectedCat === cat ? 'active' : ''}`}
-              onClick={() => setSelectedCat(cat === selectedCat ? null : cat)}
-            >
-              {cat}
-            </button>
+            <button key={cat} className={`rgl-filter-chip ${selectedCat === cat ? 'active' : ''}`} onClick={() => setSelectedCat(cat === selectedCat ? null : cat)}>{cat}</button>
           ))}
         </div>
-
         <div className="rgl-modal-list">
-          {filtered.length === 0 && (
-            <div className="rgl-modal-empty">Aucun reglement trouve</div>
-          )}
+          {filtered.length === 0 && <div className="rgl-modal-empty">Aucun reglement trouve</div>}
           {filtered.map((r) => {
             const style = getCatStyle(r.category);
             return (
-              <button
-                key={r.id}
-                className="rgl-modal-item"
-                onClick={() => onSelect(r)}
-              >
-                <div
-                  className="rgl-modal-item-icon"
-                  style={{ background: style.bg, color: style.icon }}
-                >
-                  <Shield size={18} />
-                </div>
+              <button key={r.id} className="rgl-modal-item" onClick={() => onSelect(r)}>
+                <div className="rgl-modal-item-icon" style={{ background: style.bg, color: style.icon }}><Shield size={18} /></div>
                 <div className="rgl-modal-item-body">
                   <div className="rgl-modal-item-top">
                     <span className="rgl-modal-item-title">{r.title}</span>
-                    <span
-                      className="rgl-modal-item-cat"
-                      style={{
-                        background: style.bg,
-                        color: style.text,
-                        borderColor: style.border,
-                      }}
-                    >
-                      {r.category}
-                    </span>
+                    <span className="rgl-modal-item-cat" style={{ background: style.bg, color: style.text, borderColor: style.border }}>{r.category}</span>
                   </div>
                   <p className="rgl-modal-item-desc">{r.description}</p>
                   <div className="rgl-modal-item-meta">
-                    <span>
-                      <Calendar size={12} />
-                      {r.effectiveDate}
-                    </span>
-                    <span>
-                      <Users size={12} />
-                      {r.appliesTo.length} groupe{r.appliesTo.length > 1 ? 's' : ''}
-                    </span>
+                    <span><Calendar size={12} />{r.effectiveDate}</span>
+                    <span><Users size={12} />{r.appliesTo.length} groupe{r.appliesTo.length > 1 ? 's' : ''}</span>
                     <span>{r.articles.length} articles</span>
                   </div>
                 </div>
@@ -264,247 +258,87 @@ const SelectionModal = ({
   );
 };
 
-// ─── PDF-style Rendered Reglement ───────────────────────────────────────────
+// ─── PDF View ─────────────────────────────────────────────────────────────────
 
-const PRIORITY_LABELS: Record<string, string> = {
-  High: '  ',
-  Medium: ' ',
-  Low: ' ',
-};
-
-const STATUS_LABELS: Record<string, string> = {
-  Active: ' ',
-  Draft: ' ',
-  Archived: ' ',
-};
-
-const RenderedReglement = ({ data }: { data: ReglementData }) => {
+const PdfView = ({ data }: { data: ReglementData }) => {
   const style = getCatStyle(data.category);
-
   return (
-    <div
-      style={{
-        fontFamily: "'Georgia', 'Times New Roman', serif",
-        background: '#ffffff',
-        border: '1px solid #d1d5db',
-        borderTop: `4px solid ${style.accent}`,
-        boxShadow: '0 4px 6px -1px rgba(0,0,0,0.07), 0 10px 24px -4px rgba(0,0,0,0.06)',
-        borderRadius: '2px',
-        overflow: 'hidden',
-        maxWidth: '860px',
-        margin: '0 auto',
-      }}
-    >
-      {/* Document Header */}
-      <div
-        style={{
-          background: '#fafaf9',
-          borderBottom: '1px solid #e5e7eb',
-          padding: '32px 48px 24px',
-          textAlign: 'center',
-          position: 'relative',
-        }}
-      >
-        
-
-        {/* Title */}
-        <h2
-          style={{
-            fontSize: '22px',
-            fontWeight: 700,
-            color: '#111827',
-            letterSpacing: '0.01em',
-            margin: '0 0 14px',
-            lineHeight: 1.3,
-          }}
-        >
-          {data.title}
-        </h2>
-
-        {/* Description */}
-        <p
-          style={{
-            fontSize: '13px',
-            color: '#6b7280',
-            fontStyle: 'italic',
-            lineHeight: 1.65,
-            maxWidth: '580px',
-            margin: '0 auto 20px',
-          }}
-        >
-          {data.description}
-        </p>
-
-        {/* Decorative rule */}
-        <div
-          style={{
-            width: '100%',
-            height: '1px',
-            background: 'linear-gradient(to right, transparent, #d1d5db 20%, #d1d5db 80%, transparent)',
-            margin: '0 0 18px',
-          }}
-        />
-
-        {/* Meta row */}
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'center',
-            gap: '32px',
-            fontFamily: "'Arial', sans-serif",
-            fontSize: '11px',
-            color: '#6b7280',
-          }}
-        >
-          <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-            <Calendar size={12} style={{ color: style.accent }} />
-            <span style={{ fontWeight: 600, color: '#374151' }}>En vigueur :</span>
-            &nbsp;{data.effectiveDate}
-          </span>
-          <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-            <Users size={12} style={{ color: style.accent }} />
-            <span style={{ fontWeight: 600, color: '#374151' }}>Applicable à :</span>
-            &nbsp;{data.appliesTo.join(' · ')}
-          </span>
+    <div style={{ fontFamily: "'Georgia','Times New Roman',serif", background: '#fff', border: '1px solid #d1d5db', borderTop: `4px solid ${style.accent}`, boxShadow: '0 4px 6px -1px rgba(0,0,0,0.07),0 10px 24px -4px rgba(0,0,0,0.06)', borderRadius: '2px', overflow: 'hidden', maxWidth: '860px', margin: '0 auto' }}>
+      {/* Header */}
+      <div style={{ background: '#fafaf9', borderBottom: '1px solid #e5e7eb', padding: '32px 48px 24px', textAlign: 'center' }}>
+        <div style={{ width: '48px', height: '2px', background: style.accent, margin: '0 auto 18px' }} />
+        <h2 style={{ fontSize: '22px', fontWeight: 700, color: '#111827', letterSpacing: '0.01em', margin: '0 0 14px', lineHeight: 1.3 }}>{data.title}</h2>
+        <p style={{ fontSize: '13px', color: '#6b7280', fontStyle: 'italic', lineHeight: 1.65, maxWidth: '580px', margin: '0 auto 20px' }}>{data.description}</p>
+        <div style={{ width: '100%', height: '1px', background: 'linear-gradient(to right,transparent,#d1d5db 20%,#d1d5db 80%,transparent)', margin: '0 0 18px' }} />
+        <div style={{ display: 'flex', justifyContent: 'center', gap: '32px', fontFamily: "'Arial',sans-serif", fontSize: '11px', color: '#6b7280' }}>
+          <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}><Calendar size={12} style={{ color: style.accent }} /><strong style={{ color: '#374151' }}>En vigueur :</strong>&nbsp;{data.effectiveDate}</span>
+          <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}><Users size={12} style={{ color: style.accent }} /><strong style={{ color: '#374151' }}>Applicable à :</strong>&nbsp;{data.appliesTo.join(' · ')}</span>
         </div>
       </div>
-
       {/* Articles */}
       <div style={{ padding: '0 48px 32px' }}>
-        {/* "ARTICLES" section label */}
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '12px',
-            padding: '20px 0 12px',
-            marginBottom: '4px',
-          }}
-        >
-          <span
-            style={{
-              fontFamily: "'Arial', sans-serif",
-              fontSize: '9px',
-              fontWeight: 800,
-              letterSpacing: '0.2em',
-              textTransform: 'uppercase',
-              color: '#9ca3af',
-            }}
-          >
-            Dispositions
-          </span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '20px 0 12px' }}>
+          <span style={{ fontFamily: "'Arial',sans-serif", fontSize: '9px', fontWeight: 800, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#9ca3af' }}>Dispositions</span>
           <div style={{ flex: 1, height: '1px', background: '#e5e7eb' }} />
         </div>
-
         {data.articles.map((a, i) => (
-          <div
-            key={i}
-            style={{
-              display: 'grid',
-              gridTemplateColumns: '72px 1fr',
-              gap: '0 20px',
-              padding: '16px 0',
-              borderBottom: i < data.articles.length - 1 ? '1px solid #f3f4f6' : 'none',
-            }}
-          >
-            {/* Article number column */}
-            <div
-              style={{
-                paddingTop: '2px',
-                textAlign: 'right',
-              }}
-            >
-              <span
-                style={{
-                  fontFamily: "'Arial', sans-serif",
-                  fontSize: '10px',
-                  fontWeight: 700,
-                  letterSpacing: '0.05em',
-                  textTransform: 'uppercase',
-                  color: style.accent,
-                  whiteSpace: 'nowrap',
-                }}
-              >
-                {a.num}
-              </span>
+          <div key={i} style={{ display: 'grid', gridTemplateColumns: '72px 1fr', gap: '0 20px', padding: '16px 0', borderBottom: i < data.articles.length - 1 ? '1px solid #f3f4f6' : 'none' }}>
+            <div style={{ paddingTop: '2px', textAlign: 'right' }}>
+              <span style={{ fontFamily: "'Arial',sans-serif", fontSize: '10px', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', color: style.accent, whiteSpace: 'nowrap' }}>{a.num}</span>
             </div>
-
-            {/* Article content */}
             <div>
-              <h4
-                style={{
-                  fontSize: '13px',
-                  fontWeight: 700,
-                  color: '#111827',
-                  margin: '0 0 6px',
-                  fontFamily: "'Georgia', serif",
-                  letterSpacing: '0.01em',
-                }}
-              >
-                {a.title}
-              </h4>
-              <p
-                style={{
-                  fontSize: '13px',
-                  color: '#374151',
-                  lineHeight: 1.75,
-                  margin: 0,
-                  textAlign: 'justify',
-                  hyphens: 'auto',
-                }}
-              >
-                {a.content}
-              </p>
+              <h4 style={{ fontSize: '13px', fontWeight: 700, color: '#111827', margin: '0 0 6px', fontFamily: "'Georgia',serif" }}>{a.title}</h4>
+              <p style={{ fontSize: '13px', color: '#374151', lineHeight: 1.75, margin: 0, textAlign: 'justify', hyphens: 'auto' }}>{a.content}</p>
             </div>
           </div>
         ))}
       </div>
-
-      {/* Document footer */}
-      <div
-        style={{
-          background: '#fafaf9',
-          borderTop: '1px solid #e5e7eb',
-          padding: '10px 48px',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-        }}
-      >
-        <span
-          style={{
-            fontFamily: "'Arial', sans-serif",
-            fontSize: '10px',
-            color: '#9ca3af',
-            letterSpacing: '0.05em',
-          }}
-        >
-          {data.articles.length} article{data.articles.length > 1 ? 's' : ''}
-        </span>
-        <span
-          style={{
-            fontFamily: "'Arial', sans-serif",
-            fontSize: '10px',
-            color: '#9ca3af',
-            letterSpacing: '0.05em',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '5px',
-          }}
-        >
-          <Shield size={10} />
-          Document officiel du club
-        </span>
+      {/* Footer */}
+      <div style={{ background: '#fafaf9', borderTop: '1px solid #e5e7eb', padding: '10px 48px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <span style={{ fontFamily: "'Arial',sans-serif", fontSize: '10px', color: '#9ca3af' }}>{data.articles.length} article{data.articles.length > 1 ? 's' : ''}</span>
+        <span style={{ fontFamily: "'Arial',sans-serif", fontSize: '10px', color: '#9ca3af', display: 'flex', alignItems: 'center', gap: '5px' }}><Shield size={10} />Document officiel du club</span>
       </div>
     </div>
   );
 };
 
-// ─── Block Component ─────────────────────────────────────────────────────────
+// ─── Standard (prose) View ────────────────────────────────────────────────────
+
+const StandardView = ({ data }: { data: ReglementData }) => (
+  <div style={{ fontFamily: 'inherit', color: '#111827', lineHeight: 1.7, maxWidth: '860px', margin: '0 auto', padding: '4px 0' }}>
+    {/* H1 */}
+    <h1 style={{ fontSize: '26px', fontWeight: 800, color: '#111827', margin: '0 0 6px', lineHeight: 1.25 }}>
+      {data.title}
+    </h1>
+    {/* Subtitle */}
+    <h2 style={{ fontSize: '14px', fontWeight: 400, color: '#6b7280', fontStyle: 'italic', margin: '0 0 16px', lineHeight: 1.55, fontWeight: 400, borderBottom: '1px solid #e5e7eb', paddingBottom: '14px' }}>
+      {data.description}
+    </h2>
+    {/* Meta */}
+    <ul style={{ listStyle: 'none', margin: '0 0 20px', padding: 0, display: 'flex', gap: '20px', flexWrap: 'wrap' }}>
+      <li style={{ fontSize: '13px' }}><strong>En vigueur :</strong> {data.effectiveDate}</li>
+      <li style={{ fontSize: '13px' }}><strong>Applicable à :</strong> {data.appliesTo.join(', ')}</li>
+    </ul>
+    {/* Articles as H3 + p */}
+    {data.articles.map((a, i) => (
+      <div key={i} style={{ marginBottom: '18px' }}>
+        <h3 style={{ fontSize: '15px', fontWeight: 700, color: '#111827', margin: '0 0 5px' }}>
+          {a.num} — {a.title}
+        </h3>
+        <p style={{ fontSize: '14px', color: '#374151', margin: 0, lineHeight: 1.75 }}>
+          {a.content}
+        </p>
+      </div>
+    ))}
+  </div>
+);
+
+// ─── Block Component ──────────────────────────────────────────────────────────
 
 const ReglementBlockComponent = ({ node, updateAttributes }: any) => {
   const attrs = node.attrs;
   const [showModal, setShowModal] = useState(!attrs.reglementId);
+  const [view, setView] = useState<ViewMode>('pdf');
 
   const hasReglement = !!attrs.reglementId;
 
@@ -542,36 +376,43 @@ const ReglementBlockComponent = ({ node, updateAttributes }: any) => {
       {showModal && (
         <SelectionModal
           onSelect={handleSelect}
-          onClose={() => {
-            if (hasReglement) setShowModal(false);
-          }}
+          onClose={() => { if (hasReglement) setShowModal(false); }}
         />
       )}
 
       {selectedData ? (
         <div className="rgl-block-selected">
-          <button
-            className="rgl-change-btn print:hidden"
-            onClick={() => setShowModal(true)}
+          {/* ── Toolbar ── */}
+          <div
+            className="print:hidden"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              marginBottom: '8px',
+            }}
           >
-            Changer le reglement
-          </button>
-          <RenderedReglement data={selectedData} />
+            <ViewToggle view={view} onChange={setView} />
+            <button className="rgl-change-btn" onClick={() => setShowModal(true)}>
+              Changer le reglement
+            </button>
+          </div>
+
+          {/* ── Content ── */}
+          {view === 'pdf' ? <PdfView data={selectedData} /> : <StandardView data={selectedData} />}
         </div>
       ) : (
         <div className="rgl-block-empty" onClick={() => setShowModal(true)}>
           <Scale size={32} strokeWidth={1.5} />
           <span className="rgl-block-empty-title">Inserer un Reglement</span>
-          <span className="rgl-block-empty-sub">
-            Cliquez pour selectionner un reglement du club
-          </span>
+          <span className="rgl-block-empty-sub">Cliquez pour selectionner un reglement du club</span>
         </div>
       )}
     </NodeViewWrapper>
   );
 };
 
-// ─── Tiptap Node Definition ──────────────────────────────────────────────────
+// ─── Tiptap Node ──────────────────────────────────────────────────────────────
 
 export const ReglementBlock = Node.create({
   name: 'reglementBlock',
