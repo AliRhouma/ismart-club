@@ -1,6 +1,7 @@
 @import './components/page-header-styles.css';
 @import './extensions/exercise-block-styles.css';
 @import './extensions/procede-styles.css';
+@import './extensions/reglement-block-styles.css';
 
 @tailwind base;
 @tailwind components;

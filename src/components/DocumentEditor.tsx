@@ -13,6 +13,7 @@ import { Columns, Column } from '../extensions/ColumnsBlock';
 import { ImageBlock } from '../extensions/ImageBlock';
 import { ExerciseBlock } from '../extensions/ExerciseBlock';
 import { ProcedeBlock } from '../extensions/ProcedeBlock';
+import { ReglementBlock } from '../extensions/ReglementBlock';
 import { PageHeaderBlock } from './PageHeaderBlock';
 import { EditorToolbar } from './EditorToolbar';
 import { useEffect } from 'react';
@@ -21,7 +22,7 @@ import Suggestion from '@tiptap/suggestion';
 import { ReactRenderer } from '@tiptap/react';
 import tippy, { Instance as TippyInstance } from 'tippy.js';
 import { BlockSlashMenu } from './BlockSlashMenu';
-import { AlertCircle, Highlighter, Image, ImagePlus, Table, Columns as ColumnsIcon, LayoutTemplate, ClipboardList, BookOpen } from 'lucide-react';
+import { AlertCircle, Highlighter, Image, ImagePlus, Table, Columns as ColumnsIcon, LayoutTemplate, ClipboardList, BookOpen, Scale } from 'lucide-react';
 
 interface DocumentEditorProps {
   content: any;
@@ -130,6 +131,19 @@ const SlashCommandExtension = Extension.create({
                   .focus()
                   .deleteRange(range)
                   .setProcedeBlock()
+                  .run();
+              },
+            },
+            {
+              title: 'Reglement',
+              description: 'Inserer un reglement du club dans le document',
+              icon: Scale,
+              command: ({ editor, range }: any) => {
+                editor
+                  .chain()
+                  .focus()
+                  .deleteRange(range)
+                  .setReglementBlock()
                   .run();
               },
             },
@@ -258,6 +272,7 @@ export function DocumentEditor({ content, onUpdate, padding = 'normal' }: Docume
       ImageBlock,
       ExerciseBlock,
       ProcedeBlock,
+      ReglementBlock,
       PageHeaderBlock,
       TableBlock,
       Column,
