@@ -267,15 +267,15 @@ const SelectionModal = ({
 // ─── PDF-style Rendered Reglement ───────────────────────────────────────────
 
 const PRIORITY_LABELS: Record<string, string> = {
-  High: 'Priorité Haute',
-  Medium: 'Priorité Moyenne',
-  Low: 'Priorité Basse',
+  High: ''',
+  Medium: '',
+  Low: '',
 };
 
 const STATUS_LABELS: Record<string, string> = {
-  Active: 'En vigueur',
-  Draft: 'Projet',
-  Archived: 'Archivé',
+  Active: '',
+  Draft: '',
+  Archived: '',
 };
 
 const RenderedReglement = ({ data }: { data: ReglementData }) => {
