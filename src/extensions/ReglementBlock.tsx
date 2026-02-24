@@ -269,13 +269,13 @@ const SelectionModal = ({
 const PRIORITY_LABELS: Record<string, string> = {
   High: '  ',
   Medium: ' ',
-  Low: 'Priorité Basse',
+  Low: ' ',
 };
 
 const STATUS_LABELS: Record<string, string> = {
-  Active: 'En vigueur',
-  Draft: 'Projet',
-  Archived: 'Archivé',
+  Active: ' ',
+  Draft: ' ',
+  Archived: ' ',
 };
 
 const RenderedReglement = ({ data }: { data: ReglementData }) => {
