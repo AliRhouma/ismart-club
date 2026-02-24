@@ -121,7 +121,7 @@ export function DocumentEditorPage() {
                 </label>
                 <input
                   type="range"
-                  min="1"
+                  min="0"
                   max="4"
                   step="0.1"
                   value={padding}
