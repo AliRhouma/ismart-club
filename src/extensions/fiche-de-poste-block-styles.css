@@ -1,0 +1,9 @@
+.fdp-block-wrapper {
+  margin: 1.5rem 0;
+}
+
+@media print {
+  .fdp-block-wrapper .print\:hidden {
+    display: none !important;
+  }
+}

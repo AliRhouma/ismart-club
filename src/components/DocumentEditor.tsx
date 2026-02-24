@@ -14,6 +14,7 @@ import { ImageBlock } from '../extensions/ImageBlock';
 import { ExerciseBlock } from '../extensions/ExerciseBlock';
 import { ProcedeBlock } from '../extensions/ProcedeBlock';
 import { ReglementBlock } from '../extensions/ReglementBlock';
+import { FicheDePosteBlock } from '../extensions/FicheDePosteBlock';
 import { PageHeaderBlock } from './PageHeaderBlock';
 import { EditorToolbar } from './EditorToolbar';
 import { useEffect } from 'react';
@@ -22,7 +23,7 @@ import Suggestion from '@tiptap/suggestion';
 import { ReactRenderer } from '@tiptap/react';
 import tippy, { Instance as TippyInstance } from 'tippy.js';
 import { BlockSlashMenu } from './BlockSlashMenu';
-import { AlertCircle, Highlighter, Image, ImagePlus, Table, Columns as ColumnsIcon, LayoutTemplate, ClipboardList, BookOpen, Scale } from 'lucide-react';
+import { AlertCircle, Highlighter, Image, ImagePlus, Table, Columns as ColumnsIcon, LayoutTemplate, ClipboardList, BookOpen, Scale, Briefcase } from 'lucide-react';
 
 interface DocumentEditorProps {
   content: any;
@@ -144,6 +145,19 @@ const SlashCommandExtension = Extension.create({
                   .focus()
                   .deleteRange(range)
                   .setReglementBlock()
+                  .run();
+              },
+            },
+            {
+              title: 'Fiche de Poste',
+              description: 'Inserer une fiche de poste du club',
+              icon: Briefcase,
+              command: ({ editor, range }: any) => {
+                editor
+                  .chain()
+                  .focus()
+                  .deleteRange(range)
+                  .setFicheDePosteBlock()
                   .run();
               },
             },
@@ -273,6 +287,7 @@ export function DocumentEditor({ content, onUpdate, padding = 2.54 }: DocumentEd
       ExerciseBlock,
       ProcedeBlock,
       ReglementBlock,
+      FicheDePosteBlock,
       PageHeaderBlock,
       TableBlock,
       Column,
