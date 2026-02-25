@@ -326,57 +326,80 @@ const SelectionModal = ({
 
 // ─── PDF View: recursive visual tree ─────────────────────────────────────────
 
+/**
+ * Print-scaling strategy
+ * ─────────────────────
+ * A4 printable width  ≈ 794px (at 96 dpi, 210 mm).
+ * We constrain the tree wrapper to 754px (794 − 40px side margins) and use
+ * CSS `zoom` inside @media print so the browser scales it down automatically
+ * before sending to the PDF engine.  `zoom` is honoured by Chromium (used by
+ * most PDF-export tools including Puppeteer / html2pdf / browser Print-to-PDF).
+ * The class `org-tree-scaler` is targeted by the injected <style> tag below.
+ */
+const ORG_PRINT_STYLE = `
+@media print {
+  .org-tree-scaler {
+    zoom: 0.62;
+    /* fallback for non-Chromium engines */
+    -moz-transform: scale(0.62);
+    -moz-transform-origin: top center;
+  }
+}
+`;
+
 const OrgCard = ({ node, isRoot = false }: { node: OrgNode; isRoot?: boolean }) => {
   const dc = getDeptColor(node.department);
   return (
-    <div style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'center', padding: '0 8px' }}>
-      {/* Card */}
+    <div style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'center', padding: '0 4px' }}>
+      {/* Card — compact sizing for A4 fit */}
       <div style={{
         background: isRoot ? dc.bg : '#fff',
         border: `1.5px solid ${isRoot ? dc.accent : '#e5e7eb'}`,
         borderTop: `3px solid ${dc.accent}`,
-        borderRadius: '6px',
-        padding: '10px 14px',
-        minWidth: '130px',
-        maxWidth: '170px',
-        boxShadow: isRoot ? '0 4px 12px rgba(0,0,0,0.12)' : '0 1px 4px rgba(0,0,0,0.06)',
+        borderRadius: '5px',
+        padding: isRoot ? '8px 10px' : '6px 8px',
+        minWidth: isRoot ? '110px' : '90px',
+        maxWidth: isRoot ? '140px' : '115px',
+        boxShadow: isRoot ? '0 3px 10px rgba(0,0,0,0.12)' : '0 1px 3px rgba(0,0,0,0.06)',
         textAlign: 'center',
       }}>
-        <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: dc.accent + '20', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 8px' }}>
-          <UserCircle2 size={18} style={{ color: dc.accent }} />
+        {/* Avatar only on root card */}
+        {isRoot && (
+          <div style={{ width: '26px', height: '26px', borderRadius: '50%', background: dc.accent + '25', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 6px' }}>
+            <UserCircle2 size={14} style={{ color: dc.accent }} />
+          </div>
+        )}
+        <div style={{ fontSize: isRoot ? '11px' : '10px', fontWeight: 700, color: isRoot ? dc.text : '#111827', fontFamily: "'Georgia',serif", lineHeight: 1.3, marginBottom: '2px' }}>
+          {node.name || '—'}
         </div>
-        <div style={{ fontSize: '12px', fontWeight: 700, color: isRoot ? dc.text : '#111827', fontFamily: "'Georgia',serif", lineHeight: 1.3, marginBottom: '4px' }}>{node.name || '—'}</div>
-        <div style={{ fontSize: '10px', color: isRoot ? dc.text + 'cc' : '#6b7280', fontFamily: "'Arial',sans-serif", lineHeight: 1.4, marginBottom: node.department ? '4px' : 0 }}>{node.title || '—'}</div>
+        <div style={{ fontSize: '9px', color: isRoot ? dc.text + 'cc' : '#6b7280', fontFamily: "'Arial',sans-serif", lineHeight: 1.35 }}>
+          {node.title || '—'}
+        </div>
         {node.department && (
-          <div style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: dc.accent, fontFamily: "'Arial',sans-serif", marginTop: '4px', background: dc.accent + '15', borderRadius: '3px', padding: '2px 5px', display: 'inline-block' }}>
+          <div style={{ fontSize: '8px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: dc.accent, fontFamily: "'Arial',sans-serif", marginTop: '4px', background: dc.accent + '15', borderRadius: '2px', padding: '1px 4px', display: 'inline-block' }}>
             {node.department}
           </div>
         )}
       </div>
 
-      {/* Children connector */}
+      {/* Children connectors */}
       {node.children.length > 0 && (
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
-          {/* Vertical stem */}
-          <div style={{ width: '2px', height: '20px', background: '#d1d5db' }} />
-          {/* Horizontal bar */}
+          <div style={{ width: '2px', height: '14px', background: '#d1d5db' }} />
           {node.children.length > 1 && (
             <div style={{ position: 'relative', width: '100%', display: 'flex', justifyContent: 'center' }}>
               <div style={{
-                position: 'absolute',
-                top: 0,
+                position: 'absolute', top: 0,
                 left: `calc(50% / ${node.children.length})`,
                 right: `calc(50% / ${node.children.length})`,
-                height: '2px',
-                background: '#d1d5db',
+                height: '2px', background: '#d1d5db',
               }} />
             </div>
           )}
-          {/* Children row */}
-          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'center', position: 'relative' }}>
-            {node.children.map((child, i) => (
+          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'center' }}>
+            {node.children.map((child) => (
               <div key={child.id} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                <div style={{ width: '2px', height: '20px', background: '#d1d5db' }} />
+                <div style={{ width: '2px', height: '14px', background: '#d1d5db' }} />
                 <OrgCard node={child} />
               </div>
             ))}
@@ -392,22 +415,28 @@ const PdfView = ({ data }: { data: OrgChartData }) => {
   const total = countNodes(data.root);
 
   return (
-    <div style={{ fontFamily: "'Georgia','Times New Roman',serif", background: '#fff', border: '1px solid #d1d5db', borderTop: '4px solid #2563eb', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.07),0 10px 24px -4px rgba(0,0,0,0.06)', borderRadius: '2px', overflow: 'hidden', maxWidth: '100%' }}>
+    <div style={{ fontFamily: "'Georgia','Times New Roman',serif", background: '#fff', border: '1px solid #d1d5db', borderTop: '4px solid #2563eb', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.07),0 10px 24px -4px rgba(0,0,0,0.06)', borderRadius: '2px', overflow: 'hidden', maxWidth: '794px', margin: '0 auto' }}>
+
+      {/* Inject print-scaling CSS once */}
+      <style dangerouslySetInnerHTML={{ __html: ORG_PRINT_STYLE }} />
 
       {/* Header */}
-      <div style={{ background: '#fafaf9', borderBottom: '1px solid #e5e7eb', padding: '24px 40px 20px', textAlign: 'center' }}>
-        <div style={{ fontSize: '9px', fontWeight: 800, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#9ca3af', fontFamily: "'Arial',sans-serif", marginBottom: '12px' }}>Organigramme</div>
-        <div style={{ width: '40px', height: '3px', background: '#2563eb', margin: '0 auto 14px', borderRadius: '2px' }} />
-        <h2 style={{ fontSize: '20px', fontWeight: 800, color: '#111827', margin: '0 0 12px', letterSpacing: '-0.01em' }}>{data.label}</h2>
+      <div style={{ background: '#fafaf9', borderBottom: '1px solid #e5e7eb', padding: '20px 32px 16px', textAlign: 'center' }}>
+        <div style={{ fontSize: '9px', fontWeight: 800, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#9ca3af', fontFamily: "'Arial',sans-serif", marginBottom: '10px' }}>Organigramme</div>
+        <div style={{ width: '36px', height: '3px', background: '#2563eb', margin: '0 auto 12px', borderRadius: '2px' }} />
+        <h2 style={{ fontSize: '18px', fontWeight: 800, color: '#111827', margin: '0 0 10px', letterSpacing: '-0.01em' }}>{data.label}</h2>
         <div style={{ display: 'flex', justifyContent: 'center', gap: '20px', fontSize: '11px', fontFamily: "'Arial',sans-serif", color: '#6b7280' }}>
           <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><Users size={11} style={{ color: '#2563eb' }} /><strong style={{ color: '#374151' }}>{total}</strong> membres</span>
           <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><GitBranch size={11} style={{ color: '#2563eb' }} />Sommet : <strong style={{ color: '#374151', marginLeft: '3px' }}>{data.root.title}</strong></span>
         </div>
-        <div style={{ width: '100%', height: '1px', background: 'linear-gradient(to right,transparent,#d1d5db 20%,#d1d5db 80%,transparent)', marginTop: '16px' }} />
+        <div style={{ width: '100%', height: '1px', background: 'linear-gradient(to right,transparent,#d1d5db 20%,#d1d5db 80%,transparent)', marginTop: '14px' }} />
       </div>
 
-      {/* Tree */}
-      <div style={{ padding: '32px 20px', overflowX: 'auto', display: 'flex', justifyContent: 'center' }}>
+      {/* Tree — wrapped in scaler div targeted by @media print */}
+      <div
+        className="org-tree-scaler"
+        style={{ padding: '24px 16px 20px', overflowX: 'auto', display: 'flex', justifyContent: 'center' }}
+      >
         <OrgCard node={data.root} isRoot />
       </div>
 
