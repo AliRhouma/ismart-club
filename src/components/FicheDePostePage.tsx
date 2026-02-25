@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Search, Plus, FileText, X, ChevronDown } from 'lucide-react';
 
 interface FicheDePoste {
@@ -45,14 +46,20 @@ const POSTES = [
 ];
 
 export function FicheDePostePage() {
-  const [search, setSearch]       = useState('');
+  const navigate = useNavigate();
+  const [search, setSearch] = useState('');
   const [showModal, setShowModal] = useState(false);
+  const [formData, setFormData] = useState({ title: '', poste: '' });
 
   const filtered = mockFiches.filter(
     (f) =>
       f.title.toLowerCase().includes(search.toLowerCase()) ||
       f.poste.toLowerCase().includes(search.toLowerCase())
   );
+
+  const handleCreateDocument = () => {
+    navigate('/fiche-de-poste/create', { state: { title: formData.title, poste: formData.poste } });
+  };
 
   return (
     <div className="flex-1 overflow-y-auto min-h-screen" style={{ backgroundColor: '#131313' }}>
@@ -153,6 +160,8 @@ export function FicheDePostePage() {
                 </label>
                 <input
                   type="text"
+                  value={formData.title}
+                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                   placeholder="e.g. Fiche de Poste - Trésorier"
                   className="w-full px-3 py-2.5 rounded-lg text-body text-default-font placeholder:text-subtext-color outline-none transition-colors"
                   style={{ backgroundColor: '#131313', border: '1px solid #2d2d2d' }}
@@ -168,16 +177,19 @@ export function FicheDePostePage() {
                 </label>
                 <div className="relative">
                   <select
-                    defaultValue=""
+                    value={formData.poste}
+                    onChange={(e) => {
+                      setFormData({ ...formData, poste: e.target.value });
+                      e.currentTarget.style.color = '#fafafa';
+                    }}
                     className="w-full appearance-none px-3 py-2.5 rounded-lg text-body outline-none transition-colors pr-10 cursor-pointer"
                     style={{
                       backgroundColor: '#131313',
                       border: '1px solid #2d2d2d',
-                      color: '#737373',
+                      color: formData.poste ? '#fafafa' : '#737373',
                     }}
                     onFocus={(e) => (e.currentTarget.style.borderColor = '#0091ff')}
                     onBlur={(e)  => (e.currentTarget.style.borderColor = '#2d2d2d')}
-                    onChange={(e) => (e.currentTarget.style.color = '#fafafa')}
                   >
                     <option value="" disabled style={{ backgroundColor: '#181818', color: '#737373' }}>
                       Select a position...
@@ -205,8 +217,24 @@ export function FicheDePostePage() {
                 Cancel
               </button>
               <button
-                className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-body text-white transition-opacity hover:opacity-90"
-                style={{ backgroundColor: '#0091ff' }}
+                onClick={handleCreateDocument}
+                disabled={!formData.title.trim() || !formData.poste}
+                className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-body text-white transition-opacity"
+                style={{
+                  backgroundColor: (!formData.title.trim() || !formData.poste) ? '#0091ff44' : '#0091ff',
+                  cursor: (!formData.title.trim() || !formData.poste) ? 'not-allowed' : 'pointer',
+                  opacity: (!formData.title.trim() || !formData.poste) ? 0.5 : 1,
+                }}
+                onMouseEnter={(e) => {
+                  if (formData.title.trim() && formData.poste) {
+                    e.currentTarget.style.opacity = '0.9';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (formData.title.trim() && formData.poste) {
+                    e.currentTarget.style.opacity = '1';
+                  }
+                }}
               >
                 <FileText className="w-4 h-4" />
                 Create Document
