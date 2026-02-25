@@ -311,7 +311,7 @@ const StandardView = ({ data }: { data: ReglementData }) => (
       {data.title}
     </h1>
     {/* Subtitle */}
-    <h2 style={{ fontSize: '14px', fontWeight: 400, color: '#6b7280', fontStyle: 'italic', margin: '0 0 16px', lineHeight: 1.55, fontWeight: 400, borderBottom: '1px solid #e5e7eb', paddingBottom: '14px' }}>
+    <h2 style={{ fontSize: '14px', fontWeight: 400, color: '#6b7280', fontStyle: 'italic', margin: '0 0 16px', lineHeight: 1.55, borderBottom: '1px solid #e5e7eb', paddingBottom: '14px' }}>
       {data.description}
     </h2>
     {/* Meta */}

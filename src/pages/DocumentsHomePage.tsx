@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react';
-import { Plus, FileText, Trash2, Calendar } from 'lucide-react';
+import { Plus, FileText, Trash2, Calendar, Layout } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { getAllDocuments, deleteDocument, Document } from '../utils/storage';
+import { TemplateGalleryModal, Template } from '../components/TemplateGalleryModal';
 
 export function DocumentsHomePage() {
   const navigate = useNavigate();
   const [documents, setDocuments] = useState<Document[]>([]);
   const [showNewDocModal, setShowNewDocModal] = useState(false);
+  const [showTemplateModal, setShowTemplateModal] = useState(false);
   const [newDocTitle, setNewDocTitle] = useState('');
 
   useEffect(() => {
@@ -45,6 +47,23 @@ export function DocumentsHomePage() {
     }
   };
 
+  const handleSelectTemplate = (template: Template) => {
+    const newDoc: Document = {
+      id: Date.now().toString(),
+      title: template.title,
+      content: template.content,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+
+    const existingDocs = getAllDocuments();
+    localStorage.setItem('documents', JSON.stringify([...existingDocs, newDoc]));
+
+    setShowTemplateModal(false);
+    loadDocuments();
+    navigate(`/editor/${newDoc.id}`);
+  };
+
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', {
@@ -64,13 +83,22 @@ export function DocumentsHomePage() {
               Create and manage your organizational documents
             </p>
           </div>
-          <button
-            onClick={() => setShowNewDocModal(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-brand-600 text-neutral-0 rounded-lg hover:bg-brand-700 transition-colors"
-          >
-            <Plus className="w-4 h-4" />
-            New Document
-          </button>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setShowTemplateModal(true)}
+              className="flex items-center gap-2 px-4 py-2 bg-neutral-0 text-default-font border border-neutral-border rounded-lg hover:bg-neutral-50 transition-colors"
+            >
+              <Layout className="w-4 h-4" />
+              From Template
+            </button>
+            <button
+              onClick={() => setShowNewDocModal(true)}
+              className="flex items-center gap-2 px-4 py-2 bg-brand-600 text-neutral-0 rounded-lg hover:bg-brand-700 transition-colors"
+            >
+              <Plus className="w-4 h-4" />
+              New Document
+            </button>
+          </div>
         </div>
 
         {documents.length === 0 ? (
@@ -167,6 +195,13 @@ export function DocumentsHomePage() {
             </div>
           </div>
         </div>
+      )}
+
+      {showTemplateModal && (
+        <TemplateGalleryModal
+          onClose={() => setShowTemplateModal(false)}
+          onSelectTemplate={handleSelectTemplate}
+        />
       )}
     </div>
   );
