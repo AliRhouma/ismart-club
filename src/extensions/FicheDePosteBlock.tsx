@@ -1,17 +1,19 @@
 import { Node, mergeAttributes } from '@tiptap/core';
 import { ReactNodeViewRenderer, NodeViewWrapper } from '@tiptap/react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Search, ChevronRight, X, Briefcase, BookOpen, FileText,
   Building2, GitBranch, CheckCircle2, Wrench, Target,
-  Plus, Trash2, Edit3, Save, XCircle,
+  Plus, Trash2, Edit3, Save, XCircle, Loader2, Database,
 } from 'lucide-react';
+import { ficheService } from '../services/ficheService';
+import type { FicheDePoste } from '../types/supabase';
 
 type FicheStatus = 'Active' | 'Archived';
 type ViewMode = 'pdf' | 'standard';
 
 interface FicheDePosteData {
-  id: number;
+  id: number | string;
   jobTitle: string;
   department: string;
   reportsTo: string;
@@ -19,15 +21,17 @@ interface FicheDePosteData {
   workConditions: string[];
   mainMissions: string[];
   requiredSkills: string[];
+  isDefault?: boolean;
 }
 
 const SAMPLE_FICHES: FicheDePosteData[] = [
   {
-    id: 1,
+    id: 'default-1',
     jobTitle: 'Entraineur Principal Senior',
     department: 'Staff Technique',
     reportsTo: 'Directeur Sportif',
     status: 'Active',
+    isDefault: true,
     workConditions: [
       'Contrat à durée déterminée — saison sportive',
       'Présence obligatoire à tous les entraînements et matchs officiels',
@@ -52,11 +56,12 @@ const SAMPLE_FICHES: FicheDePosteData[] = [
     ],
   },
   {
-    id: 2,
+    id: 'default-2',
     jobTitle: 'Préparateur Physique',
     department: 'Staff Technique',
     reportsTo: 'Entraineur Principal Senior',
     status: 'Active',
+    isDefault: true,
     workConditions: [
       'Contrat à durée déterminée — saison sportive',
       'Présence à tous les entraînements et matchs',
@@ -76,11 +81,12 @@ const SAMPLE_FICHES: FicheDePosteData[] = [
     ],
   },
   {
-    id: 3,
+    id: 'default-3',
     jobTitle: 'Médecin du Club',
     department: 'Staff Médical',
     reportsTo: 'Directeur Général',
     status: 'Active',
+    isDefault: true,
     workConditions: [
       'Contrat à durée déterminée renouvelable',
       'Présence aux entraînements et obligatoirement à tous les matchs officiels',
@@ -101,11 +107,12 @@ const SAMPLE_FICHES: FicheDePosteData[] = [
     ],
   },
   {
-    id: 4,
+    id: 'default-4',
     jobTitle: 'Responsable Recrutement',
     department: 'Direction Sportive',
     reportsTo: 'Directeur Sportif',
     status: 'Active',
+    isDefault: true,
     workConditions: [
       'CDI — statut cadre',
       'Nombreux déplacements en France et à l\'étranger pour le suivi des joueurs',
@@ -127,6 +134,18 @@ const SAMPLE_FICHES: FicheDePosteData[] = [
     ],
   },
 ];
+
+const convertDbFicheToLocal = (fiche: FicheDePoste): FicheDePosteData => ({
+  id: fiche.id,
+  jobTitle: fiche.job_title,
+  department: fiche.department,
+  reportsTo: fiche.reports_to,
+  status: fiche.status as FicheStatus,
+  workConditions: fiche.work_conditions,
+  mainMissions: fiche.main_missions,
+  requiredSkills: fiche.required_skills,
+  isDefault: false,
+});
 
 const STATUS_CONFIG: Record<FicheStatus, { label: string; bg: string; text: string; border: string }> = {
   Active:   { label: 'Actif',    bg: '#f0fdf4', text: '#166534', border: '#bbf7d0' },
@@ -173,12 +192,16 @@ const EditModal = ({
   initial,
   onSave,
   onClose,
+  allowSaveToDb = false,
 }: {
   initial: FicheDePosteData;
-  onSave: (data: FicheDePosteData) => void;
+  onSave: (data: FicheDePosteData, saveToDb?: boolean) => void;
   onClose: () => void;
+  allowSaveToDb?: boolean;
 }) => {
   const [form, setForm] = useState<FicheDePosteData>({ ...initial, workConditions: [...initial.workConditions], mainMissions: [...initial.mainMissions], requiredSkills: [...initial.requiredSkills] });
+  const [saveToDb, setSaveToDb] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   const setField = <K extends keyof FicheDePosteData>(key: K, val: FicheDePosteData[K]) =>
     setForm((f) => ({ ...f, [key]: val }));
@@ -289,19 +312,42 @@ const EditModal = ({
           {listEditor('requiredSkills')}
         </div>
 
-        <div style={{ padding: '14px 24px', borderTop: '1px solid #e5e7eb', display: 'flex', justifyContent: 'flex-end', gap: '10px', background: '#fafaf9' }}>
-          <button
-            onClick={onClose}
-            style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '7px 16px', fontSize: '12px', fontFamily: "'Arial', sans-serif", fontWeight: 600, border: '1px solid #e5e7eb', borderRadius: '5px', background: '#fff', color: '#6b7280', cursor: 'pointer' }}
-          >
-            <XCircle size={13} /> Annuler
-          </button>
-          <button
-            onClick={() => onSave(form)}
-            style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '7px 18px', fontSize: '12px', fontFamily: "'Arial', sans-serif", fontWeight: 600, border: 'none', borderRadius: '5px', background: '#111827', color: '#fff', cursor: 'pointer' }}
-          >
-            <Save size={13} /> Enregistrer
-          </button>
+        <div style={{ padding: '14px 24px', borderTop: '1px solid #e5e7eb', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#fafaf9' }}>
+          {allowSaveToDb && (
+            <label style={{ display: 'flex', alignItems: 'center', gap: '7px', fontSize: '12px', fontFamily: "'Arial', sans-serif", color: '#374151', cursor: 'pointer' }}>
+              <input
+                type="checkbox"
+                checked={saveToDb}
+                onChange={(e) => setSaveToDb(e.target.checked)}
+                style={{ width: '14px', height: '14px', cursor: 'pointer' }}
+              />
+              <span style={{ fontWeight: 500 }}>Sauvegarder pour réutilisation future</span>
+            </label>
+          )}
+          <div style={{ display: 'flex', gap: '10px', marginLeft: 'auto' }}>
+            <button
+              onClick={onClose}
+              disabled={isSaving}
+              style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '7px 16px', fontSize: '12px', fontFamily: "'Arial', sans-serif", fontWeight: 600, border: '1px solid #e5e7eb', borderRadius: '5px', background: '#fff', color: '#6b7280', cursor: isSaving ? 'not-allowed' : 'pointer', opacity: isSaving ? 0.5 : 1 }}
+            >
+              <XCircle size={13} /> Annuler
+            </button>
+            <button
+              onClick={async () => {
+                setIsSaving(true);
+                try {
+                  await onSave(form, saveToDb);
+                } finally {
+                  setIsSaving(false);
+                }
+              }}
+              disabled={isSaving}
+              style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '7px 18px', fontSize: '12px', fontFamily: "'Arial', sans-serif", fontWeight: 600, border: 'none', borderRadius: '5px', background: '#111827', color: '#fff', cursor: isSaving ? 'not-allowed' : 'pointer', opacity: isSaving ? 0.7 : 1 }}
+            >
+              {isSaving ? <Loader2 size={13} className="animate-spin" /> : <Save size={13} />}
+              {isSaving ? 'Enregistrement...' : 'Enregistrer'}
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -311,15 +357,35 @@ const EditModal = ({
 const SelectionModal = ({
   onSelect,
   onClose,
+  onCreateNew,
 }: {
   onSelect: (f: FicheDePosteData) => void;
   onClose: () => void;
+  onCreateNew: () => void;
 }) => {
   const [search, setSearch] = useState('');
-  const filtered = SAMPLE_FICHES.filter(
+  const [dbFiches, setDbFiches] = useState<FicheDePosteData[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const loadFiches = async () => {
+      try {
+        const fiches = await ficheService.getAll();
+        setDbFiches(fiches.map(convertDbFicheToLocal));
+      } catch (error) {
+        console.error('Failed to load fiches:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    loadFiches();
+  }, []);
+
+  const allFiches = [...SAMPLE_FICHES, ...dbFiches];
+  const filtered = allFiches.filter(
     (f) => !search || f.jobTitle.toLowerCase().includes(search.toLowerCase()) || f.department.toLowerCase().includes(search.toLowerCase()),
   );
-  const depts = [...new Set(SAMPLE_FICHES.map((f) => f.department))];
+  const depts = [...new Set(allFiches.map((f) => f.department))];
   const [selDept, setSelDept] = useState<string | null>(null);
   const visible = filtered.filter((f) => !selDept || f.department === selDept);
 
@@ -334,7 +400,15 @@ const SelectionModal = ({
             <Briefcase size={18} style={{ color: '#374151' }} />
             <span style={{ fontSize: '14px', fontWeight: 700, color: '#111827', fontFamily: "'Georgia', serif" }}>Insérer une fiche de poste</span>
           </div>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af' }}><X size={18} /></button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <button
+              onClick={onCreateNew}
+              style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 12px', fontSize: '12px', fontFamily: "'Arial', sans-serif", fontWeight: 600, border: 'none', borderRadius: '5px', background: '#111827', color: '#fff', cursor: 'pointer' }}
+            >
+              <Plus size={13} /> Créer nouvelle
+            </button>
+            <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af' }}><X size={18} /></button>
+          </div>
         </div>
 
         <div style={{ padding: '12px 22px', borderBottom: '1px solid #f3f4f6', display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -356,33 +430,84 @@ const SelectionModal = ({
         </div>
 
         <div style={{ overflowY: 'auto', flex: 1 }}>
-          {visible.length === 0 && <div style={{ padding: '32px', textAlign: 'center', color: '#9ca3af', fontSize: '13px' }}>Aucun poste trouvé</div>}
-          {visible.map((f) => {
-            const accent = getAccent(f.department);
-            const sc = STATUS_CONFIG[f.status];
-            return (
-              <button key={f.id} onClick={() => onSelect(f)}
-                style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '14px', padding: '14px 22px', background: 'none', border: 'none', borderBottom: '1px solid #f9fafb', cursor: 'pointer', textAlign: 'left', transition: 'background 0.1s' }}
-                onMouseEnter={(e) => (e.currentTarget.style.background = '#f9fafb')}
-                onMouseLeave={(e) => (e.currentTarget.style.background = 'none')}
-              >
-                <div style={{ width: '36px', height: '36px', borderRadius: '8px', background: accent + '18', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                  <Briefcase size={16} style={{ color: accent }} />
+          {isLoading ? (
+            <div style={{ padding: '40px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
+              <Loader2 size={24} className="animate-spin" style={{ color: '#9ca3af' }} />
+              <span style={{ fontSize: '13px', color: '#9ca3af', fontFamily: "'Arial', sans-serif" }}>Chargement des fiches...</span>
+            </div>
+          ) : (
+            <>
+              {visible.length === 0 && <div style={{ padding: '32px', textAlign: 'center', color: '#9ca3af', fontSize: '13px' }}>Aucun poste trouvé</div>}
+
+              {dbFiches.length > 0 && !search && !selDept && (
+                <div style={{ padding: '12px 22px 8px', display: 'flex', alignItems: 'center', gap: '6px', background: '#f9fafb', borderBottom: '1px solid #e5e7eb' }}>
+                  <Database size={12} style={{ color: '#6b7280' }} />
+                  <span style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#6b7280', fontFamily: "'Arial', sans-serif" }}>Vos fiches personnalisées</span>
                 </div>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '3px' }}>
-                    <span style={{ fontSize: '13px', fontWeight: 700, color: '#111827', fontFamily: "'Georgia', serif" }}>{f.jobTitle}</span>
-                    <span style={{ fontSize: '10px', fontWeight: 600, padding: '1px 7px', borderRadius: '3px', border: `1px solid ${sc.border}`, background: sc.bg, color: sc.text, fontFamily: "'Arial', sans-serif" }}>{sc.label}</span>
-                  </div>
-                  <div style={{ display: 'flex', gap: '12px', fontSize: '11px', color: '#6b7280', fontFamily: "'Arial', sans-serif" }}>
-                    <span style={{ display: 'flex', alignItems: 'center', gap: '3px' }}><Building2 size={10} />{f.department}</span>
-                    <span style={{ display: 'flex', alignItems: 'center', gap: '3px' }}><GitBranch size={10} />{f.reportsTo}</span>
-                  </div>
+              )}
+
+              {visible.filter(f => !f.isDefault).map((f) => {
+                const accent = getAccent(f.department);
+                const sc = STATUS_CONFIG[f.status];
+                return (
+                  <button key={f.id} onClick={() => onSelect(f)}
+                    style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '14px', padding: '14px 22px', background: 'none', border: 'none', borderBottom: '1px solid #f9fafb', cursor: 'pointer', textAlign: 'left', transition: 'background 0.1s' }}
+                    onMouseEnter={(e) => (e.currentTarget.style.background = '#f9fafb')}
+                    onMouseLeave={(e) => (e.currentTarget.style.background = 'none')}
+                  >
+                    <div style={{ width: '36px', height: '36px', borderRadius: '8px', background: accent + '18', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                      <Briefcase size={16} style={{ color: accent }} />
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '3px' }}>
+                        <span style={{ fontSize: '13px', fontWeight: 700, color: '#111827', fontFamily: "'Georgia', serif" }}>{f.jobTitle}</span>
+                        <span style={{ fontSize: '10px', fontWeight: 600, padding: '1px 7px', borderRadius: '3px', border: `1px solid ${sc.border}`, background: sc.bg, color: sc.text, fontFamily: "'Arial', sans-serif" }}>{sc.label}</span>
+                      </div>
+                      <div style={{ display: 'flex', gap: '12px', fontSize: '11px', color: '#6b7280', fontFamily: "'Arial', sans-serif" }}>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '3px' }}><Building2 size={10} />{f.department}</span>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '3px' }}><GitBranch size={10} />{f.reportsTo}</span>
+                      </div>
+                    </div>
+                    <ChevronRight size={15} style={{ color: '#d1d5db', flexShrink: 0 }} />
+                  </button>
+                );
+              })}
+
+              {SAMPLE_FICHES.some(f => visible.includes(f)) && !search && !selDept && (
+                <div style={{ padding: '12px 22px 8px', display: 'flex', alignItems: 'center', gap: '6px', background: '#f9fafb', borderBottom: '1px solid #e5e7eb', marginTop: dbFiches.length > 0 ? '8px' : '0' }}>
+                  <FileText size={12} style={{ color: '#6b7280' }} />
+                  <span style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#6b7280', fontFamily: "'Arial', sans-serif" }}>Modèles par défaut</span>
                 </div>
-                <ChevronRight size={15} style={{ color: '#d1d5db', flexShrink: 0 }} />
-              </button>
-            );
-          })}
+              )}
+
+              {visible.filter(f => f.isDefault).map((f) => {
+                const accent = getAccent(f.department);
+                const sc = STATUS_CONFIG[f.status];
+                return (
+                  <button key={f.id} onClick={() => onSelect(f)}
+                    style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '14px', padding: '14px 22px', background: 'none', border: 'none', borderBottom: '1px solid #f9fafb', cursor: 'pointer', textAlign: 'left', transition: 'background 0.1s' }}
+                    onMouseEnter={(e) => (e.currentTarget.style.background = '#f9fafb')}
+                    onMouseLeave={(e) => (e.currentTarget.style.background = 'none')}
+                  >
+                    <div style={{ width: '36px', height: '36px', borderRadius: '8px', background: accent + '18', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                      <Briefcase size={16} style={{ color: accent }} />
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '3px' }}>
+                        <span style={{ fontSize: '13px', fontWeight: 700, color: '#111827', fontFamily: "'Georgia', serif" }}>{f.jobTitle}</span>
+                        <span style={{ fontSize: '10px', fontWeight: 600, padding: '1px 7px', borderRadius: '3px', border: `1px solid ${sc.border}`, background: sc.bg, color: sc.text, fontFamily: "'Arial', sans-serif" }}>{sc.label}</span>
+                      </div>
+                      <div style={{ display: 'flex', gap: '12px', fontSize: '11px', color: '#6b7280', fontFamily: "'Arial', sans-serif" }}>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '3px' }}><Building2 size={10} />{f.department}</span>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '3px' }}><GitBranch size={10} />{f.reportsTo}</span>
+                      </div>
+                    </div>
+                    <ChevronRight size={15} style={{ color: '#d1d5db', flexShrink: 0 }} />
+                  </button>
+                );
+              })}
+            </>
+          )}
         </div>
       </div>
     </div>
@@ -505,7 +630,8 @@ const StandardView = ({ data }: { data: FicheDePosteData }) => {
 const FicheDePosteBlockComponent = ({ node, updateAttributes }: any) => {
   const attrs = node.attrs;
   const [showSelectModal, setShowSelectModal] = useState(!attrs.ficheId);
-  const [showEditModal, setShowEditModal]     = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showCreateModal, setShowCreateModal] = useState(false);
   const [view, setView] = useState<ViewMode>('pdf');
 
   const hasFiche = !!attrs.ficheId;
@@ -519,7 +645,48 @@ const FicheDePosteBlockComponent = ({ node, updateAttributes }: any) => {
     });
 
   const handleSelect = (f: FicheDePosteData) => { applyFiche(f); setShowSelectModal(false); };
-  const handleSave   = (f: FicheDePosteData) => { applyFiche(f); setShowEditModal(false); };
+
+  const handleSave = async (f: FicheDePosteData, saveToDb?: boolean) => {
+    if (saveToDb) {
+      try {
+        if (typeof f.id === 'string' && !f.id.startsWith('default-')) {
+          await ficheService.update({
+            id: f.id,
+            job_title: f.jobTitle,
+            department: f.department,
+            reports_to: f.reportsTo,
+            status: f.status,
+            work_conditions: f.workConditions,
+            main_missions: f.mainMissions,
+            required_skills: f.requiredSkills,
+          });
+        } else {
+          const created = await ficheService.create({
+            job_title: f.jobTitle,
+            department: f.department,
+            reports_to: f.reportsTo,
+            status: f.status,
+            work_conditions: f.workConditions,
+            main_missions: f.mainMissions,
+            required_skills: f.requiredSkills,
+          });
+          f.id = created.id;
+        }
+      } catch (error) {
+        console.error('Failed to save fiche to database:', error);
+        alert('Erreur lors de la sauvegarde dans la base de données');
+        return;
+      }
+    }
+    applyFiche(f);
+    setShowEditModal(false);
+    setShowCreateModal(false);
+  };
+
+  const handleCreateNew = () => {
+    setShowSelectModal(false);
+    setShowCreateModal(true);
+  };
 
   const currentData: FicheDePosteData | null = hasFiche
     ? {
@@ -531,12 +698,24 @@ const FicheDePosteBlockComponent = ({ node, updateAttributes }: any) => {
       }
     : null;
 
+  const emptyFiche: FicheDePosteData = {
+    id: 'new',
+    jobTitle: '',
+    department: '',
+    reportsTo: '',
+    status: 'Active',
+    workConditions: [''],
+    mainMissions: [''],
+    requiredSkills: [''],
+  };
+
   return (
     <NodeViewWrapper as="div" className="fdp-block-wrapper">
       {showSelectModal && (
         <SelectionModal
           onSelect={handleSelect}
           onClose={() => { if (hasFiche) setShowSelectModal(false); }}
+          onCreateNew={handleCreateNew}
         />
       )}
       {showEditModal && currentData && (
@@ -544,6 +723,18 @@ const FicheDePosteBlockComponent = ({ node, updateAttributes }: any) => {
           initial={currentData}
           onSave={handleSave}
           onClose={() => setShowEditModal(false)}
+          allowSaveToDb={true}
+        />
+      )}
+      {showCreateModal && (
+        <EditModal
+          initial={emptyFiche}
+          onSave={handleSave}
+          onClose={() => {
+            setShowCreateModal(false);
+            setShowSelectModal(true);
+          }}
+          allowSaveToDb={true}
         />
       )}
 
