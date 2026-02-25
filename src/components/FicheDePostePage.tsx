@@ -5,44 +5,135 @@ interface FicheDePoste {
   id: number;
   title: string;
   poste: string;
+  accent: string;
 }
 
+const ACCENTS = [
+  '#0091ff',
+  '#46a758',
+  '#68ddfd',
+  '#e54d2e',
+  '#f76b15',
+  '#8e4ec6',
+  '#0091ff',
+  '#46a758',
+  '#68ddfd',
+  '#e54d2e',
+  '#f76b15',
+  '#8e4ec6',
+];
+
 const mockFiches: FicheDePoste[] = [
-  { id: 1,  title: 'Fiche de Poste - Entraîneur Principal',        poste: 'Entraîneur Principal' },
-  { id: 2,  title: 'Fiche de Poste - Préparateur Physique',        poste: 'Préparateur Physique' },
-  { id: 3,  title: 'Fiche de Poste - Responsable Communication',   poste: 'Responsable Communication' },
-  { id: 4,  title: 'Fiche de Poste - Directeur Financier',         poste: 'Trésorier' },
-  { id: 5,  title: 'Fiche de Poste - Chargé de Recrutement',       poste: 'Chargé de Recrutement' },
-  { id: 6,  title: 'Fiche de Poste - Responsable Infrastructures', poste: 'Responsable Infrastructures' },
-  { id: 7,  title: 'Fiche de Poste - Kinésithérapeute',            poste: 'Kinésithérapeute Sportif' },
-  { id: 8,  title: 'Fiche de Poste - Analyste Vidéo',              poste: 'Analyste Vidéo' },
-  { id: 9,  title: 'Fiche de Poste - Responsable Billetterie',     poste: 'Responsable Billetterie' },
-  { id: 10, title: 'Fiche de Poste - Secrétaire Général',          poste: 'Secrétaire Général' },
-  { id: 11, title: 'Fiche de Poste - Responsable Partenariats',    poste: 'Responsable Partenariats' },
-  { id: 12, title: 'Fiche de Poste - Directeur Général',           poste: 'Directeur Général (CEO)' },
+  { id: 1,  title: 'Entraîneur Principal',        poste: 'Entraîneur Principal',        accent: ACCENTS[0]  },
+  { id: 2,  title: 'Préparateur Physique',         poste: 'Préparateur Physique',         accent: ACCENTS[1]  },
+  { id: 3,  title: 'Responsable Communication',    poste: 'Responsable Communication',    accent: ACCENTS[2]  },
+  { id: 4,  title: 'Directeur Financier',          poste: 'Trésorier',                    accent: ACCENTS[3]  },
+  { id: 5,  title: 'Chargé de Recrutement',        poste: 'Chargé de Recrutement',        accent: ACCENTS[4]  },
+  { id: 6,  title: 'Responsable Infrastructures',  poste: 'Responsable Infrastructures',  accent: ACCENTS[5]  },
+  { id: 7,  title: 'Kinésithérapeute',             poste: 'Kinésithérapeute Sportif',     accent: ACCENTS[6]  },
+  { id: 8,  title: 'Analyste Vidéo',               poste: 'Analyste Vidéo',               accent: ACCENTS[7]  },
+  { id: 9,  title: 'Responsable Billetterie',      poste: 'Responsable Billetterie',      accent: ACCENTS[8]  },
+  { id: 10, title: 'Secrétaire Général',           poste: 'Secrétaire Général',           accent: ACCENTS[9]  },
+  { id: 11, title: 'Responsable Partenariats',     poste: 'Responsable Partenariats',     accent: ACCENTS[10] },
+  { id: 12, title: 'Directeur Général',            poste: 'Directeur Général (CEO)',      accent: ACCENTS[11] },
 ];
 
 const POSTES = [
-  'Directeur Général (CEO)',
-  'Secrétaire Général',
-  'Trésorier',
-  'Directeur Sportif',
-  'Entraîneur Principal',
-  'Entraîneur Adjoint',
-  'Préparateur Physique',
-  'Kinésithérapeute Sportif',
-  'Analyste Vidéo',
-  'Responsable Communication',
-  'Responsable Marketing',
-  'Responsable Partenariats',
-  'Responsable Billetterie',
-  'Directeur Financier',
-  'Chargé de Recrutement',
-  'Responsable Infrastructures',
-  'Coordinateur Académie',
-  'Gestionnaire Administratif',
+  'Directeur Général (CEO)', 'Secrétaire Général', 'Trésorier',
+  'Directeur Sportif', 'Entraîneur Principal', 'Entraîneur Adjoint',
+  'Préparateur Physique', 'Kinésithérapeute Sportif', 'Analyste Vidéo',
+  'Responsable Communication', 'Responsable Marketing', 'Responsable Partenariats',
+  'Responsable Billetterie', 'Directeur Financier', 'Chargé de Recrutement',
+  'Responsable Infrastructures', 'Coordinateur Académie', 'Gestionnaire Administratif',
   'Médecin du Club',
 ];
+
+/* initials from poste title */
+function getInitials(str: string) {
+  return str
+    .split(' ')
+    .filter((w) => w.length > 2)
+    .slice(0, 2)
+    .map((w) => w[0].toUpperCase())
+    .join('');
+}
+
+function hex2rgba(hex: string, alpha: number) {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  return `rgba(${r},${g},${b},${alpha})`;
+}
+
+function DocumentCard({ fiche }: { fiche: FicheDePoste }) {
+  const [hovered, setHovered] = useState(false);
+  const initials = getInitials(fiche.poste);
+
+  return (
+    <div
+      className="relative cursor-pointer rounded-xl overflow-hidden transition-all duration-200 select-none"
+      style={{
+        backgroundColor: '#181818',
+        border: hovered ? `1px solid ${fiche.accent}` : '1px solid #242424',
+        boxShadow: hovered ? `0 8px 32px ${hex2rgba(fiche.accent, 0.18)}` : '0 2px 8px rgba(0,0,0,0.4)',
+        transform: hovered ? 'translateY(-2px)' : 'translateY(0)',
+      }}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+    >
+      {/* Top color band */}
+      <div
+        className="h-1 w-full transition-all duration-200"
+        style={{ backgroundColor: hovered ? fiche.accent : '#242424' }}
+      />
+
+      <div className="p-4">
+        {/* Avatar circle with initials */}
+        <div
+          className="w-10 h-10 rounded-lg flex items-center justify-center mb-4 transition-all duration-200"
+          style={{
+            backgroundColor: hovered ? hex2rgba(fiche.accent, 0.15) : '#222',
+            border: `1.5px solid ${hovered ? fiche.accent : '#2e2e2e'}`,
+          }}
+        >
+          <span
+            className="text-caption-bold font-bold tracking-wider transition-colors duration-200"
+            style={{ color: hovered ? fiche.accent : '#555', fontSize: '11px' }}
+          >
+            {initials}
+          </span>
+        </div>
+
+        {/* Title */}
+        <p
+          className="text-body-bold leading-snug mb-1 transition-colors duration-200"
+          style={{ color: hovered ? '#fafafa' : '#d4d4d4' }}
+        >
+          {fiche.title}
+        </p>
+
+        {/* Poste badge */}
+        <div className="mt-3 flex items-center justify-between">
+          <span
+            className="text-caption px-2 py-0.5 rounded-full transition-all duration-200"
+            style={{
+              backgroundColor: hovered ? hex2rgba(fiche.accent, 0.12) : '#222',
+              color: hovered ? fiche.accent : '#737373',
+              border: `1px solid ${hovered ? hex2rgba(fiche.accent, 0.3) : '#2e2e2e'}`,
+            }}
+          >
+            {fiche.poste}
+          </span>
+
+          <FileText
+            className="w-3.5 h-3.5 transition-colors duration-200 flex-shrink-0"
+            style={{ color: hovered ? fiche.accent : '#333' }}
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export function FicheDePostePage() {
   const [search, setSearch]       = useState('');
@@ -58,7 +149,7 @@ export function FicheDePostePage() {
     <div className="flex-1 overflow-y-auto min-h-screen" style={{ backgroundColor: '#131313' }}>
       <div className="max-w-[1400px] mx-auto px-8 py-8">
 
-        {/* ── Header ── */}
+        {/* Header */}
         <div className="mb-8">
           <h1 className="text-heading-1 text-default-font mb-1">Fiches de Poste</h1>
           <p className="text-body text-subtext-color">
@@ -66,7 +157,7 @@ export function FicheDePostePage() {
           </p>
         </div>
 
-        {/* ── Toolbar ── */}
+        {/* Toolbar */}
         <div className="flex items-center justify-between mb-8">
           <div
             className="flex items-center gap-2 rounded-lg px-4 py-2 w-72"
@@ -92,13 +183,12 @@ export function FicheDePostePage() {
           </button>
         </div>
 
-        {/* ── Count ── */}
         <p className="text-caption text-subtext-color mb-5">
           {filtered.length} document{filtered.length !== 1 ? 's' : ''}
         </p>
 
-        {/* ── Cards Grid ── */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2">
+        {/* Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-4">
           {filtered.map((fiche) => (
             <DocumentCard key={fiche.id} fiche={fiche} />
           ))}
@@ -107,12 +197,12 @@ export function FicheDePostePage() {
         {filtered.length === 0 && (
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <FileText className="w-10 h-10 mb-3" style={{ color: '#333' }} />
-            <p className="text-body text-subtext-color">No fiches found matching your search.</p>
+            <p className="text-body text-subtext-color">No fiches found.</p>
           </div>
         )}
       </div>
 
-      {/* ══ Add Modal ══ */}
+      {/* Modal */}
       {showModal && (
         <div
           className="fixed inset-0 flex items-center justify-center z-50 p-4"
@@ -120,18 +210,16 @@ export function FicheDePostePage() {
         >
           <div
             className="w-full max-w-md rounded-xl"
-            style={{ backgroundColor: '#181818', border: '1px solid #252525', boxShadow: '0 24px 64px rgba(0,0,0,0.6)' }}
+            style={{
+              backgroundColor: '#181818',
+              border: '1px solid #252525',
+              boxShadow: '0 24px 64px rgba(0,0,0,0.6)',
+            }}
           >
-            {/* Header */}
-            <div
-              className="flex items-center justify-between px-6 py-5"
-              style={{ borderBottom: '1px solid #252525' }}
-            >
+            <div className="flex items-center justify-between px-6 py-5" style={{ borderBottom: '1px solid #252525' }}>
               <div>
                 <h2 className="text-heading-3 text-default-font">New Fiche de Poste</h2>
-                <p className="text-caption text-subtext-color mt-0.5">
-                  Create a new job description document
-                </p>
+                <p className="text-caption text-subtext-color mt-0.5">Create a new job description document</p>
               </div>
               <button
                 onClick={() => setShowModal(false)}
@@ -144,13 +232,9 @@ export function FicheDePostePage() {
               </button>
             </div>
 
-            {/* Body */}
             <div className="px-6 py-5 space-y-5">
-              {/* Title */}
               <div>
-                <label className="block text-caption-bold text-default-font mb-2">
-                  Document Title
-                </label>
+                <label className="block text-caption-bold text-default-font mb-2">Document Title</label>
                 <input
                   type="text"
                   placeholder="e.g. Fiche de Poste - Trésorier"
@@ -161,31 +245,20 @@ export function FicheDePostePage() {
                 />
               </div>
 
-              {/* Poste */}
               <div>
-                <label className="block text-caption-bold text-default-font mb-2">
-                  Poste Concerné
-                </label>
+                <label className="block text-caption-bold text-default-font mb-2">Poste Concerné</label>
                 <div className="relative">
                   <select
                     defaultValue=""
-                    className="w-full appearance-none px-3 py-2.5 rounded-lg text-body outline-none transition-colors pr-10 cursor-pointer"
-                    style={{
-                      backgroundColor: '#131313',
-                      border: '1px solid #2d2d2d',
-                      color: '#737373',
-                    }}
+                    className="w-full appearance-none px-3 py-2.5 rounded-lg text-body outline-none pr-10 cursor-pointer"
+                    style={{ backgroundColor: '#131313', border: '1px solid #2d2d2d', color: '#737373' }}
                     onFocus={(e) => (e.currentTarget.style.borderColor = '#0091ff')}
                     onBlur={(e)  => (e.currentTarget.style.borderColor = '#2d2d2d')}
                     onChange={(e) => (e.currentTarget.style.color = '#fafafa')}
                   >
-                    <option value="" disabled style={{ backgroundColor: '#181818', color: '#737373' }}>
-                      Select a position...
-                    </option>
+                    <option value="" disabled style={{ backgroundColor: '#181818', color: '#737373' }}>Select a position...</option>
                     {POSTES.map((p) => (
-                      <option key={p} value={p} style={{ backgroundColor: '#181818', color: '#fafafa' }}>
-                        {p}
-                      </option>
+                      <option key={p} value={p} style={{ backgroundColor: '#181818', color: '#fafafa' }}>{p}</option>
                     ))}
                   </select>
                   <ChevronDown className="w-4 h-4 text-subtext-color absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
@@ -193,7 +266,6 @@ export function FicheDePostePage() {
               </div>
             </div>
 
-            {/* Footer */}
             <div className="flex gap-3 px-6 pb-6">
               <button
                 onClick={() => setShowModal(false)}
@@ -215,86 +287,6 @@ export function FicheDePostePage() {
           </div>
         </div>
       )}
-    </div>
-  );
-}
-
-/* ── Document card ── */
-function DocumentCard({ fiche }: { fiche: FicheDePoste }) {
-  const [hovered, setHovered] = useState(false);
-
-  return (
-    <div
-      className="flex flex-col items-center gap-3 p-4 rounded-xl cursor-pointer transition-all"
-      style={{ backgroundColor: hovered ? '#181818' : 'transparent' }}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-    >
-      {/* Paper */}
-      <div className="relative w-16 h-20 flex-shrink-0">
-        {/* Body */}
-        <div
-          className="absolute inset-0 rounded-md transition-all duration-200"
-          style={{
-            backgroundColor: '#1c1c1c',
-            border: hovered ? '1px solid #0091ff44' : '1px solid #2a2a2a',
-            boxShadow: hovered
-              ? '0 4px 16px rgba(0,145,255,0.12)'
-              : '0 2px 6px rgba(0,0,0,0.5)',
-          }}
-        />
-
-        {/* Folded corner */}
-        <div
-          className="absolute top-0 right-0 w-0 h-0"
-          style={{
-            borderLeft: '13px solid #131313',
-            borderBottom: '13px solid transparent',
-          }}
-        />
-        <div
-          className="absolute top-0 right-0 w-0 h-0 opacity-30"
-          style={{
-            borderLeft: '13px solid #555',
-            borderBottom: '13px solid transparent',
-          }}
-        />
-
-        {/* Decorative lines */}
-        <div className="absolute top-5 left-3 right-4 space-y-[5px]">
-          {[1, 0.7, 0.5, 0.35].map((opacity, i) => (
-            <div
-              key={i}
-              className="h-px rounded"
-              style={{
-                backgroundColor: hovered ? `rgba(0,145,255,${opacity * 0.35})` : `rgba(255,255,255,${opacity * 0.07})`,
-                width: i === 2 ? '75%' : i === 3 ? '50%' : '100%',
-              }}
-            />
-          ))}
-        </div>
-
-        {/* Icon */}
-        <div className="absolute bottom-2 left-1/2 -translate-x-1/2">
-          <FileText
-            className="w-4 h-4 transition-colors duration-200"
-            style={{ color: hovered ? '#0091ff' : '#3a3a3a' }}
-          />
-        </div>
-      </div>
-
-      {/* Text */}
-      <div className="text-center">
-        <p
-          className="text-caption-bold leading-tight line-clamp-2 transition-colors duration-200"
-          style={{ color: hovered ? '#0091ff' : '#fafafa' }}
-        >
-          {fiche.title}
-        </p>
-        <p className="text-caption text-subtext-color mt-1 line-clamp-1">
-          {fiche.poste}
-        </p>
-      </div>
     </div>
   );
 }
