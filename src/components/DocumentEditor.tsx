@@ -15,6 +15,7 @@ import { ExerciseBlock } from '../extensions/ExerciseBlock';
 import { ProcedeBlock } from '../extensions/ProcedeBlock';
 import { ReglementBlock } from '../extensions/ReglementBlock';
 import { FicheDePosteBlock } from '../extensions/FicheDePosteBlock';
+import { OrganigrammeBlock } from '../extensions/organigramme.extension';
 import { PageHeaderBlock } from './PageHeaderBlock';
 import { EditorToolbar } from './EditorToolbar';
 import { useEffect } from 'react';
@@ -23,7 +24,7 @@ import Suggestion from '@tiptap/suggestion';
 import { ReactRenderer } from '@tiptap/react';
 import tippy, { Instance as TippyInstance } from 'tippy.js';
 import { BlockSlashMenu } from './BlockSlashMenu';
-import { AlertCircle, Highlighter, Image, ImagePlus, Table, Columns as ColumnsIcon, LayoutTemplate, ClipboardList, BookOpen, Scale, Briefcase } from 'lucide-react';
+import { AlertCircle, Highlighter, Image, ImagePlus, Table, Columns as ColumnsIcon, LayoutTemplate, ClipboardList, BookOpen, Scale, Briefcase, Network } from 'lucide-react';
 
 interface DocumentEditorProps {
   content: any;
@@ -162,6 +163,19 @@ const SlashCommandExtension = Extension.create({
               },
             },
             {
+              title: 'Organigramme',
+              description: 'Inserer un organigramme hierarchique',
+              icon: Network,
+              command: ({ editor, range }: any) => {
+                editor
+                  .chain()
+                  .focus()
+                  .deleteRange(range)
+                  .setOrganigrammeBlock()
+                  .run();
+              },
+            },
+            {
               title: 'Table',
               description: 'Insert a table with rows and columns',
               icon: Table,
@@ -288,6 +302,7 @@ export function DocumentEditor({ content, onUpdate, padding = 2.54 }: DocumentEd
       ProcedeBlock,
       ReglementBlock,
       FicheDePosteBlock,
+      OrganigrammeBlock,
       PageHeaderBlock,
       TableBlock,
       Column,

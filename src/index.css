@@ -3,6 +3,7 @@
 @import './extensions/procede-styles.css';
 @import './extensions/reglement-block-styles.css';
 @import './extensions/fiche-de-poste-block-styles.css';
+@import './extensions/organigramme-block-styles.css';
 
 @tailwind base;
 @tailwind components;
