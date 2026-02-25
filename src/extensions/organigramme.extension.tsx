@@ -89,19 +89,9 @@ const SAMPLE_ORGS: OrgChartData[] = [
   },
 ];
 
-// ─── Department color map ─────────────────────────────────────────────────────
+// ─── Uniform card colors ─────────────────────────────────────────────────────
 
-const DEPT_COLORS: Record<string, { bg: string; text: string; accent: string }> = {
-  'Direction':       { bg: '#1e1b4b', text: '#fff',    accent: '#6366f1' },
-  'Sportif':         { bg: '#1e3a5f', text: '#fff',    accent: '#2563eb' },
-  'Staff Technique': { bg: '#14532d', text: '#fff',    accent: '#16a34a' },
-  'Médical':         { bg: '#7f1d1d', text: '#fff',    accent: '#dc2626' },
-  'Administration':  { bg: '#1c1917', text: '#fff',    accent: '#78716c' },
-  'Communication':   { bg: '#78350f', text: '#fff',    accent: '#d97706' },
-  'Académie':        { bg: '#4c1d95', text: '#fff',    accent: '#9333ea' },
-};
-const getDeptColor = (dept?: string) =>
-  DEPT_COLORS[dept ?? ''] ?? { bg: '#1f2937', text: '#fff', accent: '#374151' };
+const CARD_COLORS = { bg: '#111827', text: '#fff', accent: '#2563eb' };
 
 // ─── Unique ID helper ─────────────────────────────────────────────────────────
 
@@ -110,6 +100,18 @@ const uid = () => Math.random().toString(36).slice(2, 9);
 // ─── Deep clone ───────────────────────────────────────────────────────────────
 
 const cloneNode = (n: OrgNode): OrgNode => ({ ...n, children: n.children.map(cloneNode) });
+
+// ─── Collect unique departments from tree ────────────────────────────────────
+
+const collectDepartments = (n: OrgNode): string[] => {
+  const set = new Set<string>();
+  const walk = (node: OrgNode) => {
+    if (node.department) set.add(node.department);
+    node.children.forEach(walk);
+  };
+  walk(n);
+  return Array.from(set);
+};
 
 // ─── View Toggle ──────────────────────────────────────────────────────────────
 
@@ -152,7 +154,6 @@ const NodeEditor = ({
   const removeChild = (i: number) =>
     onChange({ ...node, children: node.children.filter((_, j) => j !== i) });
 
-  const deptColor = getDeptColor(node.department);
   const inputStyle: React.CSSProperties = {
     flex: 1, padding: '5px 8px', fontSize: '12px', fontFamily: "'Georgia',serif",
     border: '1px solid #e5e7eb', borderRadius: '4px', color: '#111827',
@@ -160,13 +161,13 @@ const NodeEditor = ({
   };
 
   return (
-    <div style={{ marginLeft: depth > 0 ? '20px' : 0, borderLeft: depth > 0 ? `2px solid ${deptColor.accent}30` : 'none', paddingLeft: depth > 0 ? '12px' : 0, marginBottom: '6px' }}>
+    <div style={{ marginLeft: depth > 0 ? '20px' : 0, borderLeft: depth > 0 ? '2px solid #e5e7eb' : 'none', paddingLeft: depth > 0 ? '12px' : 0, marginBottom: '6px' }}>
       {/* Node row */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '6px', background: '#fafaf9', border: '1px solid #e5e7eb', borderRadius: '6px', padding: '8px 10px', marginBottom: node.children.length > 0 && open ? '6px' : 0 }}>
         <button onClick={() => setOpen(!open)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af', padding: 0, display: 'flex', flexShrink: 0 }}>
           <ChevronDown size={14} style={{ transform: open ? 'rotate(0deg)' : 'rotate(-90deg)', transition: 'transform 0.2s' }} />
         </button>
-        <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: deptColor.accent, flexShrink: 0 }} />
+        <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: CARD_COLORS.accent, flexShrink: 0 }} />
         <input style={inputStyle} value={node.name}       onChange={(e) => setField('name', e.target.value)}       placeholder="Nom" />
         <input style={inputStyle} value={node.title}      onChange={(e) => setField('title', e.target.value)}      placeholder="Poste" />
         <input style={{ ...inputStyle, maxWidth: '130px' }} value={node.department ?? ''} onChange={(e) => setField('department', e.target.value)} placeholder="Département" />
@@ -348,14 +349,13 @@ const ORG_PRINT_STYLE = `
 `;
 
 const OrgCard = ({ node, isRoot = false }: { node: OrgNode; isRoot?: boolean }) => {
-  const dc = getDeptColor(node.department);
+  const cc = CARD_COLORS;
   return (
     <div style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'center', padding: '0 4px' }}>
-      {/* Card — compact sizing for A4 fit */}
       <div style={{
-        background: isRoot ? dc.bg : '#fff',
-        border: `1.5px solid ${isRoot ? dc.accent : '#e5e7eb'}`,
-        borderTop: `3px solid ${dc.accent}`,
+        background: isRoot ? cc.bg : '#fff',
+        border: `1.5px solid ${isRoot ? cc.accent : '#e5e7eb'}`,
+        borderTop: `3px solid ${cc.accent}`,
         borderRadius: '5px',
         padding: isRoot ? '8px 10px' : '6px 8px',
         minWidth: isRoot ? '110px' : '90px',
@@ -363,20 +363,19 @@ const OrgCard = ({ node, isRoot = false }: { node: OrgNode; isRoot?: boolean }) 
         boxShadow: isRoot ? '0 3px 10px rgba(0,0,0,0.12)' : '0 1px 3px rgba(0,0,0,0.06)',
         textAlign: 'center',
       }}>
-        {/* Avatar only on root card */}
         {isRoot && (
-          <div style={{ width: '26px', height: '26px', borderRadius: '50%', background: dc.accent + '25', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 6px' }}>
-            <UserCircle2 size={14} style={{ color: dc.accent }} />
+          <div style={{ width: '26px', height: '26px', borderRadius: '50%', background: cc.accent + '25', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 6px' }}>
+            <UserCircle2 size={14} style={{ color: cc.accent }} />
           </div>
         )}
-        <div style={{ fontSize: isRoot ? '11px' : '10px', fontWeight: 700, color: isRoot ? dc.text : '#111827', fontFamily: "'Georgia',serif", lineHeight: 1.3, marginBottom: '2px' }}>
+        <div style={{ fontSize: isRoot ? '11px' : '10px', fontWeight: 700, color: isRoot ? cc.text : '#111827', fontFamily: "'Georgia',serif", lineHeight: 1.3, marginBottom: '2px' }}>
           {node.name || '—'}
         </div>
-        <div style={{ fontSize: '9px', color: isRoot ? dc.text + 'cc' : '#6b7280', fontFamily: "'Arial',sans-serif", lineHeight: 1.35 }}>
+        <div style={{ fontSize: '9px', color: isRoot ? cc.text + 'cc' : '#6b7280', fontFamily: "'Arial',sans-serif", lineHeight: 1.35 }}>
           {node.title || '—'}
         </div>
         {node.department && (
-          <div style={{ fontSize: '8px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: dc.accent, fontFamily: "'Arial',sans-serif", marginTop: '4px', background: dc.accent + '15', borderRadius: '2px', padding: '1px 4px', display: 'inline-block' }}>
+          <div style={{ fontSize: '8px', fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#6b7280', fontFamily: "'Arial',sans-serif", marginTop: '4px', background: '#f3f4f6', borderRadius: '2px', padding: '1px 4px', display: 'inline-block' }}>
             {node.department}
           </div>
         )}
@@ -443,9 +442,9 @@ const PdfView = ({ data }: { data: OrgChartData }) => {
       {/* Legend */}
       <div style={{ background: '#fafaf9', borderTop: '1px solid #e5e7eb', padding: '12px 40px', display: 'flex', flexWrap: 'wrap', gap: '12px', alignItems: 'center' }}>
         <span style={{ fontSize: '9px', fontWeight: 800, letterSpacing: '0.15em', textTransform: 'uppercase', color: '#9ca3af', fontFamily: "'Arial',sans-serif", marginRight: '4px' }}>Départements :</span>
-        {Object.entries(DEPT_COLORS).map(([dept, colors]) => (
+        {collectDepartments(data.root).map((dept) => (
           <span key={dept} style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', fontSize: '10px', fontFamily: "'Arial',sans-serif", color: '#374151' }}>
-            <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: colors.accent, display: 'inline-block' }} />
+            <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: CARD_COLORS.accent, display: 'inline-block' }} />
             {dept}
           </span>
         ))}
