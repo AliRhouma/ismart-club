@@ -11,24 +11,17 @@ import {
 
 type ViewMode = 'pdf' | 'standard';
 
-interface GroupMember {
-  id: string;
-  name: string;
-  role?: string;
-}
-
 interface OrgNode {
   id: string;
-  groupName: string;
-  leader: string;
+  name: string;
+  title: string;
   department?: string;
-  members: GroupMember[];
   children: OrgNode[];
 }
 
 interface OrgChartData {
   id: number;
-  label: string;
+  label: string;           // e.g. "Organigramme Saison 2025-26"
   root: OrgNode;
 }
 
@@ -39,109 +32,57 @@ const SAMPLE_ORGS: OrgChartData[] = [
     id: 1,
     label: 'Organigramme Club — Saison 2025-26',
     root: {
-      id: 'g1',
-      groupName: 'Direction Générale',
-      leader: 'Mohamed Karim',
-      department: 'Direction',
-      members: [
-        { id: 'm1', name: 'Sami Trabelsi', role: 'Directeur Général' },
-        { id: 'm2', name: 'Amira Jebali', role: 'Secrétaire Générale' },
-      ],
+      id: 'n1', name: 'Mohamed Karim', title: 'Président du Club', department: 'Direction',
       children: [
         {
-          id: 'g2',
-          groupName: 'Direction Sportive',
-          leader: 'Bilel Mzoughi',
-          department: 'Sportif',
-          members: [
-            { id: 'm3', name: 'Sofiane Dridi', role: 'Responsable Recrutement' },
-            { id: 'm4', name: 'Nabil Kacem', role: 'Analyste Vidéo' },
-          ],
+          id: 'n2', name: 'Sami Trabelsi', title: 'Directeur Général', department: 'Direction',
           children: [
             {
-              id: 'g3',
-              groupName: 'Staff Technique',
-              leader: 'Riadh Ben Ali',
-              department: 'Staff Technique',
-              members: [
-                { id: 'm5', name: 'Hassen Slim', role: 'Entraîneur Adjoint' },
-                { id: 'm6', name: 'Fares Amri', role: 'Préparateur Physique' },
-                { id: 'm7', name: 'Khaled Bougha', role: 'Entraîneur Gardiens' },
+              id: 'n3', name: 'Bilel Mzoughi', title: 'Directeur Sportif', department: 'Sportif',
+              children: [
+                {
+                  id: 'n4', name: 'Riadh Ben Ali', title: 'Entraîneur Principal', department: 'Staff Technique',
+                  children: [
+                    { id: 'n7', name: 'Hassen Slim', title: 'Entraîneur Adjoint', department: 'Staff Technique', children: [] },
+                    { id: 'n8', name: 'Fares Amri', title: 'Préparateur Physique', department: 'Staff Technique', children: [] },
+                  ],
+                },
+                { id: 'n5', name: 'Sofiane Dridi', title: 'Responsable Recrutement', department: 'Sportif', children: [] },
               ],
-              children: [],
             },
-          ],
-        },
-        {
-          id: 'g4',
-          groupName: 'Administration',
-          leader: 'Leila Gharbi',
-          department: 'Administration',
-          members: [
-            { id: 'm8', name: 'Anis Ferjani', role: 'Responsable Financier' },
-            { id: 'm9', name: 'Sara Ben Salah', role: 'Gestionnaire RH' },
-          ],
-          children: [
             {
-              id: 'g5',
-              groupName: 'Communication',
-              leader: 'Rim Chaabane',
-              department: 'Communication',
-              members: [
-                { id: 'm10', name: 'Yassine Mejri', role: 'Community Manager' },
-                { id: 'm11', name: 'Dorra Hadj', role: 'Graphiste' },
+              id: 'n9', name: 'Leila Gharbi', title: 'Directrice Administrative', department: 'Administration',
+              children: [
+                { id: 'n10', name: 'Anis Ferjani', title: 'Responsable Financier', department: 'Administration', children: [] },
+                { id: 'n11', name: 'Rim Chaabane', title: 'Responsable Communication', department: 'Communication', children: [] },
               ],
-              children: [],
+            },
+            {
+              id: 'n6', name: 'Dr. Youssef Ayari', title: 'Médecin du Club', department: 'Médical',
+              children: [
+                { id: 'n12', name: 'Ines Mbarki', title: 'Kinésithérapeute', department: 'Médical', children: [] },
+              ],
             },
           ],
-        },
-        {
-          id: 'g6',
-          groupName: 'Équipe Médicale',
-          leader: 'Dr. Youssef Ayari',
-          department: 'Médical',
-          members: [
-            { id: 'm12', name: 'Ines Mbarki', role: 'Kinésithérapeute' },
-            { id: 'm13', name: 'Ahmed Triki', role: 'Préparateur Mental' },
-          ],
-          children: [],
         },
       ],
     },
   },
   {
     id: 2,
-    label: 'Structure Académie',
+    label: 'Staff Technique',
     root: {
-      id: 'a1',
-      groupName: 'Académie du Club',
-      leader: 'Mehdi Jouini',
-      department: 'Académie',
-      members: [
-        { id: 'ma1', name: 'Karim Oueslati', role: 'Coordinateur Administratif' },
-      ],
+      id: 's1', name: 'Riadh Ben Ali', title: 'Entraîneur Principal Senior', department: 'Staff Technique',
       children: [
+        { id: 's2', name: 'Hassen Slim', title: 'Entraîneur Adjoint', department: 'Staff Technique', children: [] },
+        { id: 's3', name: 'Fares Amri', title: 'Préparateur Physique', department: 'Staff Technique', children: [] },
+        { id: 's4', name: 'Khaled Bougha', title: 'Entraîneur Gardiens', department: 'Staff Technique', children: [] },
         {
-          id: 'a2',
-          groupName: 'Équipe U21',
-          leader: 'Omar Ferchichi',
-          department: 'Académie',
-          members: [
-            { id: 'ma2', name: 'Wassim Tlili', role: 'Assistant Coach' },
-            { id: 'ma3', name: 'Sonia Mansour', role: 'Préparatrice Physique' },
+          id: 's5', name: 'Mehdi Jouini', title: 'Resp. Académie', department: 'Académie',
+          children: [
+            { id: 's6', name: 'Omar Ferchichi', title: 'Entraîneur U21', department: 'Académie', children: [] },
+            { id: 's7', name: 'Tarek Ghanem', title: 'Entraîneur U18', department: 'Académie', children: [] },
           ],
-          children: [],
-        },
-        {
-          id: 'a3',
-          groupName: 'Équipe U18',
-          leader: 'Tarek Ghanem',
-          department: 'Académie',
-          members: [
-            { id: 'ma4', name: 'Faouzi Gharbi', role: 'Assistant Coach' },
-            { id: 'ma5', name: 'Lina Baklouti', role: 'Nutritionniste' },
-          ],
-          children: [],
         },
       ],
     },
@@ -206,19 +147,10 @@ const NodeEditor = ({
     onChange({ ...node, children: node.children.map((c, j) => (j === i ? updated : c)) });
 
   const addChild = () =>
-    onChange({ ...node, children: [...node.children, { id: uid(), groupName: '', leader: '', department: node.department, members: [], children: [] }] });
+    onChange({ ...node, children: [...node.children, { id: uid(), name: '', title: '', department: node.department, children: [] }] });
 
   const removeChild = (i: number) =>
     onChange({ ...node, children: node.children.filter((_, j) => j !== i) });
-
-  const addMember = () =>
-    onChange({ ...node, members: [...node.members, { id: uid(), name: '', role: '' }] });
-
-  const updateMember = (i: number, field: keyof GroupMember, value: string) =>
-    onChange({ ...node, members: node.members.map((m, j) => (j === i ? { ...m, [field]: value } : m)) });
-
-  const removeMember = (i: number) =>
-    onChange({ ...node, members: node.members.filter((_, j) => j !== i) });
 
   const deptColor = getDeptColor(node.department);
   const inputStyle: React.CSSProperties = {
@@ -229,16 +161,16 @@ const NodeEditor = ({
 
   return (
     <div style={{ marginLeft: depth > 0 ? '20px' : 0, borderLeft: depth > 0 ? `2px solid ${deptColor.accent}30` : 'none', paddingLeft: depth > 0 ? '12px' : 0, marginBottom: '6px' }}>
-      {/* Group row */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', background: '#fafaf9', border: '1px solid #e5e7eb', borderRadius: '6px', padding: '8px 10px', marginBottom: (node.children.length > 0 || node.members.length > 0) && open ? '6px' : 0 }}>
+      {/* Node row */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', background: '#fafaf9', border: '1px solid #e5e7eb', borderRadius: '6px', padding: '8px 10px', marginBottom: node.children.length > 0 && open ? '6px' : 0 }}>
         <button onClick={() => setOpen(!open)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af', padding: 0, display: 'flex', flexShrink: 0 }}>
           <ChevronDown size={14} style={{ transform: open ? 'rotate(0deg)' : 'rotate(-90deg)', transition: 'transform 0.2s' }} />
         </button>
         <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: deptColor.accent, flexShrink: 0 }} />
-        <input style={inputStyle} value={node.groupName} onChange={(e) => setField('groupName', e.target.value)} placeholder="Nom du groupe" />
-        <input style={inputStyle} value={node.leader} onChange={(e) => setField('leader', e.target.value)} placeholder="Chef de groupe" />
+        <input style={inputStyle} value={node.name}       onChange={(e) => setField('name', e.target.value)}       placeholder="Nom" />
+        <input style={inputStyle} value={node.title}      onChange={(e) => setField('title', e.target.value)}      placeholder="Poste" />
         <input style={{ ...inputStyle, maxWidth: '130px' }} value={node.department ?? ''} onChange={(e) => setField('department', e.target.value)} placeholder="Département" />
-        <button onClick={addChild} title="Ajouter un sous-groupe" style={{ background: 'none', border: '1px solid #bbf7d0', borderRadius: '4px', cursor: 'pointer', color: '#16a34a', padding: '3px 6px', display: 'flex', flexShrink: 0 }}>
+        <button onClick={addChild} title="Ajouter un subordonné" style={{ background: 'none', border: '1px solid #bbf7d0', borderRadius: '4px', cursor: 'pointer', color: '#16a34a', padding: '3px 6px', display: 'flex', flexShrink: 0 }}>
           <Plus size={12} />
         </button>
         {onDelete && (
@@ -248,45 +180,7 @@ const NodeEditor = ({
         )}
       </div>
 
-      {/* Members */}
-      {open && node.members.length > 0 && (
-        <div style={{ marginLeft: '26px', marginBottom: '8px', padding: '8px', background: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: '6px' }}>
-          <div style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', color: '#6b7280', marginBottom: '6px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-            <Users size={10} /> Membres
-          </div>
-          {node.members.map((member, i) => (
-            <div key={member.id} style={{ display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '4px' }}>
-              <input
-                style={{ ...inputStyle, flex: 1 }}
-                value={member.name}
-                onChange={(e) => updateMember(i, 'name', e.target.value)}
-                placeholder="Nom du membre"
-              />
-              <input
-                style={{ ...inputStyle, flex: 1 }}
-                value={member.role ?? ''}
-                onChange={(e) => updateMember(i, 'role', e.target.value)}
-                placeholder="Rôle"
-              />
-              <button onClick={() => removeMember(i)} title="Retirer" style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#ef4444', padding: '2px', display: 'flex', flexShrink: 0 }}>
-                <X size={13} />
-              </button>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* Add member button */}
-      {open && (
-        <button
-          onClick={addMember}
-          style={{ marginLeft: '26px', marginBottom: '6px', display: 'flex', alignItems: 'center', gap: '4px', padding: '4px 8px', fontSize: '10px', fontFamily: "'Arial',sans-serif", fontWeight: 600, border: '1px dashed #d1d5db', borderRadius: '4px', background: '#fff', color: '#6b7280', cursor: 'pointer' }}
-        >
-          <Plus size={10} /> Ajouter un membre
-        </button>
-      )}
-
-      {/* Children groups */}
+      {/* Children */}
       {open && node.children.map((child, i) => (
         <NodeEditor
           key={child.id}
@@ -417,8 +311,8 @@ const SelectionModal = ({
                 <div style={{ flex: 1 }}>
                   <div style={{ fontSize: '13px', fontWeight: 700, color: '#111827', fontFamily: "'Georgia',serif" }}>{org.label}</div>
                   <div style={{ fontSize: '11px', color: '#6b7280', fontFamily: "'Arial',sans-serif", marginTop: '2px', display: 'flex', gap: '12px' }}>
-                    <span><Users size={10} style={{ display: 'inline', marginRight: '3px' }} />{total} groupes</span>
-                    <span><GitBranch size={10} style={{ display: 'inline', marginRight: '3px' }} />{org.root.groupName}</span>
+                    <span><Users size={10} style={{ display: 'inline', marginRight: '3px' }} />{total} personnes</span>
+                    <span><GitBranch size={10} style={{ display: 'inline', marginRight: '3px' }} />{org.root.title}</span>
                   </div>
                 </div>
               </button>
@@ -455,60 +349,35 @@ const ORG_PRINT_STYLE = `
 
 const OrgCard = ({ node, isRoot = false }: { node: OrgNode; isRoot?: boolean }) => {
   const dc = getDeptColor(node.department);
-  const totalMembers = node.members.length + 1;
-
   return (
     <div style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'center', padding: '0 4px' }}>
-      {/* Card */}
+      {/* Card — compact sizing for A4 fit */}
       <div style={{
         background: isRoot ? dc.bg : '#fff',
         border: `1.5px solid ${isRoot ? dc.accent : '#e5e7eb'}`,
         borderTop: `3px solid ${dc.accent}`,
         borderRadius: '5px',
-        padding: isRoot ? '10px 12px' : '8px 10px',
-        minWidth: isRoot ? '140px' : '120px',
-        maxWidth: isRoot ? '180px' : '160px',
+        padding: isRoot ? '8px 10px' : '6px 8px',
+        minWidth: isRoot ? '110px' : '90px',
+        maxWidth: isRoot ? '140px' : '115px',
         boxShadow: isRoot ? '0 3px 10px rgba(0,0,0,0.12)' : '0 1px 3px rgba(0,0,0,0.06)',
         textAlign: 'center',
       }}>
-        {/* Group icon */}
+        {/* Avatar only on root card */}
         {isRoot && (
-          <div style={{ width: '28px', height: '28px', borderRadius: '50%', background: dc.accent + '25', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 6px' }}>
-            <Users size={14} style={{ color: dc.accent }} />
+          <div style={{ width: '26px', height: '26px', borderRadius: '50%', background: dc.accent + '25', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 6px' }}>
+            <UserCircle2 size={14} style={{ color: dc.accent }} />
           </div>
         )}
-
-        {/* Group name */}
-        <div style={{ fontSize: isRoot ? '12px' : '11px', fontWeight: 700, color: isRoot ? dc.text : '#111827', fontFamily: "'Georgia',serif", lineHeight: 1.3, marginBottom: '3px' }}>
-          {node.groupName || '—'}
+        <div style={{ fontSize: isRoot ? '11px' : '10px', fontWeight: 700, color: isRoot ? dc.text : '#111827', fontFamily: "'Georgia',serif", lineHeight: 1.3, marginBottom: '2px' }}>
+          {node.name || '—'}
         </div>
-
-        {/* Leader */}
-        <div style={{ fontSize: '9px', color: isRoot ? dc.text + 'cc' : '#6b7280', fontFamily: "'Arial',sans-serif", lineHeight: 1.35, marginBottom: '4px' }}>
-          <span style={{ fontWeight: 600 }}>Chef:</span> {node.leader || '—'}
+        <div style={{ fontSize: '9px', color: isRoot ? dc.text + 'cc' : '#6b7280', fontFamily: "'Arial',sans-serif", lineHeight: 1.35 }}>
+          {node.title || '—'}
         </div>
-
-        {/* Members count */}
-        <div style={{ fontSize: '8px', color: isRoot ? dc.text + 'aa' : '#9ca3af', fontFamily: "'Arial',sans-serif", display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '3px', marginBottom: '4px' }}>
-          <Users size={8} />
-          {totalMembers} membre{totalMembers > 1 ? 's' : ''}
-        </div>
-
-        {/* Department badge */}
         {node.department && (
-          <div style={{ fontSize: '8px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: dc.accent, fontFamily: "'Arial',sans-serif", background: dc.accent + '15', borderRadius: '2px', padding: '2px 5px', display: 'inline-block' }}>
+          <div style={{ fontSize: '8px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: dc.accent, fontFamily: "'Arial',sans-serif", marginTop: '4px', background: dc.accent + '15', borderRadius: '2px', padding: '1px 4px', display: 'inline-block' }}>
             {node.department}
-          </div>
-        )}
-
-        {/* Members list (collapsed) */}
-        {node.members.length > 0 && (
-          <div style={{ marginTop: '6px', paddingTop: '6px', borderTop: `1px solid ${isRoot ? dc.accent + '30' : '#e5e7eb'}` }}>
-            {node.members.map((member, i) => (
-              <div key={member.id} style={{ fontSize: '8px', color: isRoot ? dc.text + 'bb' : '#6b7280', fontFamily: "'Arial',sans-serif", lineHeight: 1.4, textAlign: 'left' }}>
-                • {member.name}{member.role ? ` (${member.role})` : ''}
-              </div>
-            ))}
           </div>
         )}
       </div>
@@ -557,8 +426,8 @@ const PdfView = ({ data }: { data: OrgChartData }) => {
         <div style={{ width: '36px', height: '3px', background: '#2563eb', margin: '0 auto 12px', borderRadius: '2px' }} />
         <h2 style={{ fontSize: '18px', fontWeight: 800, color: '#111827', margin: '0 0 10px', letterSpacing: '-0.01em' }}>{data.label}</h2>
         <div style={{ display: 'flex', justifyContent: 'center', gap: '20px', fontSize: '11px', fontFamily: "'Arial',sans-serif", color: '#6b7280' }}>
-          <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><Users size={11} style={{ color: '#2563eb' }} /><strong style={{ color: '#374151' }}>{total}</strong> groupes</span>
-          <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><GitBranch size={11} style={{ color: '#2563eb' }} />Sommet : <strong style={{ color: '#374151', marginLeft: '3px' }}>{data.root.groupName}</strong></span>
+          <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><Users size={11} style={{ color: '#2563eb' }} /><strong style={{ color: '#374151' }}>{total}</strong> membres</span>
+          <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><GitBranch size={11} style={{ color: '#2563eb' }} />Sommet : <strong style={{ color: '#374151', marginLeft: '3px' }}>{data.root.title}</strong></span>
         </div>
         <div style={{ width: '100%', height: '1px', background: 'linear-gradient(to right,transparent,#d1d5db 20%,#d1d5db 80%,transparent)', marginTop: '14px' }} />
       </div>
@@ -588,20 +457,9 @@ const PdfView = ({ data }: { data: OrgChartData }) => {
 // ─── Standard (prose) View ────────────────────────────────────────────────────
 
 const renderStandardNode = (node: OrgNode, depth = 0): React.ReactNode => (
-  <li key={node.id} style={{ marginBottom: '8px' }}>
-    <div>
-      <span style={{ fontWeight: depth === 0 ? 800 : depth === 1 ? 700 : 600, fontSize: depth === 0 ? '16px' : depth === 1 ? '14px' : '13px', color: '#111827' }}>{node.groupName || '—'}</span>
-      <span style={{ fontSize: '12px', color: '#6b7280', marginLeft: '8px' }}>— Chef: {node.leader}{node.department ? ` (${node.department})` : ''}</span>
-    </div>
-    {node.members.length > 0 && (
-      <ul style={{ margin: '4px 0 0', paddingLeft: '18px', listStyleType: 'circle', fontSize: '12px', color: '#6b7280' }}>
-        {node.members.map((m) => (
-          <li key={m.id} style={{ marginBottom: '2px' }}>
-            {m.name}{m.role ? ` — ${m.role}` : ''}
-          </li>
-        ))}
-      </ul>
-    )}
+  <li key={node.id} style={{ marginBottom: '6px' }}>
+    <span style={{ fontWeight: depth === 0 ? 800 : depth === 1 ? 700 : 400, fontSize: depth === 0 ? '16px' : depth === 1 ? '14px' : '13px', color: '#111827' }}>{node.name || '—'}</span>
+    <span style={{ fontSize: '12px', color: '#6b7280', marginLeft: '8px' }}>— {node.title}{node.department ? ` (${node.department})` : ''}</span>
     {node.children.length > 0 && (
       <ul style={{ margin: '6px 0 0', paddingLeft: '20px', listStyleType: depth === 0 ? 'disc' : depth === 1 ? 'circle' : 'square' }}>
         {node.children.map((c) => renderStandardNode(c, depth + 1))}
@@ -614,7 +472,7 @@ const StandardView = ({ data }: { data: OrgChartData }) => (
   <div style={{ fontFamily: 'inherit', color: '#111827', lineHeight: 1.7, maxWidth: '860px', margin: '0 auto', padding: '4px 0' }}>
     <h1 style={{ fontSize: '24px', fontWeight: 800, margin: '0 0 4px' }}>{data.label}</h1>
     <h2 style={{ fontSize: '14px', fontWeight: 400, fontStyle: 'italic', color: '#6b7280', margin: '0 0 16px', borderBottom: '1px solid #e5e7eb', paddingBottom: '12px' }}>
-      Structure par groupes — {data.root.groupName} → …
+      Structure hiérarchique — {data.root.title} → …
     </h2>
     <ul style={{ margin: 0, paddingLeft: '18px', listStyleType: 'none' }}>
       {renderStandardNode(data.root, 0)}
@@ -627,7 +485,7 @@ const StandardView = ({ data }: { data: OrgChartData }) => (
 const BLANK_ORG = (): OrgChartData => ({
   id: Date.now(),
   label: 'Nouvel organigramme',
-  root: { id: uid(), groupName: '', leader: '', department: 'Direction', members: [], children: [] },
+  root: { id: uid(), name: '', title: 'Poste', department: 'Direction', children: [] },
 });
 
 const OrganigrammeBlockComponent = ({ node, updateAttributes }: any) => {
@@ -646,7 +504,7 @@ const OrganigrammeBlockComponent = ({ node, updateAttributes }: any) => {
   const handleCreateBlank = () => { const b = BLANK_ORG(); applyOrg(b); setShowSelectModal(false); setShowEditModal(true); };
 
   const currentData: OrgChartData | null = hasOrg
-    ? { id: attrs.orgId, label: attrs.orgLabel ?? '', root: attrs.orgRoot ?? { id: 'r', groupName: '', leader: '', members: [], children: [] } }
+    ? { id: attrs.orgId, label: attrs.orgLabel ?? '', root: attrs.orgRoot ?? { id: 'r', name: '', title: '', children: [] } }
     : null;
 
   return (
