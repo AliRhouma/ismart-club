@@ -1,327 +1,445 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Search, Plus, FileText, X, ChevronDown } from 'lucide-react';
+import {
+  Search, Plus, FileText, X, ChevronDown,
+  MoreHorizontal, Eye, Pencil, Trash2, Download,
+  Shield, List, BookOpen, ClipboardList
+} from 'lucide-react';
 
-interface FicheDePoste {
-  id: number;
-  title: string;
-  poste: string;
-}
+/* ─────────────────────── constants ─────────────────────── */
 
-const mockFiches: FicheDePoste[] = [
-  { id: 1,  title: 'Fiche de Poste - Entraîneur Principal',        poste: 'Entraîneur Principal' },
-  { id: 2,  title: 'Fiche de Poste - Préparateur Physique',        poste: 'Préparateur Physique' },
-  { id: 3,  title: 'Fiche de Poste - Responsable Communication',   poste: 'Responsable Communication' },
-  { id: 4,  title: 'Fiche de Poste - Directeur Financier',         poste: 'Trésorier' },
-  { id: 5,  title: 'Fiche de Poste - Chargé de Recrutement',       poste: 'Chargé de Recrutement' },
-  { id: 6,  title: 'Fiche de Poste - Responsable Infrastructures', poste: 'Responsable Infrastructures' },
-  { id: 7,  title: 'Fiche de Poste - Kinésithérapeute',            poste: 'Kinésithérapeute Sportif' },
-  { id: 8,  title: 'Fiche de Poste - Analyste Vidéo',              poste: 'Analyste Vidéo' },
-  { id: 9,  title: 'Fiche de Poste - Responsable Billetterie',     poste: 'Responsable Billetterie' },
-  { id: 10, title: 'Fiche de Poste - Secrétaire Général',          poste: 'Secrétaire Général' },
-  { id: 11, title: 'Fiche de Poste - Responsable Partenariats',    poste: 'Responsable Partenariats' },
-  { id: 12, title: 'Fiche de Poste - Directeur Général',           poste: 'Directeur Général (CEO)' },
+const DOC_TYPES = {
+  'Fiche de Poste': {
+    label: 'Fiche de Poste',
+    color: '#0091ff',
+    bg: 'rgba(0,145,255,0.08)',
+    border: 'rgba(0,145,255,0.2)',
+    Icon: ClipboardList,
+  },
+  'Charte': {
+    label: 'Charte',
+    color: '#a78bfa',
+    bg: 'rgba(167,139,250,0.08)',
+    border: 'rgba(167,139,250,0.2)',
+    Icon: Shield,
+  },
+  'Règlement': {
+    label: 'Règlement',
+    color: '#34d399',
+    bg: 'rgba(52,211,153,0.08)',
+    border: 'rgba(52,211,153,0.2)',
+    Icon: BookOpen,
+  },
+  'Liste des Rôles': {
+    label: 'Liste des Rôles',
+    color: '#fbbf24',
+    bg: 'rgba(251,191,36,0.08)',
+    border: 'rgba(251,191,36,0.2)',
+    Icon: List,
+  },
+};
+
+const mockDocs = [
+  { id: 1,  title: 'Fiche de Poste – Entraîneur Principal',      type: 'Fiche de Poste',   poste: 'Entraîneur Principal',       updatedAt: '28 Feb 2025',  author: 'A. Benali' },
+  { id: 2,  title: 'Charte Éthique du Club',                     type: 'Charte',            poste: 'Tous membres',               updatedAt: '14 Jan 2025',  author: 'Direction' },
+  { id: 3,  title: 'Règlement Intérieur 2025',                   type: 'Règlement',         poste: 'Tous membres',               updatedAt: '01 Jan 2025',  author: 'Secrétariat' },
+  { id: 4,  title: 'Liste des Rôles – Staff Technique',          type: 'Liste des Rôles',   poste: 'Staff Technique',            updatedAt: '10 Feb 2025',  author: 'M. Trabelsi' },
+  { id: 5,  title: 'Fiche de Poste – Préparateur Physique',      type: 'Fiche de Poste',   poste: 'Préparateur Physique',        updatedAt: '22 Feb 2025',  author: 'A. Benali' },
+  { id: 6,  title: 'Charte des Partenaires',                     type: 'Charte',            poste: 'Partenaires Commerciaux',    updatedAt: '05 Dec 2024',  author: 'Direction' },
+  { id: 7,  title: 'Règlement Sportif – Compétitions',           type: 'Règlement',         poste: 'Joueurs & Staff',            updatedAt: '15 Aug 2024',  author: 'Comité Sportif' },
+  { id: 8,  title: 'Fiche de Poste – Directeur Général',         type: 'Fiche de Poste',   poste: 'Directeur Général (CEO)',     updatedAt: '11 Mar 2025',  author: 'RH' },
+  { id: 9,  title: 'Liste des Rôles – Comité Directeur',         type: 'Liste des Rôles',   poste: 'Comité Directeur',           updatedAt: '18 Jan 2025',  author: 'Secrétariat' },
+  { id: 10, title: 'Fiche de Poste – Analyste Vidéo',            type: 'Fiche de Poste',   poste: 'Analyste Vidéo',             updatedAt: '03 Feb 2025',  author: 'A. Benali' },
+  { id: 11, title: 'Charte Réseaux Sociaux',                     type: 'Charte',            poste: 'Communication',              updatedAt: '19 Nov 2024',  author: 'Resp. Com.' },
+  { id: 12, title: 'Fiche de Poste – Kinésithérapeute',          type: 'Fiche de Poste',   poste: 'Kinésithérapeute Sportif',   updatedAt: '27 Jan 2025',  author: 'RH' },
 ];
 
-const POSTES = [
-  'Directeur Général (CEO)',
-  'Secrétaire Général',
-  'Trésorier',
-  'Directeur Sportif',
-  'Entraîneur Principal',
-  'Entraîneur Adjoint',
-  'Préparateur Physique',
-  'Kinésithérapeute Sportif',
-  'Analyste Vidéo',
-  'Responsable Communication',
-  'Responsable Marketing',
-  'Responsable Partenariats',
-  'Responsable Billetterie',
-  'Directeur Financier',
-  'Chargé de Recrutement',
-  'Responsable Infrastructures',
-  'Coordinateur Académie',
-  'Gestionnaire Administratif',
-  'Médecin du Club',
-];
+const ALL_TYPES = ['Tous', ...Object.keys(DOC_TYPES)];
+
+/* ─────────────────────── main page ─────────────────────── */
 
 export function FicheDePostePage() {
-  const navigate = useNavigate();
-  const [search, setSearch] = useState('');
+  const [search, setSearch]       = useState('');
+  const [activeType, setActiveType] = useState('Tous');
   const [showModal, setShowModal] = useState(false);
-  const [formData, setFormData] = useState({ title: '', poste: '' });
+  const [formData, setFormData]   = useState({ title: '', type: '', poste: '' });
 
-  const filtered = mockFiches.filter(
-    (f) =>
-      f.title.toLowerCase().includes(search.toLowerCase()) ||
-      f.poste.toLowerCase().includes(search.toLowerCase())
-  );
-
-  const handleCreateDocument = () => {
-    navigate('/fiche-de-poste/create', { state: { title: formData.title, poste: formData.poste } });
-  };
+  const filtered = mockDocs.filter((d) => {
+    const matchSearch =
+      d.title.toLowerCase().includes(search.toLowerCase()) ||
+      d.poste.toLowerCase().includes(search.toLowerCase());
+    const matchType = activeType === 'Tous' || d.type === activeType;
+    return matchSearch && matchType;
+  });
 
   return (
-    <div className="flex-1 overflow-y-auto min-h-screen" style={{ backgroundColor: '#131313' }}>
-      <div className="max-w-[1400px] mx-auto px-8 py-8">
+    <div className="flex-1 overflow-y-auto min-h-screen" style={{ backgroundColor: '#0e0e0e', fontFamily: "'DM Sans', sans-serif" }}>
+
+      {/* Google Font */}
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap');
+        * { font-family: 'DM Sans', sans-serif; }
+        .doc-row:hover .row-actions { opacity: 1; }
+        .doc-row:hover { background: #161616 !important; }
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+      `}</style>
+
+      <div className="max-w-[1200px] mx-auto px-8 py-10">
 
         {/* ── Header ── */}
-        <div className="mb-8">
-          <h1 className="text-heading-1 text-default-font mb-1">Fiches de Poste</h1>
-          <p className="text-body text-subtext-color">
-            Manage and edit job description documents for all club positions
+        <div className="mb-10">
+          <p className="text-xs font-medium tracking-widest uppercase mb-2" style={{ color: '#444' }}>
+            Club Documents
           </p>
+          <h1 className="text-3xl font-semibold" style={{ color: '#f0f0f0', letterSpacing: '-0.5px' }}>
+            Fiches &amp; Documents
+          </h1>
         </div>
 
         {/* ── Toolbar ── */}
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex items-center justify-between gap-4 mb-6">
+          {/* Search */}
           <div
-            className="flex items-center gap-2 rounded-lg px-4 py-2 w-72"
-            style={{ backgroundColor: '#181818', border: '1px solid #252525' }}
+            className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-lg w-72"
+            style={{ backgroundColor: '#151515', border: '1px solid #222' }}
           >
-            <Search className="w-4 h-4 text-subtext-color flex-shrink-0" />
+            <Search className="w-3.5 h-3.5 flex-shrink-0" style={{ color: '#444' }} />
             <input
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search fiches de poste..."
-              className="bg-transparent border-none outline-none text-body text-default-font placeholder:text-subtext-color w-full"
+              placeholder="Rechercher un document..."
+              className="bg-transparent border-none outline-none w-full text-sm"
+              style={{ color: '#d4d4d4' }}
             />
           </div>
 
           <button
             onClick={() => setShowModal(true)}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg text-body text-white transition-opacity hover:opacity-90"
+            className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium text-white"
             style={{ backgroundColor: '#0091ff' }}
           >
-            <Plus className="w-4 h-4" />
-            New Fiche
+            <Plus className="w-3.5 h-3.5" />
+            Nouveau document
           </button>
         </div>
 
-        {/* ── Count ── */}
-        <p className="text-caption text-subtext-color mb-5">
-          {filtered.length} document{filtered.length !== 1 ? 's' : ''}
-        </p>
+        {/* ── Type Filter Tabs ── */}
+        <div className="flex items-center gap-2 mb-7 overflow-x-auto scrollbar-hide">
+          {ALL_TYPES.map((t) => {
+            const active = activeType === t;
+            const cfg    = DOC_TYPES[t];
+            return (
+              <button
+                key={t}
+                onClick={() => setActiveType(t)}
+                className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all"
+                style={{
+                  backgroundColor: active ? (cfg ? cfg.bg : 'rgba(255,255,255,0.06)') : 'transparent',
+                  border: `1px solid ${active ? (cfg ? cfg.border : 'rgba(255,255,255,0.12)') : '#222'}`,
+                  color: active ? (cfg ? cfg.color : '#d4d4d4') : '#555',
+                }}
+              >
+                {cfg && <cfg.Icon className="w-3 h-3" />}
+                {t}
+                <span
+                  className="ml-0.5 px-1.5 py-0.5 rounded-full text-[10px]"
+                  style={{
+                    backgroundColor: active ? (cfg ? cfg.border : 'rgba(255,255,255,0.08)') : '#1c1c1c',
+                    color: active ? (cfg ? cfg.color : '#aaa') : '#444',
+                  }}
+                >
+                  {t === 'Tous' ? mockDocs.length : mockDocs.filter(d => d.type === t).length}
+                </span>
+              </button>
+            );
+          })}
+        </div>
 
-        {/* ── Cards Grid ── */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2">
-          {filtered.map((fiche) => (
-            <DocumentCard key={fiche.id} fiche={fiche} />
+        {/* ── Table header ── */}
+        <div
+          className="grid text-[11px] font-medium tracking-widest uppercase px-4 py-2.5 mb-1 rounded-md"
+          style={{
+            gridTemplateColumns: '1fr 140px 160px 110px 80px',
+            color: '#3a3a3a',
+            backgroundColor: '#111',
+          }}
+        >
+          <span>Titre du document</span>
+          <span>Type</span>
+          <span>Poste / Périmètre</span>
+          <span>Mis à jour</span>
+          <span />
+        </div>
+
+        {/* ── Rows ── */}
+        <div className="space-y-1">
+          {filtered.map((doc, i) => (
+            <DocRow key={doc.id} doc={doc} index={i} />
           ))}
         </div>
 
         {filtered.length === 0 && (
-          <div className="flex flex-col items-center justify-center py-20 text-center">
-            <FileText className="w-10 h-10 mb-3" style={{ color: '#333' }} />
-            <p className="text-body text-subtext-color">No fiches found matching your search.</p>
+          <div className="flex flex-col items-center justify-center py-24 text-center">
+            <FileText className="w-8 h-8 mb-3" style={{ color: '#252525' }} />
+            <p className="text-sm" style={{ color: '#3a3a3a' }}>Aucun document trouvé.</p>
           </div>
         )}
       </div>
 
-      {/* ══ Add Modal ══ */}
+      {/* ── Modal ── */}
       {showModal && (
-        <div
-          className="fixed inset-0 flex items-center justify-center z-50 p-4"
-          style={{ backgroundColor: 'rgba(0,0,0,0.65)' }}
-        >
-          <div
-            className="w-full max-w-md rounded-xl"
-            style={{ backgroundColor: '#181818', border: '1px solid #252525', boxShadow: '0 24px 64px rgba(0,0,0,0.6)' }}
-          >
-            {/* Header */}
-            <div
-              className="flex items-center justify-between px-6 py-5"
-              style={{ borderBottom: '1px solid #252525' }}
-            >
-              <div>
-                <h2 className="text-heading-3 text-default-font">New Fiche de Poste</h2>
-                <p className="text-caption text-subtext-color mt-0.5">
-                  Create a new job description document
-                </p>
-              </div>
-              <button
-                onClick={() => setShowModal(false)}
-                className="p-1.5 rounded-lg transition-colors"
-                style={{ color: '#737373' }}
-                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#242424')}
-                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-
-            {/* Body */}
-            <div className="px-6 py-5 space-y-5">
-              {/* Title */}
-              <div>
-                <label className="block text-caption-bold text-default-font mb-2">
-                  Document Title
-                </label>
-                <input
-                  type="text"
-                  value={formData.title}
-                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                  placeholder="e.g. Fiche de Poste - Trésorier"
-                  className="w-full px-3 py-2.5 rounded-lg text-body text-default-font placeholder:text-subtext-color outline-none transition-colors"
-                  style={{ backgroundColor: '#131313', border: '1px solid #2d2d2d' }}
-                  onFocus={(e) => (e.currentTarget.style.borderColor = '#0091ff')}
-                  onBlur={(e)  => (e.currentTarget.style.borderColor = '#2d2d2d')}
-                />
-              </div>
-
-              {/* Poste */}
-              <div>
-                <label className="block text-caption-bold text-default-font mb-2">
-                  Poste Concerné
-                </label>
-                <div className="relative">
-                  <select
-                    value={formData.poste}
-                    onChange={(e) => {
-                      setFormData({ ...formData, poste: e.target.value });
-                      e.currentTarget.style.color = '#fafafa';
-                    }}
-                    className="w-full appearance-none px-3 py-2.5 rounded-lg text-body outline-none transition-colors pr-10 cursor-pointer"
-                    style={{
-                      backgroundColor: '#131313',
-                      border: '1px solid #2d2d2d',
-                      color: formData.poste ? '#fafafa' : '#737373',
-                    }}
-                    onFocus={(e) => (e.currentTarget.style.borderColor = '#0091ff')}
-                    onBlur={(e)  => (e.currentTarget.style.borderColor = '#2d2d2d')}
-                  >
-                    <option value="" disabled style={{ backgroundColor: '#181818', color: '#737373' }}>
-                      Select a position...
-                    </option>
-                    {POSTES.map((p) => (
-                      <option key={p} value={p} style={{ backgroundColor: '#181818', color: '#fafafa' }}>
-                        {p}
-                      </option>
-                    ))}
-                  </select>
-                  <ChevronDown className="w-4 h-4 text-subtext-color absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-                </div>
-              </div>
-            </div>
-
-            {/* Footer */}
-            <div className="flex gap-3 px-6 pb-6">
-              <button
-                onClick={() => setShowModal(false)}
-                className="flex-1 px-4 py-2.5 rounded-lg text-body text-default-font transition-colors"
-                style={{ backgroundColor: '#222', border: '1px solid #2d2d2d' }}
-                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#2a2a2a')}
-                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#222')}
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleCreateDocument}
-                disabled={!formData.title.trim() || !formData.poste}
-                className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-body text-white transition-opacity"
-                style={{
-                  backgroundColor: (!formData.title.trim() || !formData.poste) ? '#0091ff44' : '#0091ff',
-                  cursor: (!formData.title.trim() || !formData.poste) ? 'not-allowed' : 'pointer',
-                  opacity: (!formData.title.trim() || !formData.poste) ? 0.5 : 1,
-                }}
-                onMouseEnter={(e) => {
-                  if (formData.title.trim() && formData.poste) {
-                    e.currentTarget.style.opacity = '0.9';
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (formData.title.trim() && formData.poste) {
-                    e.currentTarget.style.opacity = '1';
-                  }
-                }}
-              >
-                <FileText className="w-4 h-4" />
-                Create Document
-              </button>
-            </div>
-          </div>
-        </div>
+        <CreateModal
+          formData={formData}
+          setFormData={setFormData}
+          onClose={() => setShowModal(false)}
+        />
       )}
     </div>
   );
 }
 
-/* ── Document card ── */
-function DocumentCard({ fiche }: { fiche: FicheDePoste }) {
-  const [hovered, setHovered] = useState(false);
+/* ─────────────────────── doc row ─────────────────────── */
+
+function DocRow({ doc, index }) {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const cfg = DOC_TYPES[doc.type];
 
   return (
     <div
-      className="flex flex-col items-center gap-3 p-4 rounded-xl cursor-pointer transition-all"
-      style={{ backgroundColor: hovered ? '#181818' : 'transparent' }}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
+      className="doc-row grid items-center px-4 py-3.5 rounded-lg cursor-pointer transition-all relative"
+      style={{
+        gridTemplateColumns: '1fr 140px 160px 110px 80px',
+        backgroundColor: '#111',
+        border: '1px solid #181818',
+        animationDelay: `${index * 30}ms`,
+      }}
     >
-      {/* Paper */}
-      <div className="relative w-16 h-20 flex-shrink-0">
-        {/* Body */}
+      {/* Title */}
+      <div className="flex items-center gap-3 min-w-0 pr-4">
         <div
-          className="absolute inset-0 rounded-md transition-all duration-200"
-          style={{
-            backgroundColor: '#1c1c1c',
-            border: hovered ? '1px solid #0091ff44' : '1px solid #2a2a2a',
-            boxShadow: hovered
-              ? '0 4px 16px rgba(0,145,255,0.12)'
-              : '0 2px 6px rgba(0,0,0,0.5)',
-          }}
-        />
-
-        {/* Folded corner */}
-        <div
-          className="absolute top-0 right-0 w-0 h-0"
-          style={{
-            borderLeft: '13px solid #131313',
-            borderBottom: '13px solid transparent',
-          }}
-        />
-        <div
-          className="absolute top-0 right-0 w-0 h-0 opacity-30"
-          style={{
-            borderLeft: '13px solid #555',
-            borderBottom: '13px solid transparent',
-          }}
-        />
-
-        {/* Decorative lines */}
-        <div className="absolute top-5 left-3 right-4 space-y-[5px]">
-          {[1, 0.7, 0.5, 0.35].map((opacity, i) => (
-            <div
-              key={i}
-              className="h-px rounded"
-              style={{
-                backgroundColor: hovered ? `rgba(0,145,255,${opacity * 0.35})` : `rgba(255,255,255,${opacity * 0.07})`,
-                width: i === 2 ? '75%' : i === 3 ? '50%' : '100%',
-              }}
-            /> 
-          ))}
+          className="w-7 h-7 rounded-md flex items-center justify-center flex-shrink-0"
+          style={{ backgroundColor: cfg.bg, border: `1px solid ${cfg.border}` }}
+        >
+          <cfg.Icon className="w-3.5 h-3.5" style={{ color: cfg.color }} />
         </div>
-
-        {/* Icon */}
-        <div className="absolute bottom-2 left-1/2 -translate-x-1/2">
-          <FileText
-            className="w-4 h-4 transition-colors duration-200"
-            style={{ color: hovered ? '#0091ff' : '#3a3a3a' }}
-          />
-        </div>
+        <span className="text-sm font-medium truncate" style={{ color: '#e0e0e0' }}>
+          {doc.title}
+        </span>
       </div>
 
-      {/* Text */}
-      <div className="text-center">
-        <p
-          className="text-caption-bold leading-tight line-clamp-2 transition-colors duration-200"
-          style={{ color: hovered ? '#0091ff' : '#fafafa' }}
+      {/* Type badge */}
+      <div>
+        <span
+          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium"
+          style={{ backgroundColor: cfg.bg, color: cfg.color, border: `1px solid ${cfg.border}` }}
         >
-          {fiche.title}
-        </p>
-        <p className="text-caption text-subtext-color mt-1 line-clamp-1">
-          {fiche.poste}
-        </p>
+          {doc.type}
+        </span>
+      </div>
+
+      {/* Poste */}
+      <span className="text-xs truncate" style={{ color: '#555' }}>
+        {doc.poste}
+      </span>
+
+      {/* Date + author */}
+      <div>
+        <p className="text-xs" style={{ color: '#444' }}>{doc.updatedAt}</p>
+        <p className="text-[11px] mt-0.5" style={{ color: '#333' }}>{doc.author}</p>
+      </div>
+
+      {/* Actions */}
+      <div className="row-actions flex items-center justify-end gap-1 opacity-0 transition-opacity">
+        <ActionBtn icon={Eye}    title="Voir" />
+        <ActionBtn icon={Pencil} title="Modifier" />
+        <div className="relative">
+          <ActionBtn
+            icon={MoreHorizontal}
+            title="Plus"
+            onClick={(e) => { e.stopPropagation(); setMenuOpen(!menuOpen); }}
+          />
+          {menuOpen && (
+            <DropMenu onClose={() => setMenuOpen(false)} />
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ActionBtn({ icon: Icon, title, onClick }) {
+  return (
+    <button
+      title={title}
+      onClick={onClick}
+      className="w-7 h-7 flex items-center justify-center rounded-md transition-colors"
+      style={{ color: '#444' }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.backgroundColor = '#1e1e1e';
+        e.currentTarget.style.color = '#aaa';
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.backgroundColor = 'transparent';
+        e.currentTarget.style.color = '#444';
+      }}
+    >
+      <Icon className="w-3.5 h-3.5" />
+    </button>
+  );
+}
+
+function DropMenu({ onClose }) {
+  const items = [
+    { icon: Eye,      label: 'Voir',        color: '#aaa' },
+    { icon: Pencil,   label: 'Modifier',    color: '#aaa' },
+    { icon: Download, label: 'Télécharger', color: '#aaa' },
+    { icon: Trash2,   label: 'Supprimer',   color: '#f87171' },
+  ];
+
+  return (
+    <>
+      <div className="fixed inset-0 z-10" onClick={onClose} />
+      <div
+        className="absolute right-0 top-8 z-20 rounded-lg overflow-hidden py-1 w-40"
+        style={{ backgroundColor: '#181818', border: '1px solid #252525', boxShadow: '0 16px 40px rgba(0,0,0,0.6)' }}
+      >
+        {items.map(({ icon: Icon, label, color }) => (
+          <button
+            key={label}
+            className="w-full flex items-center gap-2.5 px-3.5 py-2 text-xs transition-colors"
+            style={{ color }}
+            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#222')}
+            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+          >
+            <Icon className="w-3.5 h-3.5" />
+            {label}
+          </button>
+        ))}
+      </div>
+    </>
+  );
+}
+
+/* ─────────────────────── create modal ─────────────────────── */
+
+function CreateModal({ formData, setFormData, onClose }) {
+  const valid = formData.title.trim() && formData.type;
+
+  return (
+    <div
+      className="fixed inset-0 flex items-center justify-center z-50 p-4"
+      style={{ backgroundColor: 'rgba(0,0,0,0.7)' }}
+    >
+      <div
+        className="w-full max-w-md rounded-xl overflow-hidden"
+        style={{ backgroundColor: '#151515', border: '1px solid #222', boxShadow: '0 32px 80px rgba(0,0,0,0.7)' }}
+      >
+        {/* Header */}
+        <div className="px-6 py-5" style={{ borderBottom: '1px solid #1e1e1e' }}>
+          <div className="flex items-center justify-between">
+            <h2 className="text-base font-semibold" style={{ color: '#f0f0f0' }}>
+              Nouveau document
+            </h2>
+            <button
+              onClick={onClose}
+              className="w-7 h-7 flex items-center justify-center rounded-md transition-colors"
+              style={{ color: '#444' }}
+              onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#1e1e1e'; e.currentTarget.style.color = '#aaa'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.color = '#444'; }}
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+          <p className="text-xs mt-1" style={{ color: '#444' }}>Créer un nouveau document pour le club</p>
+        </div>
+
+        {/* Body */}
+        <div className="px-6 py-5 space-y-4">
+
+          {/* Type selector — visual buttons */}
+          <div>
+            <label className="block text-xs font-medium mb-2.5" style={{ color: '#666' }}>
+              Type de document
+            </label>
+            <div className="grid grid-cols-2 gap-2">
+              {Object.entries(DOC_TYPES).map(([key, cfg]) => {
+                const selected = formData.type === key;
+                return (
+                  <button
+                    key={key}
+                    onClick={() => setFormData({ ...formData, type: key })}
+                    className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-lg text-left transition-all text-xs font-medium"
+                    style={{
+                      backgroundColor: selected ? cfg.bg : '#1a1a1a',
+                      border: `1px solid ${selected ? cfg.border : '#252525'}`,
+                      color: selected ? cfg.color : '#555',
+                    }}
+                  >
+                    <cfg.Icon className="w-3.5 h-3.5 flex-shrink-0" />
+                    {cfg.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Title */}
+          <div>
+            <label className="block text-xs font-medium mb-2" style={{ color: '#666' }}>
+              Titre du document
+            </label>
+            <input
+              type="text"
+              value={formData.title}
+              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+              placeholder="ex. Fiche de Poste – Trésorier"
+              className="w-full px-3.5 py-2.5 rounded-lg text-sm outline-none transition-colors"
+              style={{ backgroundColor: '#1a1a1a', border: '1px solid #252525', color: '#e0e0e0' }}
+              onFocus={(e) => (e.currentTarget.style.borderColor = '#0091ff')}
+              onBlur={(e) => (e.currentTarget.style.borderColor = '#252525')}
+            />
+          </div>
+
+          {/* Poste */}
+          <div>
+            <label className="block text-xs font-medium mb-2" style={{ color: '#666' }}>
+              Poste / Périmètre
+            </label>
+            <div className="relative">
+              <input
+                type="text"
+                value={formData.poste}
+                onChange={(e) => setFormData({ ...formData, poste: e.target.value })}
+                placeholder="ex. Tous membres, Staff Technique…"
+                className="w-full px-3.5 py-2.5 rounded-lg text-sm outline-none transition-colors"
+                style={{ backgroundColor: '#1a1a1a', border: '1px solid #252525', color: '#e0e0e0' }}
+                onFocus={(e) => (e.currentTarget.style.borderColor = '#0091ff')}
+                onBlur={(e) => (e.currentTarget.style.borderColor = '#252525')}
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="flex gap-2.5 px-6 pb-6">
+          <button
+            onClick={onClose}
+            className="flex-1 py-2.5 rounded-lg text-sm transition-colors"
+            style={{ backgroundColor: '#1a1a1a', border: '1px solid #252525', color: '#666' }}
+            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#202020')}
+            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#1a1a1a')}
+          >
+            Annuler
+          </button>
+          <button
+            disabled={!valid}
+            className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-medium text-white transition-opacity"
+            style={{ backgroundColor: '#0091ff', opacity: valid ? 1 : 0.35, cursor: valid ? 'pointer' : 'not-allowed' }}
+          >
+            <Plus className="w-3.5 h-3.5" />
+            Créer
+          </button>
+        </div>
       </div>
     </div>
   );
