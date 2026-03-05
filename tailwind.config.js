@@ -4,18 +4,19 @@ export default {
   theme: {
     extend: {
       colors: {
-        brand: {
-          50: "rgb(16, 36, 62)",
-          100: "rgb(16, 42, 76)",
-          200: "rgb(15, 48, 88)",
-          300: "rgb(13, 56, 104)",
-          400: "rgb(10, 68, 129)",
-          500: "rgb(9, 84, 165)",
-          600: "rgb(0, 145, 255)",
-          700: "rgb(54, 158, 255)",
-          800: "rgb(82, 169, 255)",
-          900: "rgb(234, 246, 255)",
-        },
+       brand: {
+  50:  "rgb(10, 25, 20)",    // very dark green (almost black green)
+  100: "rgb(12, 35, 28)",
+  200: "rgb(15, 50, 40)",
+  300: "rgb(18, 70, 55)",
+  400: "rgb(22, 95, 72)",
+  500: "rgb(16, 120, 85)",   // main brand color (deep emerald)
+  600: "rgb(0, 150, 105)",   // vibrant emerald
+  700: "rgb(40, 180, 130)",
+  800: "rgb(110, 210, 170)",
+  900: "rgb(230, 248, 240)", // very light mint background
+}
+        
         neutral: {
           0: "rgb(19, 19, 19)",
           50: "rgb(24, 24, 24)",
