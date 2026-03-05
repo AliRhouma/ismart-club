@@ -5,17 +5,17 @@ export default {
     extend: {
       colors: {
        brand: {
-  50:  "rgb(10, 25, 20)",    // very dark green (almost black green)
-  100: "rgb(12, 35, 28)",
-  200: "rgb(15, 50, 40)",
-  300: "rgb(18, 70, 55)",
-  400: "rgb(22, 95, 72)",
-  500: "rgb(16, 120, 85)",   // main brand color (deep emerald)
-  600: "rgb(0, 150, 105)",   // vibrant emerald
-  700: "rgb(40, 180, 130)",
-  800: "rgb(110, 210, 170)",
-  900: "rgb(230, 248, 240)", // very light mint background
-},
+  50:  "rgb(14, 20, 18)",     // near-black green
+  100: "rgb(18, 28, 24)",
+  200: "rgb(25, 40, 34)",
+  300: "rgb(34, 58, 49)",
+  400: "rgb(46, 82, 69)",
+  500: "rgb(58, 110, 92)",    // main brand (deep forest sage)
+  600: "rgb(76, 138, 118)",
+  700: "rgb(112, 170, 150)",
+  800: "rgb(168, 205, 190)",
+  900: "rgb(236, 245, 241)",  // soft premium background
+}
         
         neutral: {
           0: "rgb(19, 19, 19)",
