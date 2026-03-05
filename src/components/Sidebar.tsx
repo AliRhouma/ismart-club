@@ -92,7 +92,7 @@ export function Sidebar() {
           <div className="w-8 h-8 bg-default-font rounded-full flex items-center justify-center">
             <span className="text-neutral-0 text-xs font-bold">iS</span>
           </div>
-          <span className="text-default-font font-bold text-lg">iSMART-CLUB</span>
+          <span className="text-default-font font-bold text-lg">iSMART</span>
         </div>
         <div className="flex items-center gap-2">
           <button className="p-2 hover:bg-neutral-100 rounded-md transition-colors">
