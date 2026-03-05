@@ -251,7 +251,7 @@ export function ProjetPage() {
               </div>
 
               {/* Content card — same as discussion/idea cards in MeetingsPage */}
-              <div className="bg-neutral-400 border border-neutral-200 rounded-lg p-6">
+              <div className="bg-neutral-50 border border-neutral-200 rounded-lg p-6">
                 <SlideContent content={slide.content} />
               </div>
 
