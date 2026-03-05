@@ -4,18 +4,17 @@ export default {
   theme: {
     extend: {
       colors: {
-      brand: {
-  50:  "rgb(8, 18, 15)",      // ultra dark pine
-  100: "rgb(12, 28, 23)",
-  200: "rgb(16, 45, 36)",
-  300: "rgb(20, 68, 54)",
-  400: "rgb(25, 100, 78)",
-  500: "rgb(18, 130, 98)",    // main brand (refined jade)
-  600: "rgb(0, 170, 120)",    // vibrant premium jade
-  700: "rgb(60, 200, 150)",
-  800: "rgb(140, 225, 190)",
-  900: "rgb(235, 250, 242)",  // very soft pistachio background
-},
+       brand: {
+          50: "rgb(16, 36, 62)",
+          100: "rgb(16, 42, 76)",
+          200: "rgb(15, 48, 88)",
+          300: "rgb(13, 56, 104)",
+          400: "rgb(10, 68, 129)",
+          500: "rgb(9, 84, 165)",
+          600: "rgb(0, 145, 255)",
+          700: "rgb(54, 158, 255)",
+          800: "rgb(82, 169, 255)",
+          900: "rgb(234, 246, 255)",},
         
         neutral: {
           0: "rgb(19, 19, 19)",
