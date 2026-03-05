@@ -262,65 +262,86 @@ export function ProjetPage() {
           </div>
 
           {/* Nav list */}
-          <nav ref={navRef} className="flex-1 overflow-y-auto py-2 px-2">
+          <nav ref={navRef} className="flex-1 overflow-y-auto py-3 px-3 flex flex-col gap-3">
             {PHASES.map((phase) => {
               const pStyle = getPhaseStyle(phase);
               const phaseSlides = SLIDES.filter((s) => s.phase === phase);
+              const hasActive = phaseSlides.some((s) => SLIDES.indexOf(s) === activeIndex);
 
               return (
-                <div key={phase} className="mb-3">
-                  <div className="flex items-center gap-2 px-3 py-1.5 mb-0.5">
-                    <span className={`w-2 h-2 rounded-full ${pStyle.dot}`} />
-                    <span className="text-caption-bold text-subtext-color uppercase tracking-wider">
+                <div
+                  key={phase}
+                  className={`
+                    rounded-xl border overflow-hidden transition-all duration-200
+                    ${hasActive ? 'border-brand-200 shadow-sm' : 'border-neutral-200'}
+                  `}
+                >
+                  {/* Section header */}
+                  <div
+                    className={`
+                      flex items-center gap-2 px-3 py-2.5 border-b
+                      ${hasActive
+                        ? 'bg-brand-50 border-brand-200'
+                        : 'bg-neutral-100 border-neutral-200'
+                      }
+                    `}
+                  >
+                    <span className={`w-2 h-2 rounded-full shrink-0 ${pStyle.dot}`} />
+                    <span className="text-caption-bold text-subtext-color uppercase tracking-wider leading-tight">
                       {phase}
+                    </span>
+                    <span className="ml-auto text-caption text-subtext-color bg-white border border-neutral-200 rounded-full px-1.5 py-0.5 leading-none">
+                      {phaseSlides.length}
                     </span>
                   </div>
 
-                  {phaseSlides.map((s) => {
-                    const idx = SLIDES.indexOf(s);
-                    const isActive = idx === activeIndex;
+                  {/* Slide items */}
+                  <div className="flex flex-col bg-white divide-y divide-neutral-100">
+                    {phaseSlides.map((s) => {
+                      const idx = SLIDES.indexOf(s);
+                      const isActive = idx === activeIndex;
 
-                    return (
-                      <button
-                        key={s.id}
-                        ref={isActive ? activeItemRef : null}
-                        onClick={() => goTo(idx)}
-                        className={`
-                          w-full text-left flex items-center gap-2.5
-                          px-3 py-2 rounded-lg mb-0.5 border
-                          transition-all duration-150 group
-                          ${isActive
-                            ? 'bg-brand-50 border-brand-200'
-                            : 'border-transparent hover:bg-neutral-100'
-                          }
-                        `}
-                      >
-                        <span
+                      return (
+                        <button
+                          key={s.id}
+                          ref={isActive ? activeItemRef : null}
+                          onClick={() => goTo(idx)}
                           className={`
-                            w-6 h-6 rounded-md flex items-center justify-center
-                            text-caption-bold shrink-0 transition-colors
-                            ${isActive
-                              ? 'bg-brand-600 text-white'
-                              : 'bg-neutral-100 text-subtext-color group-hover:bg-neutral-200'
-                            }
+                            w-full text-left flex items-center gap-2.5
+                            px-3 py-2.5 transition-all duration-150 group
+                            ${isActive ? 'bg-brand-50' : 'hover:bg-neutral-50'}
                           `}
                         >
-                          {idx + 1}
-                        </span>
-                        <span
-                          className={`
-                            text-body leading-tight truncate transition-colors
-                            ${isActive
-                              ? 'font-semibold text-brand-600'
-                              : 'text-subtext-color group-hover:text-default-font'
-                            }
-                          `}
-                        >
-                          {s.title}
-                        </span>
-                      </button>
-                    );
-                  })}
+                          <span
+                            className={`
+                              w-6 h-6 rounded-md flex items-center justify-center
+                              text-caption-bold shrink-0 transition-colors
+                              ${isActive
+                                ? 'bg-brand-600 text-white'
+                                : 'bg-neutral-100 text-subtext-color group-hover:bg-neutral-200'
+                              }
+                            `}
+                          >
+                            {idx + 1}
+                          </span>
+                          <span
+                            className={`
+                              text-body leading-tight truncate transition-colors
+                              ${isActive
+                                ? 'font-semibold text-brand-600'
+                                : 'text-subtext-color group-hover:text-default-font'
+                              }
+                            `}
+                          >
+                            {s.title}
+                          </span>
+                          {isActive && (
+                            <span className="ml-auto w-1.5 h-1.5 rounded-full bg-brand-600 shrink-0" />
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
               );
             })}
@@ -358,7 +379,7 @@ export function ProjetPage() {
                 </div>
               </div>
 
-              {/* Content card — bg-neutral-50 = rgb(24,24,24) in dark theme */}
+              {/* Content card */}
               <div className="bg-neutral-50 border border-neutral-200 rounded-lg p-6">
                 <SlideContent content={slide.content} />
               </div>
