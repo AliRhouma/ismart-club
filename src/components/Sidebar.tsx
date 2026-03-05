@@ -1,4 +1,4 @@
-import { Calendar, ChevronDown, ChevronUp, User, FileText, List, ClipboardList, Flag, Bell, Layers, Network, GitBranch, FolderOpen } from 'lucide-react';
+import { Calendar, ChevronDown, ChevronUp, User, FileText, List, ClipboardList, Flag, Bell, Layers, Network, GitBranch, FolderOpen, Target } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 
@@ -13,6 +13,7 @@ const navItems: NavItem[] = [
   { id: 'planification', label: 'Planification', icon: <Calendar className="w-4 h-4" /> },
   { id: 'categories', label: 'Categories', icon: <Layers className="w-4 h-4" /> },
   { id: 'resources', label: 'Resources', icon: <FolderOpen className="w-4 h-4" /> },
+  { id: 'projet', label: 'Projet', icon: <Target className="w-4 h-4" /> },
   {
     id: 'organigram-parent',
     label: 'Organigram',
