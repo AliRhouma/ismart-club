@@ -12,34 +12,27 @@ import { SlideContent } from './SlideContent';
 
 const PHASES = [...new Set(SLIDES.map((s) => s.phase))];
 
-const PHASE_COLORS: Record<string, { bg: string; text: string; dot: string; border: string }> = {
+// Mirror the same pattern as getStatusColor / getPriorityColor in MeetingsPage
+const PHASE_COLORS: Record<string, { badge: string; dot: string }> = {
   'Phase de jeu': {
-    bg: 'rgba(0,145,255,0.08)',
-    text: '#0091FF',
-    dot: '#0091FF',
-    border: 'rgba(0,145,255,0.2)',
+    badge: 'bg-brand-50 text-brand-600 border-brand-200',
+    dot: 'bg-brand-600',
   },
   'Conserver - Progresser': {
-    bg: 'rgba(70,167,88,0.08)',
-    text: '#46A758',
-    dot: '#46A758',
-    border: 'rgba(70,167,88,0.2)',
+    badge: 'bg-success-50 text-success-600 border-success-200',
+    dot: 'bg-success-600',
   },
   'Déséquilibrer - Finir': {
-    bg: 'rgba(234,140,0,0.08)',
-    text: '#EA8C00',
-    dot: '#EA8C00',
-    border: 'rgba(234,140,0,0.2)',
+    badge: 'bg-warning-50 text-warning-600 border-warning-200',
+    dot: 'bg-warning-600',
   },
 };
 
 function getPhaseStyle(phase: string) {
   return (
     PHASE_COLORS[phase] ?? {
-      bg: 'rgba(115,115,115,0.08)',
-      text: '#737373',
-      dot: '#737373',
-      border: 'rgba(115,115,115,0.2)',
+      badge: 'bg-neutral-100 text-subtext-color border-neutral-300',
+      dot: 'bg-neutral-400',
     }
   );
 }
@@ -57,6 +50,7 @@ export function ProjetPage() {
     if (idx >= 0 && idx < SLIDES.length) setActiveIndex(idx);
   }, []);
 
+  // Keyboard navigation
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
@@ -72,220 +66,142 @@ export function ProjetPage() {
     return () => window.removeEventListener('keydown', handler);
   }, [activeIndex, goTo]);
 
+  // Auto-scroll active sidebar item into view
   useEffect(() => {
     if (activeItemRef.current && navRef.current) {
       const container = navRef.current;
       const item = activeItemRef.current;
-      const containerRect = container.getBoundingClientRect();
-      const itemRect = item.getBoundingClientRect();
-      if (itemRect.top < containerRect.top || itemRect.bottom > containerRect.bottom) {
+      const cRect = container.getBoundingClientRect();
+      const iRect = item.getBoundingClientRect();
+      if (iRect.top < cRect.top || iRect.bottom > cRect.bottom) {
         item.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
       }
     }
   }, [activeIndex]);
 
   return (
-    <div
-      style={{ background: '#131313', color: '#fafafa', fontFamily: "'Rubik', sans-serif" }}
-      className="flex-1 flex flex-col overflow-hidden"
-    >
-      {/* ── Top header ── */}
-      <div
-        style={{ background: '#181818', borderBottom: '1px solid #222' }}
-        className="px-8 py-4 shrink-0"
-      >
+    // Same root bg as every other page
+    <div className="flex-1 flex flex-col overflow-hidden bg-default-background">
+
+      {/* ── Top header ──────────────────────────────────────────────────────────
+          Same surface as meeting cards: bg-neutral-50 border-b border-neutral-200
+      ─────────────────────────────────────────────────────────────────────────── */}
+      <div className="bg-neutral-50 border-b border-neutral-200 px-8 py-4 shrink-0">
         <div className="flex items-center justify-between max-w-[1400px] mx-auto">
+
           {/* Left: icon + title */}
           <div className="flex items-center gap-4">
-            <div
-              style={{
-                width: 44,
-                height: 44,
-                borderRadius: 10,
-                background: 'rgba(0,145,255,0.12)',
-                border: '1px solid rgba(0,145,255,0.25)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <Target size={18} color="#0091FF" />
+            {/* Icon container — same as Calendar/Clock/MapPin icon wrappers in MeetingsPage */}
+            <div className="p-2 bg-brand-50 rounded-lg">
+              <Target className="w-5 h-5 text-brand-600" />
             </div>
             <div>
-              <h1 style={{ fontSize: 17, fontWeight: 600, color: '#fafafa', lineHeight: 1.3 }}>
-                {PROJET_META.name}
-              </h1>
-              <div
-                style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 2 }}
-              >
-                <span
-                  style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 12, color: '#525252' }}
-                >
-                  <Calendar size={12} color="#525252" />
+              <h1 className="text-heading-2 text-default-font">{PROJET_META.name}</h1>
+              <div className="flex items-center gap-3 mt-0.5">
+                <span className="flex items-center gap-1.5 text-caption text-subtext-color">
+                  <Calendar className="w-3.5 h-3.5" />
                   {PROJET_META.saison}
                 </span>
-                <span style={{ width: 3, height: 3, borderRadius: '50%', background: '#333' }} />
-                <span style={{ fontSize: 12, color: '#525252' }}>{PROJET_META.description}</span>
+                <span className="w-1 h-1 rounded-full bg-neutral-300" />
+                <span className="text-caption text-subtext-color">{PROJET_META.description}</span>
               </div>
             </div>
           </div>
 
-          {/* Right: status badge */}
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 6,
-              padding: '5px 12px',
-              borderRadius: 20,
-              background: 'rgba(70,167,88,0.1)',
-              border: '1px solid rgba(70,167,88,0.25)',
-            }}
-          >
-            <CheckCircle2 size={14} color="#46A758" />
-            <span style={{ fontSize: 12, fontWeight: 500, color: '#46A758' }}>
-              {PROJET_META.status}
-            </span>
+          {/* Right: status badge — same as Completed badge in MeetingsPage */}
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-success-50 border border-success-200">
+            <CheckCircle2 className="w-4 h-4 text-success-600" />
+            <span className="text-caption-bold text-success-600">{PROJET_META.status}</span>
           </div>
         </div>
       </div>
 
-      {/* ── Main content ── */}
+      {/* ── Main layout ──────────────────────────────────────────────────────── */}
       <div className="flex-1 flex overflow-hidden max-w-[1400px] mx-auto w-full">
 
-        {/* ── Left sidebar ── */}
-        <div
-          style={{ background: '#181818', borderRight: '1px solid #222', width: 272 }}
-          className="shrink-0 flex flex-col"
-        >
+        {/* ── Left sidebar ────────────────────────────────────────────────────
+            bg-neutral-50 border-r border-neutral-200 — same as MeetingsPage sidebar
+        ──────────────────────────────────────────────────────────────────────── */}
+        <div className="w-72 shrink-0 bg-neutral-50 border-r border-neutral-200 flex flex-col">
+
           {/* Progress header */}
-          <div style={{ padding: '12px 16px', borderBottom: '1px solid #222' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-              <span style={{ fontSize: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#525252' }}>
+          <div className="px-4 py-3 border-b border-neutral-200">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-caption-bold text-subtext-color uppercase tracking-wider">
                 Sommaire
               </span>
-              <span style={{ fontSize: 11, color: '#525252', fontWeight: 500 }}>
+              <span className="text-caption text-subtext-color">
                 {activeIndex + 1} / {SLIDES.length}
               </span>
             </div>
-            {/* Progress bar */}
-            <div style={{ height: 3, borderRadius: 2, background: '#222', overflow: 'hidden' }}>
+            {/* Progress bar — brand-600 fill on neutral-200 track */}
+            <div className="h-1 rounded-full bg-neutral-200 overflow-hidden">
               <div
-                style={{
-                  height: '100%',
-                  borderRadius: 2,
-                  background: '#0091FF',
-                  width: `${((activeIndex + 1) / SLIDES.length) * 100}%`,
-                  transition: 'width 0.3s ease',
-                }}
+                className="h-full bg-brand-600 rounded-full transition-all duration-300"
+                style={{ width: `${((activeIndex + 1) / SLIDES.length) * 100}%` }}
               />
             </div>
           </div>
 
           {/* Nav list */}
-          <nav ref={navRef} style={{ flex: 1, overflowY: 'auto', padding: '8px' }}>
+          <nav ref={navRef} className="flex-1 overflow-y-auto py-2 px-2">
             {PHASES.map((phase) => {
               const pStyle = getPhaseStyle(phase);
               const phaseSlides = SLIDES.filter((s) => s.phase === phase);
+
               return (
-                <div key={phase} style={{ marginBottom: 16 }}>
-                  {/* Phase label */}
-                  <div
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 7,
-                      padding: '4px 10px 6px',
-                    }}
-                  >
-                    <span
-                      style={{
-                        width: 7,
-                        height: 7,
-                        borderRadius: '50%',
-                        background: pStyle.dot,
-                        flexShrink: 0,
-                      }}
-                    />
-                    <span
-                      style={{
-                        fontSize: 10,
-                        fontWeight: 700,
-                        textTransform: 'uppercase',
-                        letterSpacing: '0.08em',
-                        color: pStyle.text,
-                        opacity: 0.75,
-                      }}
-                    >
+                <div key={phase} className="mb-3">
+                  {/* Phase group label */}
+                  <div className="flex items-center gap-2 px-3 py-1.5 mb-0.5">
+                    <span className={`w-2 h-2 rounded-full ${pStyle.dot}`} />
+                    <span className="text-caption-bold text-subtext-color uppercase tracking-wider">
                       {phase}
                     </span>
                   </div>
 
-                  {/* Slides */}
+                  {/* Slide buttons */}
                   {phaseSlides.map((s) => {
                     const idx = SLIDES.indexOf(s);
                     const isActive = idx === activeIndex;
+
                     return (
                       <button
                         key={s.id}
-                        ref={isActive ? activeItemRef : undefined}
+                        ref={isActive ? activeItemRef : null}
                         onClick={() => goTo(idx)}
-                        style={{
-                          width: '100%',
-                          textAlign: 'left',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 9,
-                          padding: '7px 10px',
-                          borderRadius: 7,
-                          marginBottom: 1,
-                          cursor: 'pointer',
-                          background: isActive ? 'rgba(0,145,255,0.08)' : 'transparent',
-                          border: `1px solid ${isActive ? 'rgba(0,145,255,0.2)' : 'transparent'}`,
-                          transition: 'all 0.15s ease',
-                        }}
-                        onMouseEnter={(e) => {
-                          if (!isActive) {
-                            (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.03)';
+                        className={`
+                          w-full text-left flex items-center gap-2.5
+                          px-3 py-2 rounded-lg mb-0.5 border
+                          transition-all duration-150 group
+                          ${isActive
+                            ? 'bg-brand-50 border-brand-200'
+                            : 'border-transparent hover:bg-neutral-100'
                           }
-                        }}
-                        onMouseLeave={(e) => {
-                          if (!isActive) {
-                            (e.currentTarget as HTMLButtonElement).style.background = 'transparent';
-                          }
-                        }}
+                        `}
                       >
-                        {/* Number badge */}
+                        {/* Number badge — same shape as task priority/status badges */}
                         <span
-                          style={{
-                            width: 22,
-                            height: 22,
-                            borderRadius: 5,
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            fontSize: 10,
-                            fontWeight: 700,
-                            flexShrink: 0,
-                            background: isActive ? '#0091FF' : '#1e1e1e',
-                            color: isActive ? '#fff' : '#525252',
-                            transition: 'all 0.15s ease',
-                          }}
+                          className={`
+                            w-6 h-6 rounded-md flex items-center justify-center
+                            text-caption-bold shrink-0 transition-colors
+                            ${isActive
+                              ? 'bg-brand-600 text-white'
+                              : 'bg-neutral-100 text-subtext-color group-hover:bg-neutral-200'
+                            }
+                          `}
                         >
                           {idx + 1}
                         </span>
+
                         {/* Title */}
                         <span
-                          style={{
-                            fontSize: 12.5,
-                            lineHeight: 1.35,
-                            color: isActive ? '#fafafa' : '#737373',
-                            fontWeight: isActive ? 500 : 400,
-                            transition: 'color 0.15s ease',
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis',
-                            whiteSpace: 'nowrap',
-                          }}
+                          className={`
+                            text-body leading-tight truncate transition-colors
+                            ${isActive
+                              ? 'font-semibold text-brand-600'
+                              : 'text-subtext-color group-hover:text-default-font'
+                            }
+                          `}
                         >
                           {s.title}
                         </span>
@@ -298,179 +214,106 @@ export function ProjetPage() {
           </nav>
         </div>
 
-        {/* ── Right: slide content ── */}
+        {/* ── Right: slide content ─────────────────────────────────────────── */}
         <div className="flex-1 flex flex-col overflow-hidden">
           <div className="flex-1 overflow-y-auto">
             <div className="max-w-3xl mx-auto px-8 py-6">
 
               {/* Image banner */}
-              <div
-                style={{
-                  position: 'relative',
-                  borderRadius: 12,
-                  overflow: 'hidden',
-                  marginBottom: 20,
-                  border: '1px solid #222',
-                }}
-              >
+              <div className="relative rounded-lg overflow-hidden mb-6 border border-neutral-200">
                 <img
                   src={image}
                   alt={slide.title}
-                  style={{ width: '100%', height: 220, objectFit: 'cover', display: 'block' }}
+                  className="w-full h-56 object-cover"
                 />
-                {/* Gradient overlay */}
-                <div
-                  style={{
-                    position: 'absolute',
-                    inset: 0,
-                    background: 'linear-gradient(to top, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0.1) 50%, transparent 100%)',
-                  }}
-                />
-                {/* Bottom labels */}
-                <div
-                  style={{
-                    position: 'absolute',
-                    bottom: 16,
-                    left: 20,
-                    right: 20,
-                  }}
-                >
+                {/* Dark gradient — same as meeting card hover overlay */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
+
+                {/* Overlaid labels */}
+                <div className="absolute bottom-4 left-5 right-5">
+                  {/* Phase badge — same rounded-full caption-bold border pattern as status badges */}
                   <div
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: 5,
-                      padding: '3px 10px',
-                      borderRadius: 20,
-                      background: phaseStyle.bg,
-                      border: `1px solid ${phaseStyle.border}`,
-                      marginBottom: 6,
-                    }}
+                    className={`
+                      inline-flex items-center gap-1.5
+                      px-2.5 py-1 rounded-full mb-2
+                      text-caption-bold border
+                      ${phaseStyle.badge}
+                    `}
                   >
-                    <Layers size={11} color={phaseStyle.text} />
-                    <span style={{ fontSize: 10, fontWeight: 600, color: phaseStyle.text, letterSpacing: '0.05em' }}>
-                      {slide.phase}
-                    </span>
+                    <Layers className="w-3 h-3" />
+                    {slide.phase}
                   </div>
-                  <h2
-                    style={{
-                      fontSize: 22,
-                      fontWeight: 700,
-                      color: '#fafafa',
-                      letterSpacing: '-0.01em',
-                      textShadow: '0 2px 8px rgba(0,0,0,0.6)',
-                    }}
-                  >
+
+                  <h2 className="text-heading-1 text-white drop-shadow-md">
                     {slide.title}
                   </h2>
                 </div>
               </div>
 
-              {/* Content card */}
-              <div
-                style={{
-                  background: '#181818',
-                  borderRadius: 12,
-                  border: '1px solid #222',
-                  padding: '24px',
-                }}
-              >
+              {/* Content card — same as discussion/idea cards in MeetingsPage */}
+              <div className="bg-neutral-50 border border-neutral-200 rounded-lg p-6">
                 <SlideContent content={slide.content} />
               </div>
+
             </div>
           </div>
 
-          {/* ── Bottom nav ── */}
-          <div
-            style={{
-              background: '#181818',
-              borderTop: '1px solid #222',
-              padding: '12px 24px',
-              flexShrink: 0,
-            }}
-          >
+          {/* ── Bottom navigation bar ──────────────────────────────────────────
+              bg-neutral-50 border-t border-neutral-200 — same as filter/search bar
+          ────────────────────────────────────────────────────────────────────── */}
+          <div className="shrink-0 bg-neutral-50 border-t border-neutral-200 px-6 py-3">
             <div className="max-w-3xl mx-auto flex items-center justify-between">
+
+              {/* Prev — ghost button, same as Cancel / secondary actions */}
               <button
                 onClick={() => goTo(activeIndex - 1)}
                 disabled={activeIndex === 0}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 6,
-                  padding: '7px 14px',
-                  borderRadius: 7,
-                  fontSize: 13,
-                  fontWeight: 500,
-                  cursor: activeIndex === 0 ? 'not-allowed' : 'pointer',
-                  opacity: activeIndex === 0 ? 0.25 : 1,
-                  background: 'transparent',
-                  border: '1px solid #282828',
-                  color: '#737373',
-                  transition: 'all 0.15s ease',
-                  fontFamily: 'inherit',
-                }}
-                onMouseEnter={(e) => {
-                  if (activeIndex !== 0)
-                    (e.currentTarget as HTMLButtonElement).style.background = 'rgba(0,145,255,0.06)';
-                }}
-                onMouseLeave={(e) => {
-                  (e.currentTarget as HTMLButtonElement).style.background = 'transparent';
-                }}
+                className="
+                  flex items-center gap-2 px-4 py-2 rounded-lg
+                  text-body text-subtext-color
+                  bg-neutral-100 border border-neutral-200
+                  hover:bg-neutral-150
+                  disabled:opacity-30 disabled:cursor-not-allowed
+                  transition-colors
+                "
               >
-                <ChevronLeft size={15} />
+                <ChevronLeft className="w-4 h-4" />
                 Précédent
               </button>
 
               {/* Dot indicators */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+              <div className="flex items-center gap-1.5">
                 {SLIDES.map((_, i) => (
                   <button
                     key={i}
                     onClick={() => goTo(i)}
-                    style={{
-                      height: 6,
-                      width: i === activeIndex ? 20 : 6,
-                      borderRadius: 3,
-                      background: i === activeIndex ? '#0091FF' : '#282828',
-                      border: 'none',
-                      cursor: 'pointer',
-                      padding: 0,
-                      transition: 'all 0.2s ease',
-                    }}
+                    className={`
+                      rounded-full transition-all duration-200
+                      ${i === activeIndex
+                        ? 'w-6 h-2 bg-brand-600'
+                        : 'w-2 h-2 bg-neutral-200 hover:bg-neutral-300'
+                      }
+                    `}
                   />
                 ))}
               </div>
 
+              {/* Next — primary button, same as "New Meeting" */}
               <button
                 onClick={() => goTo(activeIndex + 1)}
                 disabled={activeIndex === SLIDES.length - 1}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 6,
-                  padding: '7px 14px',
-                  borderRadius: 7,
-                  fontSize: 13,
-                  fontWeight: 500,
-                  cursor: activeIndex === SLIDES.length - 1 ? 'not-allowed' : 'pointer',
-                  opacity: activeIndex === SLIDES.length - 1 ? 0.25 : 1,
-                  background: 'transparent',
-                  border: '1px solid #282828',
-                  color: '#737373',
-                  transition: 'all 0.15s ease',
-                  fontFamily: 'inherit',
-                }}
-                onMouseEnter={(e) => {
-                  if (activeIndex !== SLIDES.length - 1)
-                    (e.currentTarget as HTMLButtonElement).style.background = 'rgba(0,145,255,0.06)';
-                }}
-                onMouseLeave={(e) => {
-                  (e.currentTarget as HTMLButtonElement).style.background = 'transparent';
-                }}
+                className="
+                  flex items-center gap-2 px-4 py-2 rounded-lg
+                  text-body text-white
+                  bg-brand-600 hover:bg-brand-700
+                  disabled:opacity-30 disabled:cursor-not-allowed
+                  transition-colors
+                "
               >
                 Suivant
-                <ChevronRight size={15} />
+                <ChevronRight className="w-4 h-4" />
               </button>
+
             </div>
           </div>
         </div>
