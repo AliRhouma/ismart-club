@@ -15,7 +15,7 @@ export default {
   700: "rgb(112, 170, 150)",
   800: "rgb(168, 205, 190)",
   900: "rgb(236, 245, 241)",  // soft premium background
-}
+},
         
         neutral: {
           0: "rgb(19, 19, 19)",
