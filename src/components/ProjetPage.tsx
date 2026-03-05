@@ -8,11 +8,134 @@ import {
   CheckCircle2,
 } from 'lucide-react';
 import { SLIDES, PROJET_IMAGES, PROJET_META } from '../data/projetDeJeu';
-import { SlideContent } from './SlideContent';
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SlideContent — inline to guarantee text color is never overridden
+// ─────────────────────────────────────────────────────────────────────────────
+
+function renderInline(text: string) {
+  const parts = text.split(/(\*\*[^*]+\*\*)/g);
+  return (
+    <>
+      {parts.map((part, i) =>
+        part.startsWith('**') && part.endsWith('**') ? (
+          <strong
+            key={i}
+            style={{ color: 'rgb(250, 250, 250)', fontWeight: 600 }}
+          >
+            {part.slice(2, -2)}
+          </strong>
+        ) : (
+          <span key={i}>{part}</span>
+        )
+      )}
+    </>
+  );
+}
+
+function renderLine(line: string, index: number) {
+  // ## Heading
+  if (line.startsWith('## ')) {
+    return (
+      <div key={index} style={{ marginTop: index === 0 ? 0 : 24, marginBottom: 8 }}>
+        <h3
+          style={{
+            color: 'rgb(0, 145, 255)',
+            fontSize: 11,
+            fontWeight: 700,
+            letterSpacing: '0.09em',
+            textTransform: 'uppercase',
+            marginBottom: 8,
+          }}
+        >
+          {line.replace('## ', '')}
+        </h3>
+        <div style={{ height: 1, background: 'rgb(48, 48, 48)' }} />
+      </div>
+    );
+  }
+
+  // Bullet point
+  if (line.startsWith('- ')) {
+    return (
+      <div
+        key={index}
+        style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '3px 0' }}
+      >
+        <span
+          style={{
+            marginTop: 8,
+            width: 5,
+            height: 5,
+            borderRadius: '50%',
+            background: 'rgb(0, 145, 255)',
+            flexShrink: 0,
+          }}
+        />
+        <p style={{ color: 'rgb(250, 250, 250)', fontSize: 14, lineHeight: '22px', margin: 0 }}>
+          {renderInline(line.replace(/^- /, ''))}
+        </p>
+      </div>
+    );
+  }
+
+  // Blockquote
+  if (line.startsWith('«')) {
+    return (
+      <div
+        key={index}
+        style={{
+          margin: '12px 0',
+          padding: '12px 16px',
+          background: 'rgb(36, 36, 36)',
+          border: '1px solid rgb(48, 48, 48)',
+          borderLeft: '3px solid rgb(0, 145, 255)',
+          borderRadius: 8,
+        }}
+      >
+        <p
+          style={{
+            color: 'rgb(212, 212, 212)',
+            fontSize: 14,
+            lineHeight: '22px',
+            fontStyle: 'italic',
+            margin: 0,
+          }}
+        >
+          {line}
+        </p>
+      </div>
+    );
+  }
+
+  // Empty line
+  if (line.trim() === '') {
+    return <div key={index} style={{ height: 6 }} />;
+  }
+
+  // Regular paragraph
+  return (
+    <p key={index} style={{ color: 'rgb(250, 250, 250)', fontSize: 14, lineHeight: '22px', margin: '3px 0' }}>
+      {renderInline(line)}
+    </p>
+  );
+}
+
+function SlideContent({ content }: { content: string[] }) {
+  const lines = content.flatMap((item) => item.split('\n'));
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+      {lines.map((line, i) => renderLine(line, i))}
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Phase config
+// ─────────────────────────────────────────────────────────────────────────────
 
 const PHASES = [...new Set(SLIDES.map((s) => s.phase))];
 
-// Mirror the same pattern as getStatusColor / getPriorityColor in MeetingsPage
 const PHASE_COLORS: Record<string, { badge: string; dot: string }> = {
   'Phase de jeu': {
     badge: 'bg-brand-50 text-brand-600 border-brand-200',
@@ -36,6 +159,10 @@ function getPhaseStyle(phase: string) {
     }
   );
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ProjetPage
+// ─────────────────────────────────────────────────────────────────────────────
 
 export function ProjetPage() {
   const [activeIndex, setActiveIndex] = useState(0);
@@ -80,18 +207,13 @@ export function ProjetPage() {
   }, [activeIndex]);
 
   return (
-    // Same root bg as every other page
     <div className="flex-1 flex flex-col overflow-hidden bg-default-background">
 
-      {/* ── Top header ──────────────────────────────────────────────────────────
-          Same surface as meeting cards: bg-neutral-50 border-b border-neutral-200
-      ─────────────────────────────────────────────────────────────────────────── */}
+      {/* ── Top header ── */}
       <div className="bg-neutral-50 border-b border-neutral-200 px-8 py-4 shrink-0">
         <div className="flex items-center justify-between max-w-[1400px] mx-auto">
 
-          {/* Left: icon + title */}
           <div className="flex items-center gap-4">
-            {/* Icon container — same as Calendar/Clock/MapPin icon wrappers in MeetingsPage */}
             <div className="p-2 bg-brand-50 rounded-lg">
               <Target className="w-5 h-5 text-brand-600" />
             </div>
@@ -108,7 +230,6 @@ export function ProjetPage() {
             </div>
           </div>
 
-          {/* Right: status badge — same as Completed badge in MeetingsPage */}
           <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-success-50 border border-success-200">
             <CheckCircle2 className="w-4 h-4 text-success-600" />
             <span className="text-caption-bold text-success-600">{PROJET_META.status}</span>
@@ -116,12 +237,10 @@ export function ProjetPage() {
         </div>
       </div>
 
-      {/* ── Main layout ──────────────────────────────────────────────────────── */}
+      {/* ── Main layout ── */}
       <div className="flex-1 flex overflow-hidden max-w-[1400px] mx-auto w-full">
 
-        {/* ── Left sidebar ────────────────────────────────────────────────────
-            bg-neutral-50 border-r border-neutral-200 — same as MeetingsPage sidebar
-        ──────────────────────────────────────────────────────────────────────── */}
+        {/* ── Left sidebar ── */}
         <div className="w-72 shrink-0 bg-neutral-50 border-r border-neutral-200 flex flex-col">
 
           {/* Progress header */}
@@ -134,7 +253,6 @@ export function ProjetPage() {
                 {activeIndex + 1} / {SLIDES.length}
               </span>
             </div>
-            {/* Progress bar — brand-600 fill on neutral-200 track */}
             <div className="h-1 rounded-full bg-neutral-200 overflow-hidden">
               <div
                 className="h-full bg-brand-600 rounded-full transition-all duration-300"
@@ -151,7 +269,6 @@ export function ProjetPage() {
 
               return (
                 <div key={phase} className="mb-3">
-                  {/* Phase group label */}
                   <div className="flex items-center gap-2 px-3 py-1.5 mb-0.5">
                     <span className={`w-2 h-2 rounded-full ${pStyle.dot}`} />
                     <span className="text-caption-bold text-subtext-color uppercase tracking-wider">
@@ -159,7 +276,6 @@ export function ProjetPage() {
                     </span>
                   </div>
 
-                  {/* Slide buttons */}
                   {phaseSlides.map((s) => {
                     const idx = SLIDES.indexOf(s);
                     const isActive = idx === activeIndex;
@@ -179,7 +295,6 @@ export function ProjetPage() {
                           }
                         `}
                       >
-                        {/* Number badge — same shape as task priority/status badges */}
                         <span
                           className={`
                             w-6 h-6 rounded-md flex items-center justify-center
@@ -192,8 +307,6 @@ export function ProjetPage() {
                         >
                           {idx + 1}
                         </span>
-
-                        {/* Title */}
                         <span
                           className={`
                             text-body leading-tight truncate transition-colors
@@ -214,7 +327,7 @@ export function ProjetPage() {
           </nav>
         </div>
 
-        {/* ── Right: slide content ─────────────────────────────────────────── */}
+        {/* ── Right: slide content ── */}
         <div className="flex-1 flex flex-col overflow-hidden">
           <div className="flex-1 overflow-y-auto">
             <div className="max-w-3xl mx-auto px-8 py-6">
@@ -226,12 +339,8 @@ export function ProjetPage() {
                   alt={slide.title}
                   className="w-full h-56 object-cover"
                 />
-                {/* Dark gradient — same as meeting card hover overlay */}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
-
-                {/* Overlaid labels */}
                 <div className="absolute bottom-4 left-5 right-5">
-                  {/* Phase badge — same rounded-full caption-bold border pattern as status badges */}
                   <div
                     className={`
                       inline-flex items-center gap-1.5
@@ -243,14 +352,13 @@ export function ProjetPage() {
                     <Layers className="w-3 h-3" />
                     {slide.phase}
                   </div>
-
                   <h2 className="text-heading-1 text-white drop-shadow-md">
                     {slide.title}
                   </h2>
                 </div>
               </div>
 
-              {/* Content card — same as discussion/idea cards in MeetingsPage */}
+              {/* Content card — bg-neutral-50 = rgb(24,24,24) in dark theme */}
               <div className="bg-neutral-50 border border-neutral-200 rounded-lg p-6">
                 <SlideContent content={slide.content} />
               </div>
@@ -258,13 +366,10 @@ export function ProjetPage() {
             </div>
           </div>
 
-          {/* ── Bottom navigation bar ──────────────────────────────────────────
-              bg-neutral-50 border-t border-neutral-200 — same as filter/search bar
-          ────────────────────────────────────────────────────────────────────── */}
+          {/* ── Bottom navigation bar ── */}
           <div className="shrink-0 bg-neutral-50 border-t border-neutral-200 px-6 py-3">
             <div className="max-w-3xl mx-auto flex items-center justify-between">
 
-              {/* Prev — ghost button, same as Cancel / secondary actions */}
               <button
                 onClick={() => goTo(activeIndex - 1)}
                 disabled={activeIndex === 0}
@@ -281,7 +386,6 @@ export function ProjetPage() {
                 Précédent
               </button>
 
-              {/* Dot indicators */}
               <div className="flex items-center gap-1.5">
                 {SLIDES.map((_, i) => (
                   <button
@@ -298,7 +402,6 @@ export function ProjetPage() {
                 ))}
               </div>
 
-              {/* Next — primary button, same as "New Meeting" */}
               <button
                 onClick={() => goTo(activeIndex + 1)}
                 disabled={activeIndex === SLIDES.length - 1}
