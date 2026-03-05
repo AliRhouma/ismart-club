@@ -12,36 +12,14 @@ import { SlideContent } from './SlideContent';
 
 const PHASES = [...new Set(SLIDES.map((s) => s.phase))];
 
-const PHASE_COLORS: Record<string, { bg: string; text: string; dot: string; border: string }> = {
-  'Phase de jeu': {
-    bg: 'rgba(0,145,255,0.08)',
-    text: '#0091FF',
-    dot: '#0091FF',
-    border: 'rgba(0,145,255,0.2)',
-  },
-  'Conserver - Progresser': {
-    bg: 'rgba(70,167,88,0.08)',
-    text: '#46A758',
-    dot: '#46A758',
-    border: 'rgba(70,167,88,0.2)',
-  },
-  'Déséquilibrer - Finir': {
-    bg: 'rgba(234,140,0,0.08)',
-    text: '#EA8C00',
-    dot: '#EA8C00',
-    border: 'rgba(234,140,0,0.2)',
-  },
+const PHASE_COLORS: Record<string, { bg: string; text: string; dot: string }> = {
+  'Phase de jeu': { bg: 'bg-gray-100', text: 'text-gray-700', dot: 'bg-gray-400' },
+  'Conserver - Progresser': { bg: 'bg-emerald-50', text: 'text-emerald-700', dot: 'bg-emerald-500' },
+  'Déséquilibrer - Finir': { bg: 'bg-blue-50', text: 'text-blue-700', dot: 'bg-blue-500' },
 };
 
 function getPhaseStyle(phase: string) {
-  return (
-    PHASE_COLORS[phase] ?? {
-      bg: 'rgba(115,115,115,0.08)',
-      text: '#737373',
-      dot: '#737373',
-      border: 'rgba(115,115,115,0.2)',
-    }
-  );
+  return PHASE_COLORS[phase] ?? { bg: 'bg-gray-100', text: 'text-gray-700', dot: 'bg-gray-400' };
 }
 
 export function ProjetPage() {
@@ -85,207 +63,95 @@ export function ProjetPage() {
   }, [activeIndex]);
 
   return (
-    <div
-      style={{ background: '#131313', color: '#fafafa', fontFamily: "'Rubik', sans-serif" }}
-      className="flex-1 flex flex-col overflow-hidden"
-    >
-      {/* ── Top header ── */}
-      <div
-        style={{ background: '#181818', borderBottom: '1px solid #222' }}
-        className="px-8 py-4 shrink-0"
-      >
+    <div className="flex-1 flex flex-col overflow-hidden bg-gray-50">
+      {/* Top header */}
+      <div className="bg-white border-b border-gray-200 px-8 py-5 shrink-0">
         <div className="flex items-center justify-between max-w-[1400px] mx-auto">
-          {/* Left: icon + title */}
           <div className="flex items-center gap-4">
-            <div
-              style={{
-                width: 44,
-                height: 44,
-                borderRadius: 10,
-                background: 'rgba(0,145,255,0.12)',
-                border: '1px solid rgba(0,145,255,0.25)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <Target size={18} color="#0091FF" />
+            <div className="w-11 h-11 rounded-xl bg-blue-600 flex items-center justify-center shadow-sm">
+              <Target className="w-5 h-5 text-white" />
             </div>
             <div>
-              <h1 style={{ fontSize: 17, fontWeight: 600, color: '#fafafa', lineHeight: 1.3 }}>
-                {PROJET_META.name}
-              </h1>
-              <div
-                style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 2 }}
-              >
-                <span
-                  style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 12, color: '#525252' }}
-                >
-                  <Calendar size={12} color="#525252" />
+              <h1 className="text-xl font-bold text-gray-900">{PROJET_META.name}</h1>
+              <div className="flex items-center gap-3 mt-0.5 text-sm text-gray-500">
+                <span className="flex items-center gap-1.5">
+                  <Calendar className="w-3.5 h-3.5" />
                   {PROJET_META.saison}
                 </span>
-                <span style={{ width: 3, height: 3, borderRadius: '50%', background: '#333' }} />
-                <span style={{ fontSize: 12, color: '#525252' }}>{PROJET_META.description}</span>
+                <span className="w-1 h-1 rounded-full bg-gray-300" />
+                <span>{PROJET_META.description}</span>
               </div>
             </div>
           </div>
-
-          {/* Right: status badge */}
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 6,
-              padding: '5px 12px',
-              borderRadius: 20,
-              background: 'rgba(70,167,88,0.1)',
-              border: '1px solid rgba(70,167,88,0.25)',
-            }}
-          >
-            <CheckCircle2 size={14} color="#46A758" />
-            <span style={{ fontSize: 12, fontWeight: 500, color: '#46A758' }}>
-              {PROJET_META.status}
-            </span>
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-50 border border-emerald-200">
+            <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+            <span className="text-sm font-medium text-emerald-700">{PROJET_META.status}</span>
           </div>
         </div>
       </div>
 
-      {/* ── Main content ── */}
+      {/* Main content area */}
       <div className="flex-1 flex overflow-hidden max-w-[1400px] mx-auto w-full">
-
-        {/* ── Left sidebar ── */}
-        <div
-          style={{ background: '#181818', borderRight: '1px solid #222', width: 272 }}
-          className="shrink-0 flex flex-col"
-        >
-          {/* Progress header */}
-          <div style={{ padding: '12px 16px', borderBottom: '1px solid #222' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-              <span style={{ fontSize: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#525252' }}>
+        {/* Left sidebar - slide navigation */}
+        <div className="w-72 shrink-0 bg-white border-r border-gray-200 flex flex-col">
+          <div className="px-4 py-3 border-b border-gray-100">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-semibold uppercase tracking-wider text-gray-400">
                 Sommaire
               </span>
-              <span style={{ fontSize: 11, color: '#525252', fontWeight: 500 }}>
+              <span className="text-xs font-medium text-gray-400">
                 {activeIndex + 1} / {SLIDES.length}
               </span>
             </div>
-            {/* Progress bar */}
-            <div style={{ height: 3, borderRadius: 2, background: '#222', overflow: 'hidden' }}>
+            <div className="mt-2 h-1 rounded-full bg-gray-100 overflow-hidden">
               <div
-                style={{
-                  height: '100%',
-                  borderRadius: 2,
-                  background: '#0091FF',
-                  width: `${((activeIndex + 1) / SLIDES.length) * 100}%`,
-                  transition: 'width 0.3s ease',
-                }}
+                className="h-full bg-blue-500 rounded-full transition-all duration-300"
+                style={{ width: `${((activeIndex + 1) / SLIDES.length) * 100}%` }}
               />
             </div>
           </div>
 
-          {/* Nav list */}
-          <nav ref={navRef} style={{ flex: 1, overflowY: 'auto', padding: '8px' }}>
+          <nav ref={navRef} className="flex-1 overflow-y-auto py-2 px-2">
             {PHASES.map((phase) => {
               const pStyle = getPhaseStyle(phase);
               const phaseSlides = SLIDES.filter((s) => s.phase === phase);
               return (
-                <div key={phase} style={{ marginBottom: 16 }}>
-                  {/* Phase label */}
-                  <div
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 7,
-                      padding: '4px 10px 6px',
-                    }}
-                  >
-                    <span
-                      style={{
-                        width: 7,
-                        height: 7,
-                        borderRadius: '50%',
-                        background: pStyle.dot,
-                        flexShrink: 0,
-                      }}
-                    />
-                    <span
-                      style={{
-                        fontSize: 10,
-                        fontWeight: 700,
-                        textTransform: 'uppercase',
-                        letterSpacing: '0.08em',
-                        color: pStyle.text,
-                        opacity: 0.75,
-                      }}
-                    >
+                <div key={phase} className="mb-3">
+                  <div className="flex items-center gap-2 px-3 py-1.5 mb-0.5">
+                    <span className={`w-2 h-2 rounded-full ${pStyle.dot}`} />
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-gray-400">
                       {phase}
                     </span>
                   </div>
-
-                  {/* Slides */}
                   {phaseSlides.map((s) => {
                     const idx = SLIDES.indexOf(s);
                     const isActive = idx === activeIndex;
                     return (
                       <button
                         key={s.id}
-                        ref={isActive ? activeItemRef : undefined}
+                        ref={isActive ? activeItemRef : null}
                         onClick={() => goTo(idx)}
-                        style={{
-                          width: '100%',
-                          textAlign: 'left',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 9,
-                          padding: '7px 10px',
-                          borderRadius: 7,
-                          marginBottom: 1,
-                          cursor: 'pointer',
-                          background: isActive ? 'rgba(0,145,255,0.08)' : 'transparent',
-                          border: `1px solid ${isActive ? 'rgba(0,145,255,0.2)' : 'transparent'}`,
-                          transition: 'all 0.15s ease',
-                        }}
-                        onMouseEnter={(e) => {
-                          if (!isActive) {
-                            (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.03)';
-                          }
-                        }}
-                        onMouseLeave={(e) => {
-                          if (!isActive) {
-                            (e.currentTarget as HTMLButtonElement).style.background = 'transparent';
-                          }
-                        }}
+                        className={`w-full text-left flex items-center gap-2.5 px-3 py-2 rounded-lg mb-0.5 transition-all duration-150 group ${
+                          isActive
+                            ? 'bg-blue-50 border border-blue-200'
+                            : 'hover:bg-gray-50 border border-transparent'
+                        }`}
                       >
-                        {/* Number badge */}
                         <span
-                          style={{
-                            width: 22,
-                            height: 22,
-                            borderRadius: 5,
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            fontSize: 10,
-                            fontWeight: 700,
-                            flexShrink: 0,
-                            background: isActive ? '#0091FF' : '#1e1e1e',
-                            color: isActive ? '#fff' : '#525252',
-                            transition: 'all 0.15s ease',
-                          }}
+                          className={`w-6 h-6 rounded-md flex items-center justify-center text-xs font-bold shrink-0 transition-colors ${
+                            isActive
+                              ? 'bg-blue-600 text-white'
+                              : 'bg-gray-100 text-gray-500 group-hover:bg-gray-200'
+                          }`}
                         >
                           {idx + 1}
                         </span>
-                        {/* Title */}
                         <span
-                          style={{
-                            fontSize: 12.5,
-                            lineHeight: 1.35,
-                            color: isActive ? '#fafafa' : '#737373',
-                            fontWeight: isActive ? 500 : 400,
-                            transition: 'color 0.15s ease',
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis',
-                            whiteSpace: 'nowrap',
-                          }}
+                          className={`text-[13px] leading-tight truncate transition-colors ${
+                            isActive
+                              ? 'font-semibold text-blue-700'
+                              : 'text-gray-600 group-hover:text-gray-900'
+                          }`}
                         >
                           {s.title}
                         </span>
@@ -298,145 +164,60 @@ export function ProjetPage() {
           </nav>
         </div>
 
-        {/* ── Right: slide content ── */}
+        {/* Right side - slide content */}
         <div className="flex-1 flex flex-col overflow-hidden">
           <div className="flex-1 overflow-y-auto">
             <div className="max-w-3xl mx-auto px-8 py-6">
-
               {/* Image banner */}
-              <div
-                style={{
-                  position: 'relative',
-                  borderRadius: 12,
-                  overflow: 'hidden',
-                  marginBottom: 20,
-                  border: '1px solid #222',
-                }}
-              >
+              <div className="relative rounded-xl overflow-hidden mb-6 shadow-sm">
                 <img
                   src={image}
                   alt={slide.title}
-                  style={{ width: '100%', height: 220, objectFit: 'cover', display: 'block' }}
+                  className="w-full h-56 object-cover"
                 />
-                {/* Gradient overlay */}
-                <div
-                  style={{
-                    position: 'absolute',
-                    inset: 0,
-                    background: 'linear-gradient(to top, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0.1) 50%, transparent 100%)',
-                  }}
-                />
-                {/* Bottom labels */}
-                <div
-                  style={{
-                    position: 'absolute',
-                    bottom: 16,
-                    left: 20,
-                    right: 20,
-                  }}
-                >
+                <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
+                <div className="absolute bottom-4 left-5 right-5">
                   <div
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: 5,
-                      padding: '3px 10px',
-                      borderRadius: 20,
-                      background: phaseStyle.bg,
-                      border: `1px solid ${phaseStyle.border}`,
-                      marginBottom: 6,
-                    }}
+                    className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold mb-2 ${phaseStyle.bg} ${phaseStyle.text}`}
                   >
-                    <Layers size={11} color={phaseStyle.text} />
-                    <span style={{ fontSize: 10, fontWeight: 600, color: phaseStyle.text, letterSpacing: '0.05em' }}>
-                      {slide.phase}
-                    </span>
+                    <Layers className="w-3 h-3" />
+                    {slide.phase}
                   </div>
-                  <h2
-                    style={{
-                      fontSize: 22,
-                      fontWeight: 700,
-                      color: '#fafafa',
-                      letterSpacing: '-0.01em',
-                      textShadow: '0 2px 8px rgba(0,0,0,0.6)',
-                    }}
-                  >
+                  <h2 className="text-2xl font-bold text-white drop-shadow-md">
                     {slide.title}
                   </h2>
                 </div>
               </div>
 
-              {/* Content card */}
-              <div
-                style={{
-                  background: '#181818',
-                  borderRadius: 12,
-                  border: '1px solid #222',
-                  padding: '24px',
-                }}
-              >
+              {/* Content body */}
+              <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
                 <SlideContent content={slide.content} />
               </div>
             </div>
           </div>
 
-          {/* ── Bottom nav ── */}
-          <div
-            style={{
-              background: '#181818',
-              borderTop: '1px solid #222',
-              padding: '12px 24px',
-              flexShrink: 0,
-            }}
-          >
+          {/* Bottom navigation bar */}
+          <div className="shrink-0 bg-white border-t border-gray-200 px-6 py-3">
             <div className="max-w-3xl mx-auto flex items-center justify-between">
               <button
                 onClick={() => goTo(activeIndex - 1)}
                 disabled={activeIndex === 0}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 6,
-                  padding: '7px 14px',
-                  borderRadius: 7,
-                  fontSize: 13,
-                  fontWeight: 500,
-                  cursor: activeIndex === 0 ? 'not-allowed' : 'pointer',
-                  opacity: activeIndex === 0 ? 0.25 : 1,
-                  background: 'transparent',
-                  border: '1px solid #282828',
-                  color: '#737373',
-                  transition: 'all 0.15s ease',
-                  fontFamily: 'inherit',
-                }}
-                onMouseEnter={(e) => {
-                  if (activeIndex !== 0)
-                    (e.currentTarget as HTMLButtonElement).style.background = 'rgba(0,145,255,0.06)';
-                }}
-                onMouseLeave={(e) => {
-                  (e.currentTarget as HTMLButtonElement).style.background = 'transparent';
-                }}
+                className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
               >
-                <ChevronLeft size={15} />
+                <ChevronLeft className="w-4 h-4" />
                 Précédent
               </button>
 
-              {/* Dot indicators */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+              <div className="flex items-center gap-1.5">
                 {SLIDES.map((_, i) => (
                   <button
-                    key={i}
+                    key={i} 
                     onClick={() => goTo(i)}
-                    style={{
-                      height: 6,
-                      width: i === activeIndex ? 20 : 6,
-                      borderRadius: 3,
-                      background: i === activeIndex ? '#0091FF' : '#282828',
-                      border: 'none',
-                      cursor: 'pointer',
-                      padding: 0,
-                      transition: 'all 0.2s ease',
-                    }}
+                    className={`rounded-full transition-all duration-200 ${
+                      i === activeIndex
+                        ? 'w-6 h-2 bg-blue-600'
+                        : 'w-2 h-2 bg-gray-300 hover:bg-gray-400'
+                    }`}
                   />
                 ))}
               </div>
@@ -444,32 +225,10 @@ export function ProjetPage() {
               <button
                 onClick={() => goTo(activeIndex + 1)}
                 disabled={activeIndex === SLIDES.length - 1}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 6,
-                  padding: '7px 14px',
-                  borderRadius: 7,
-                  fontSize: 13,
-                  fontWeight: 500,
-                  cursor: activeIndex === SLIDES.length - 1 ? 'not-allowed' : 'pointer',
-                  opacity: activeIndex === SLIDES.length - 1 ? 0.25 : 1,
-                  background: 'transparent',
-                  border: '1px solid #282828',
-                  color: '#737373',
-                  transition: 'all 0.15s ease',
-                  fontFamily: 'inherit',
-                }}
-                onMouseEnter={(e) => {
-                  if (activeIndex !== SLIDES.length - 1)
-                    (e.currentTarget as HTMLButtonElement).style.background = 'rgba(0,145,255,0.06)';
-                }}
-                onMouseLeave={(e) => {
-                  (e.currentTarget as HTMLButtonElement).style.background = 'transparent';
-                }}
+                className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
               >
                 Suivant
-                <ChevronRight size={15} />
+                <ChevronRight className="w-4 h-4" />
               </button>
             </div>
           </div>
