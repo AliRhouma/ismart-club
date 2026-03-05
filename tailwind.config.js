@@ -15,7 +15,7 @@ export default {
   700: "rgb(40, 180, 130)",
   800: "rgb(110, 210, 170)",
   900: "rgb(230, 248, 240)", // very light mint background
-}
+},
         
         neutral: {
           0: "rgb(19, 19, 19)",
