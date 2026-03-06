@@ -211,11 +211,13 @@ export function FicheDePostePage() {
 /* ─────────────────────── doc row ─────────────────────── */
 
 function DocRow({ doc, index }) {
+  const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
   const cfg = DOC_TYPES[doc.type];
 
   return (
     <div
+      onClick={() => navigate(`/fiche-poste/${doc.id}`)}
       className="doc-row grid items-center px-4 py-3.5 rounded-lg cursor-pointer transition-all relative"
       style={{
         gridTemplateColumns: '1fr 140px 160px 110px 80px',

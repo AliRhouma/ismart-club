@@ -15,6 +15,7 @@ import { OrganigramProvider } from './contexts/OrganigramContext';
 import { DocumentsHomePage } from './pages/DocumentsHomePage';
 import { DocumentEditorPage } from './pages/DocumentEditorPage';
 import { FicheDePosteEditorPage } from './pages/FicheDePosteEditorPage';
+import { FicheDePosteDetailPage } from './pages/FicheDePosteDetailPage';
 
 function App() {
   return (
@@ -33,6 +34,7 @@ function App() {
             <Route path="/organigram-two" element={<OrganigramTwoPage />} />
             <Route path="/membres" element={<MembersPage />} />
             <Route path="/fiche-poste" element={<FicheDePostePage />} />
+            <Route path="/fiche-poste/:id" element={<FicheDePosteDetailPage />} />
             <Route path="/fiche-de-poste/create" element={<FicheDePosteEditorPage />} />
             <Route path="/gestion-taches" element={<TasksViewPage />} />
             <Route path="/reglements" element={<ReglementsPage />} />
