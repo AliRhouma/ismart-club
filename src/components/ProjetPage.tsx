@@ -1,22 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import {
-  ChevronLeft,
-  ChevronRight,
-  ArrowLeft,
-  Calendar,
-  Layers,
-  CheckCircle2,
-  Pencil,
-  Plus,
-  X,
-  GripVertical,
-  ChevronDown,
-  ImageIcon,
-  Type,
-  Save,
-  Trash2,
-} from 'lucide-react';
+import { ChevronLeft, ChevronRight, ArrowLeft, Calendar, Layers, CheckCircle2, Pencil, Plus, X, GripVertical, ChevronDown, Image as ImageIcon, Type, Save, Trash2 } from 'lucide-react';
 import { SLIDES, PROJET_IMAGES, PROJET_META } from '../data/projetDeJeu';
 
 // ─────────────────────────────────────────────────────────────────────────────
