@@ -246,7 +246,7 @@ function AddSlideModal({ onClose, onCreated, slideNumber }: AddSlideModalProps) 
             className="flex items-center gap-2 px-5 py-2 rounded-lg text-body text-white bg-brand-600 hover:bg-brand-700 transition-colors"
           >
             <Plus className="w-4 h-4" />
-            Créer la diapositive
+            Créer l Etape
           </button>
         </div>
       </div>
