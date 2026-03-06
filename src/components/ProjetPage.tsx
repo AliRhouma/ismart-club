@@ -1,9 +1,9 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import {
   ChevronLeft,
   ChevronRight,
-  Target,
+  ArrowLeft,
   Calendar,
   Layers,
   CheckCircle2,
@@ -440,6 +440,7 @@ function AddSlideModal({ onClose, afterIndex }: { onClose: () => void; afterInde
 
 export function ProjetPage() {
   const { season } = useParams<{ season: string }>();
+  const navigate = useNavigate();
   const [activeIndex, setActiveIndex] = useState(0);
   const [editOpen, setEditOpen] = useState(false);
   const [addOpen, setAddOpen] = useState(false);
@@ -485,9 +486,13 @@ export function ProjetPage() {
       <div className="bg-neutral-50 border-b border-neutral-200 px-8 py-4 shrink-0">
         <div className="flex items-center justify-between max-w-[1400px] mx-auto">
           <div className="flex items-center gap-4">
-            <div className="p-2 bg-brand-50 rounded-lg">
-              <Target className="w-5 h-5 text-brand-600" />
-            </div>
+            <button
+              onClick={() => navigate('/projet')}
+              className="p-2 bg-brand-50 rounded-lg hover:bg-brand-100 transition-colors"
+              title="Retour aux saisons"
+            >
+              <ArrowLeft className="w-5 h-5 text-brand-600" />
+            </button>
             <div>
               <h1 className="text-heading-2 text-default-font">{PROJET_META.name}</h1>
               <div className="flex items-center gap-3 mt-0.5">
