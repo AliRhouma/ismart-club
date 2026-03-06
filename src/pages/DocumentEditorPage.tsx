@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Save, CheckCircle2, Download, Maximize2 } from 'lucide-react';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
+import { ArrowLeft, Save, CheckCircle2, Download, Maximize2, Tag } from 'lucide-react';
 import { DocumentEditor } from '../components/DocumentEditor';
 import { storage } from '../utils/storage';
 import { Document } from '../types/document';
@@ -8,6 +8,8 @@ import { Document } from '../types/document';
 export function DocumentEditorPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
+  const docType = (location.state as { docType?: string } | null)?.docType ?? '';
   const [document, setDocument] = useState<Document | null>(null);
   const [title, setTitle] = useState('');
   const [content, setContent] = useState<any>(null);
@@ -146,14 +148,22 @@ export function DocumentEditorPage() {
             </div>
           </div>
 
-          {/* Document Title */}
-          <input
-            type="text"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            placeholder="Untitled Document"
-            className="w-full max-w-[21cm] mx-auto text-2xl font-sans font-bold text-gray-900 placeholder-neutral-400 border-none focus:outline-none bg-transparent focus:ring-0"
-          />
+          {/* Document Title + Type */}
+          <div className="w-full max-w-[21cm] mx-auto">
+            {docType && (
+              <div className="flex items-center gap-1.5 mb-1.5">
+                <Tag className="w-3.5 h-3.5 text-brand-500" />
+                <span className="text-caption-bold text-brand-600 bg-brand-50 border border-brand-200 px-2 py-0.5 rounded-full">{docType}</span>
+              </div>
+            )}
+            <input
+              type="text"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="Sans titre"
+              className="w-full text-2xl font-sans font-bold text-gray-900 placeholder-neutral-400 border-none focus:outline-none bg-transparent focus:ring-0"
+            />
+          </div>
         </div>
       </div>
 

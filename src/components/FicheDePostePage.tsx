@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Search, Plus, FileText, X, ChevronDown,
   MoreHorizontal, Eye, Pencil, Trash2, Download,
@@ -58,10 +59,17 @@ const ALL_TYPES = ['Tous', ...Object.keys(DOC_TYPES)];
 /* ─────────────────────── main page ─────────────────────── */
 
 export function FicheDePostePage() {
+  const navigate = useNavigate();
   const [search, setSearch]       = useState('');
   const [activeType, setActiveType] = useState('Tous');
   const [showModal, setShowModal] = useState(false);
   const [formData, setFormData]   = useState({ title: '', type: '', poste: '' });
+
+  const handleCreate = (data: { title: string; type: string; poste: string }) => {
+    setShowModal(false);
+    setFormData({ title: '', type: '', poste: '' });
+    navigate('/fiche-de-poste/create', { state: { title: data.title, type: data.type, poste: data.poste } });
+  };
 
   const filtered = mockDocs.filter((d) => {
     const matchSearch =
@@ -191,7 +199,8 @@ export function FicheDePostePage() {
         <CreateModal
           formData={formData}
           setFormData={setFormData}
-          onClose={() => setShowModal(false)}
+          onClose={() => { setShowModal(false); setFormData({ title: '', type: '', poste: '' }); }}
+          onCreate={handleCreate}
         />
       )}
     </div>
@@ -322,17 +331,26 @@ function DropMenu({ onClose }) {
 
 /* ─────────────────────── create modal ─────────────────────── */
 
-function CreateModal({ formData, setFormData, onClose }) {
-  const valid = formData.title.trim() && formData.type;
+const FICHE_TYPE_OPTIONS = [
+  { value: '', label: 'Sans type' },
+  ...Object.entries(DOC_TYPES).map(([key, cfg]) => ({ value: key, label: cfg.label, cfg })),
+];
+
+function CreateModal({ formData, setFormData, onClose, onCreate }) {
+  const [typeOpen, setTypeOpen] = useState(false);
+  const valid = formData.title.trim();
+  const selectedType = FICHE_TYPE_OPTIONS.find(o => o.value === formData.type);
 
   return (
     <div
       className="fixed inset-0 flex items-center justify-center z-50 p-4"
       style={{ backgroundColor: 'rgba(0,0,0,0.7)' }}
+      onClick={() => setTypeOpen(false)}
     >
       <div
         className="w-full max-w-md rounded-xl overflow-hidden"
         style={{ backgroundColor: '#151515', border: '1px solid #222', boxShadow: '0 32px 80px rgba(0,0,0,0.7)' }}
+        onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
         <div className="px-6 py-5" style={{ borderBottom: '1px solid #1e1e1e' }}>
@@ -356,37 +374,65 @@ function CreateModal({ formData, setFormData, onClose }) {
         {/* Body */}
         <div className="px-6 py-5 space-y-4">
 
-          {/* Type selector — visual buttons */}
-          <div>
-            <label className="block text-xs font-medium mb-2.5" style={{ color: '#666' }}>
+          {/* Type selector — dropdown */}
+          <div className="relative">
+            <label className="block text-xs font-medium mb-2" style={{ color: '#666' }}>
               Type de document
             </label>
-            <div className="grid grid-cols-2 gap-2">
-              {Object.entries(DOC_TYPES).map(([key, cfg]) => {
-                const selected = formData.type === key;
-                return (
-                  <button
-                    key={key}
-                    onClick={() => setFormData({ ...formData, type: key })}
-                    className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-lg text-left transition-all text-xs font-medium"
-                    style={{
-                      backgroundColor: selected ? cfg.bg : '#1a1a1a',
-                      border: `1px solid ${selected ? cfg.border : '#252525'}`,
-                      color: selected ? cfg.color : '#555',
-                    }}
-                  >
-                    <cfg.Icon className="w-3.5 h-3.5 flex-shrink-0" />
-                    {cfg.label}
-                  </button>
-                );
-              })}
-            </div>
+            <button
+              type="button"
+              onClick={() => setTypeOpen(!typeOpen)}
+              className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-lg text-sm outline-none transition-colors"
+              style={{ backgroundColor: '#1a1a1a', border: '1px solid #252525', color: formData.type ? '#e0e0e0' : '#444' }}
+            >
+              <div className="flex items-center gap-2">
+                {selectedType && selectedType.value !== '' && 'cfg' in selectedType ? (
+                  <selectedType.cfg.Icon className="w-3.5 h-3.5 flex-shrink-0" style={{ color: selectedType.cfg.color }} />
+                ) : (
+                  <FileText className="w-3.5 h-3.5 flex-shrink-0" style={{ color: '#444' }} />
+                )}
+                <span>{selectedType?.label ?? 'Sans type'}</span>
+              </div>
+              <ChevronDown className="w-4 h-4" style={{ color: '#444', transform: typeOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }} />
+            </button>
+
+            {typeOpen && (
+              <div
+                className="absolute top-full left-0 right-0 mt-1 rounded-lg overflow-hidden z-10"
+                style={{ backgroundColor: '#1a1a1a', border: '1px solid #252525', boxShadow: '0 8px 24px rgba(0,0,0,0.5)' }}
+              >
+                {FICHE_TYPE_OPTIONS.map((option) => {
+                  const isSelected = formData.type === option.value;
+                  return (
+                    <button
+                      key={option.value}
+                      type="button"
+                      onClick={() => { setFormData({ ...formData, type: option.value }); setTypeOpen(false); }}
+                      className="w-full flex items-center gap-2.5 px-3.5 py-2.5 text-sm text-left transition-colors"
+                      style={{
+                        backgroundColor: isSelected ? '#202020' : 'transparent',
+                        color: isSelected && 'cfg' in option ? option.cfg.color : option.value === '' ? '#444' : '#aaa',
+                      }}
+                      onMouseEnter={(e) => { if (!isSelected) e.currentTarget.style.backgroundColor = '#1e1e1e'; }}
+                      onMouseLeave={(e) => { if (!isSelected) e.currentTarget.style.backgroundColor = 'transparent'; }}
+                    >
+                      {'cfg' in option ? (
+                        <option.cfg.Icon className="w-3.5 h-3.5 flex-shrink-0" style={{ color: option.cfg.color }} />
+                      ) : (
+                        <FileText className="w-3.5 h-3.5 flex-shrink-0" style={{ color: '#444' }} />
+                      )}
+                      {option.value === '' ? <span style={{ fontStyle: 'italic' }}>{option.label}</span> : option.label}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
           </div>
 
           {/* Title */}
           <div>
             <label className="block text-xs font-medium mb-2" style={{ color: '#666' }}>
-              Titre du document
+              Titre du document <span style={{ color: '#e05353' }}>*</span>
             </label>
             <input
               type="text"
@@ -433,6 +479,7 @@ function CreateModal({ formData, setFormData, onClose }) {
           </button>
           <button
             disabled={!valid}
+            onClick={() => valid && onCreate(formData)}
             className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-medium text-white transition-opacity"
             style={{ backgroundColor: '#0091ff', opacity: valid ? 1 : 0.35, cursor: valid ? 'pointer' : 'not-allowed' }}
           >

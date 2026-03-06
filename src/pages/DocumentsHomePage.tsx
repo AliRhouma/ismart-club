@@ -1,8 +1,19 @@
 import { useState, useEffect } from 'react';
-import { Plus, FileText, Trash2, Calendar, Layout } from 'lucide-react';
+import { Plus, FileText, Trash2, Calendar, Layout, ChevronDown, Tag } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { getAllDocuments, deleteDocument, Document } from '../utils/storage';
 import { TemplateGalleryModal, Template } from '../components/TemplateGalleryModal';
+
+const DOC_TYPE_OPTIONS = [
+  { value: '', label: 'Sans type' },
+  { value: 'Rapport', label: 'Rapport' },
+  { value: 'Compte Rendu', label: 'Compte Rendu' },
+  { value: 'Note Interne', label: 'Note Interne' },
+  { value: 'Procédure', label: 'Procédure' },
+  { value: 'Fiche de Poste', label: 'Fiche de Poste' },
+  { value: 'Charte', label: 'Charte' },
+  { value: 'Règlement', label: 'Règlement' },
+];
 
 export function DocumentsHomePage() {
   const navigate = useNavigate();
@@ -10,6 +21,8 @@ export function DocumentsHomePage() {
   const [showNewDocModal, setShowNewDocModal] = useState(false);
   const [showTemplateModal, setShowTemplateModal] = useState(false);
   const [newDocTitle, setNewDocTitle] = useState('');
+  const [newDocType, setNewDocType] = useState('');
+  const [typeDropdownOpen, setTypeDropdownOpen] = useState(false);
 
   useEffect(() => {
     loadDocuments();
@@ -35,9 +48,10 @@ export function DocumentsHomePage() {
     localStorage.setItem('documents', JSON.stringify([...existingDocs, newDoc]));
 
     setNewDocTitle('');
+    setNewDocType('');
     setShowNewDocModal(false);
     loadDocuments();
-    navigate(`/editor/${newDoc.id}`);
+    navigate(`/editor/${newDoc.id}`, { state: { docType: newDocType } });
   };
 
   const handleDeleteDocument = (id: string) => {
@@ -156,41 +170,77 @@ export function DocumentsHomePage() {
       </div>
 
       {showNewDocModal && (
-        <div className="fixed inset-0 bg-neutral-900/50 flex items-center justify-center z-50">
-          <div className="bg-neutral-0 rounded-xl p-6 w-full max-w-md">
-            <h2 className="text-heading-2 text-default-font mb-4">New Document</h2>
-            <div className="mb-6">
-              <label className="block text-body text-default-font mb-2">
-                Document Title
-              </label>
-              <input
-                type="text"
-                value={newDocTitle}
-                onChange={(e) => setNewDocTitle(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') handleCreateDocument();
-                }}
-                placeholder="Enter document title..."
-                className="w-full px-4 py-2 border border-neutral-border rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-600"
-                autoFocus
-              />
+        <div className="fixed inset-0 bg-neutral-900/50 flex items-center justify-center z-50" onClick={() => setTypeDropdownOpen(false)}>
+          <div className="bg-neutral-0 rounded-xl p-6 w-full max-w-md shadow-xl" onClick={(e) => e.stopPropagation()}>
+            <h2 className="text-heading-2 text-default-font mb-1">Nouveau document</h2>
+            <p className="text-body text-subtext-color mb-6">Renseignez les informations de base du document.</p>
+
+            <div className="space-y-4 mb-6">
+              <div>
+                <label className="block text-caption-bold text-default-font mb-1.5">
+                  Titre du document <span className="text-error-600">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={newDocTitle}
+                  onChange={(e) => setNewDocTitle(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === 'Enter') handleCreateDocument(); }}
+                  placeholder="Ex : Compte rendu réunion du 5 mars..."
+                  className="w-full px-4 py-2.5 border border-neutral-border rounded-lg text-body text-default-font focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors"
+                  autoFocus
+                />
+              </div>
+
+              <div className="relative">
+                <label className="block text-caption-bold text-default-font mb-1.5">
+                  Type de document
+                </label>
+                <button
+                  type="button"
+                  onClick={() => setTypeDropdownOpen(!typeDropdownOpen)}
+                  className="w-full flex items-center justify-between px-4 py-2.5 border border-neutral-border rounded-lg text-body bg-neutral-0 hover:bg-neutral-50 focus:outline-none focus:ring-2 focus:ring-brand-500 transition-colors"
+                >
+                  <div className="flex items-center gap-2">
+                    <Tag className="w-4 h-4 text-subtext-color" />
+                    <span className={newDocType ? 'text-default-font' : 'text-subtext-color'}>
+                      {newDocType ? DOC_TYPE_OPTIONS.find(o => o.value === newDocType)?.label : 'Sans type'}
+                    </span>
+                  </div>
+                  <ChevronDown className={`w-4 h-4 text-subtext-color transition-transform ${typeDropdownOpen ? 'rotate-180' : ''}`} />
+                </button>
+
+                {typeDropdownOpen && (
+                  <div className="absolute top-full left-0 right-0 mt-1 bg-neutral-0 border border-neutral-border rounded-lg shadow-lg z-10 overflow-hidden">
+                    {DOC_TYPE_OPTIONS.map((option) => (
+                      <button
+                        key={option.value}
+                        type="button"
+                        onClick={() => { setNewDocType(option.value); setTypeDropdownOpen(false); }}
+                        className={`w-full text-left px-4 py-2.5 text-body hover:bg-neutral-50 transition-colors flex items-center gap-2 ${newDocType === option.value ? 'bg-brand-50 text-brand-600' : 'text-default-font'}`}
+                      >
+                        {option.value === '' ? (
+                          <span className="text-subtext-color italic">{option.label}</span>
+                        ) : option.label}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
+
             <div className="flex gap-3 justify-end">
               <button
-                onClick={() => {
-                  setShowNewDocModal(false);
-                  setNewDocTitle('');
-                }}
-                className="px-4 py-2 text-subtext-color hover:bg-neutral-100 rounded-lg transition-colors"
+                onClick={() => { setShowNewDocModal(false); setNewDocTitle(''); setNewDocType(''); setTypeDropdownOpen(false); }}
+                className="px-4 py-2 text-subtext-color hover:bg-neutral-100 rounded-lg transition-colors text-body"
               >
-                Cancel
+                Annuler
               </button>
               <button
                 onClick={handleCreateDocument}
                 disabled={!newDocTitle.trim()}
-                className="px-4 py-2 bg-brand-600 text-neutral-0 rounded-lg hover:bg-brand-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-5 py-2 bg-brand-600 text-neutral-0 rounded-lg hover:bg-brand-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-body font-medium"
               >
-                Create
+                Créer le document
               </button>
             </div>
           </div>
