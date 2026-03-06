@@ -111,7 +111,7 @@ function EditSlideDrawer({ slide, onClose }: { slide: typeof SLIDES[0]; onClose:
               <Pencil className="w-4 h-4 text-brand-600" />
             </div>
             <div>
-              <h2 className="text-heading-3 text-default-font">Modifier la diapositive</h2>
+              <h2 className="text-heading-3 text-default-font">Modifier la etape</h2>
               <p className="text-caption text-subtext-color">Slide #{slide.id}</p>
             </div>
           </div>
@@ -270,7 +270,7 @@ function AddSlideModal({ onClose, afterIndex }: { onClose: () => void; afterInde
                 <span className="text-caption text-subtext-color">Étape {step} sur 2</span>
               </div>
               <h2 className="text-heading-2 text-default-font">
-                {step === 1 ? 'Nouvelle diapositive' : 'Contenu de la diapositive'}
+                {step === 1 ? 'Nouvelle diapositive' : 'Contenu de la etape'}
               </h2>
               <p className="text-caption text-subtext-color mt-0.5">
                 {step === 1
@@ -408,7 +408,7 @@ function AddSlideModal({ onClose, afterIndex }: { onClose: () => void; afterInde
                 className="flex items-center gap-2 px-5 py-2 rounded-lg text-body text-white bg-brand-600 hover:bg-brand-700 transition-colors"
               >
                 <Plus className="w-4 h-4" />
-                Créer la diapositive
+                Créer l'etape
               </button>
             )}
           </div>
@@ -496,7 +496,7 @@ export function ProjetPage() {
               className="flex items-center gap-2 px-4 py-2 rounded-lg text-body text-subtext-color bg-neutral-100 border border-neutral-200 hover:bg-neutral-150 hover:text-default-font transition-colors"
             >
               <Plus className="w-4 h-4" />
-              Ajouter une diapositive
+              Ajouter une etape
             </button>
             <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-success-50 border border-success-200">
               <CheckCircle2 className="w-4 h-4 text-success-600" />
