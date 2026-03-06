@@ -265,8 +265,8 @@ function AddSlideModal({ onClose, onCreated, slideNumber }: AddSlideModalProps) 
           <div className="flex items-center gap-3">
             <div className="p-2 bg-brand-50 rounded-lg"><Plus className="w-4 h-4 text-brand-600" /></div>
             <div>
-              <h2 className="text-heading-3 text-default-font">Nouvelle diapositive</h2>
-              <p className="text-caption text-subtext-color">Diapositive #{slideNumber}</p>
+              <h2 className="text-heading-3 text-default-font">Nouvelle étape</h2>
+              <p className="text-caption text-subtext-color">Étape #{slideNumber}</p>
             </div>
           </div>
           <button onClick={onClose} className="p-2 rounded-lg hover:bg-neutral-100 text-subtext-color transition-colors"><X className="w-4 h-4" /></button>
@@ -291,7 +291,7 @@ function AddSlideModal({ onClose, onCreated, slideNumber }: AddSlideModalProps) 
           </button>
           <button onClick={() => onCreated(title || 'Sans titre', phase || 'phase-de-jeu')}
             className="flex items-center gap-2 px-5 py-2 rounded-lg text-body text-white bg-brand-600 hover:bg-brand-700 transition-colors">
-            <Plus className="w-4 h-4" />Créer la diapositive
+            <Plus className="w-4 h-4" />Créer l'étape
           </button>
         </div>
       </div>
@@ -366,7 +366,7 @@ function BlankProjetPage({ name, season, category, description, onBack }: BlankP
           <div className="flex items-center gap-3">
             <button onClick={() => setAddOpen(true)}
               className="flex items-center gap-2 px-4 py-2 rounded-lg text-body text-subtext-color bg-neutral-100 border border-neutral-200 hover:bg-neutral-150 hover:text-default-font transition-colors">
-              <Plus className="w-4 h-4" />Ajouter une diapositive
+              <Plus className="w-4 h-4" />Ajouter une étape
             </button>
             <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-brand-50 border border-brand-200">
               <Sparkles className="w-4 h-4 text-brand-600" />
@@ -401,7 +401,7 @@ function BlankProjetPage({ name, season, category, description, onBack }: BlankP
                   <Layers className="w-5 h-5 text-subtext-color" />
                 </div>
                 <p className="text-caption text-subtext-color text-center leading-relaxed">
-                  Aucune diapositive.<br />Commencez par en ajouter une.
+                  Aucune étape.<br />Commencez par en ajouter une.
                 </p>
                 <button onClick={() => setAddOpen(true)}
                   className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-caption-bold text-brand-600 bg-brand-50 border border-brand-200 hover:bg-brand-100 transition-colors">
@@ -551,7 +551,7 @@ function BlankProjetPage({ name, season, category, description, onBack }: BlankP
                       <div className="flex items-center gap-2">
                         <div className="w-1 h-4 rounded-full bg-brand-600" />
                         <span className="text-caption-bold text-subtext-color uppercase tracking-wider flex items-center gap-1.5">
-                          <FileText className="w-3.5 h-3.5" />Contenu de la diapositive
+                          <FileText className="w-3.5 h-3.5" />Contenu de l'étape
                         </span>
                       </div>
                       <div className="border border-neutral-200 rounded-xl overflow-hidden bg-neutral-50 shadow-sm">
@@ -619,12 +619,12 @@ function BlankProjetPage({ name, season, category, description, onBack }: BlankP
                   <div>
                     <h3 className="text-heading-2 text-default-font mb-2">Votre projet est vide</h3>
                     <p className="text-body text-subtext-color leading-relaxed">
-                      {description || 'Ce projet de jeu ne contient pas encore de diapositives.'}
+                      {description || "Ce projet de jeu ne contient pas encore d'étapes."}
                     </p>
                   </div>
                   <button onClick={() => setAddOpen(true)}
                     className="flex items-center gap-2 px-6 py-3 rounded-xl text-body text-white bg-brand-600 hover:bg-brand-700 transition-colors shadow-sm">
-                    <Plus className="w-4 h-4" />Créer la première diapositive<ArrowRight className="w-4 h-4 ml-1" />
+                    <Plus className="w-4 h-4" />Créer la première étape<ArrowRight className="w-4 h-4 ml-1" />
                   </button>
                 </div>
               </div>
@@ -777,7 +777,7 @@ function CreateModal({ onClose, onCreate }: CreateModalProps) {
             </div>
             <div className="flex items-center gap-2.5 p-3 rounded-lg bg-success-50 border border-success-200">
               <Sparkles className="w-4 h-4 text-success-600 shrink-0" />
-              <p className="text-caption text-success-600">Un projet vierge sera créé. Vous pourrez y ajouter des diapositives immédiatement.</p>
+              <p className="text-caption text-success-600">Un projet vierge sera créé. Vous pourrez y ajouter des étapes immédiatement.</p>
             </div>
           </div>
         )}
