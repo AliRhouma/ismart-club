@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus, FileText, Trash2, Calendar, Layout, ChevronDown, Tag } from 'lucide-react';
+import { Plus, FileText, Trash2, Calendar, LayoutGrid as Layout, ChevronDown, Tag } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { getAllDocuments, deleteDocument, Document } from '../utils/storage';
 import { TemplateGalleryModal, Template } from '../components/TemplateGalleryModal';
