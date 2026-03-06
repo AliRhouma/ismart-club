@@ -354,7 +354,7 @@ function BlankProjetPage({ name, season, category, description, onBack }: BlankP
                   <Layers className="w-5 h-5 text-subtext-color" />
                 </div>
                 <p className="text-caption text-subtext-color text-center leading-relaxed">
-                  Aucune diapositive.<br />Commencez par en ajouter une.
+                  Aucune Etape.<br />Commencez par en ajouter une.
                 </p>
                 <button
                   onClick={() => setAddOpen(true)}
