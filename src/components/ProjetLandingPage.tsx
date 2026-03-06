@@ -317,7 +317,7 @@ function BlankProjetPage({ name, season, category, description, onBack }: BlankP
               className="flex items-center gap-2 px-4 py-2 rounded-lg text-body text-subtext-color bg-neutral-100 border border-neutral-200 hover:bg-neutral-150 hover:text-default-font transition-colors"
             >
               <Plus className="w-4 h-4" />
-              Ajouter une diapositive
+              Ajouter une Etape
             </button>
             <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-brand-50 border border-brand-200">
               <Sparkles className="w-4 h-4 text-brand-600" />
