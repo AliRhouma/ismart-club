@@ -195,7 +195,7 @@ function AddSlideModal({ onClose, onCreated, slideNumber }: AddSlideModalProps) 
             </div>
             <div>
               <h2 className="text-heading-3 text-default-font">Nouvelle Etape</h2>
-              <p className="text-caption text-subtext-color">Diapositive #{slideNumber}</p>
+              <p className="text-caption text-subtext-color">Etape #{slideNumber}</p>
             </div>
           </div>
           <button onClick={onClose} className="p-2 rounded-lg hover:bg-neutral-100 text-subtext-color transition-colors">
