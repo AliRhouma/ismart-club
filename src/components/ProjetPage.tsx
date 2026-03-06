@@ -1,6 +1,30 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ChevronLeft, ChevronRight, ArrowLeft, Calendar, Layers, CheckCircle2, Pencil, Plus, X, GripVertical, ChevronDown, Image as ImageIcon, Type, Save, Trash2 } from 'lucide-react';
+import {
+  ChevronLeft,
+  ChevronRight,
+  ArrowLeft,
+  Calendar,
+  Layers,
+  CheckCircle2,
+  Pencil,
+  Plus,
+  X,
+  ChevronDown,
+  Image as ImageIcon,
+  Type,
+  Save,
+  Trash2,
+  Bold,
+  Italic,
+  List,
+  ListOrdered,
+  Heading2,
+  Quote,
+  Minus,
+  AlignLeft,
+  Eye,
+} from 'lucide-react';
 import { SLIDES, PROJET_IMAGES, PROJET_META } from '../data/projetDeJeu';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -84,34 +108,146 @@ function getPhaseStyle(phase: string) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Edit Slide Drawer (right side)
+// Rich Text Toolbar — shared component
+// ─────────────────────────────────────────────────────────────────────────────
+
+function RichTextToolbar() {
+  const [active, setActive] = useState<string[]>([]);
+  const toggle = (key: string) =>
+    setActive((prev) => prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key]);
+
+  const btn = (key: string, icon: React.ReactNode, title: string) => (
+    <button
+      key={key}
+      title={title}
+      onClick={() => toggle(key)}
+      className={`p-1.5 rounded transition-colors ${
+        active.includes(key)
+          ? 'bg-brand-100 text-brand-600'
+          : 'text-subtext-color hover:bg-neutral-200 hover:text-default-font'
+      }`}
+    >
+      {icon}
+    </button>
+  );
+
+  return (
+    <div className="flex items-center gap-0.5 px-2 py-1.5 bg-neutral-100 border-b border-neutral-200 flex-wrap">
+      {btn('bold',   <Bold className="w-3.5 h-3.5" />,         'Gras')}
+      {btn('italic', <Italic className="w-3.5 h-3.5" />,       'Italique')}
+      <div className="w-px h-4 bg-neutral-300 mx-1" />
+      {btn('h2',    <Heading2 className="w-3.5 h-3.5" />,      'Titre de section')}
+      {btn('quote', <Quote className="w-3.5 h-3.5" />,         'Citation')}
+      <div className="w-px h-4 bg-neutral-300 mx-1" />
+      {btn('ul',    <List className="w-3.5 h-3.5" />,          'Liste à puces')}
+      {btn('ol',    <ListOrdered className="w-3.5 h-3.5" />,   'Liste numérotée')}
+      <div className="w-px h-4 bg-neutral-300 mx-1" />
+      {btn('hr',    <Minus className="w-3.5 h-3.5" />,         'Séparateur')}
+      {btn('align', <AlignLeft className="w-3.5 h-3.5" />,     'Alignement')}
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Rich Text Editor — full block (toolbar + hints + textarea + footer)
+// ─────────────────────────────────────────────────────────────────────────────
+
+function RichTextEditor({
+  defaultValue,
+  placeholder,
+  rows = 10,
+}: {
+  defaultValue?: string;
+  placeholder?: string;
+  rows?: number;
+}) {
+  const [charCount, setCharCount] = useState(defaultValue?.length ?? 0);
+
+  return (
+    <div className="border border-neutral-200 rounded-xl overflow-hidden bg-neutral-50 shadow-sm">
+      {/* Toolbar */}
+      <RichTextToolbar />
+
+      {/* Markdown shortcut hints */}
+      <div className="px-3 py-2 border-b border-neutral-100 bg-neutral-50 flex items-center gap-2 flex-wrap">
+        <span className="text-caption text-subtext-color shrink-0">Raccourcis :</span>
+        {[
+          { code: '## Titre',   desc: 'Section'  },
+          { code: '- item',     desc: 'Liste'     },
+          { code: '**texte**',  desc: 'Gras'      },
+          { code: '« texte »',  desc: 'Citation'  },
+        ].map((h) => (
+          <span
+            key={h.code}
+            className="flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-neutral-100 border border-neutral-200"
+          >
+            <code className="text-caption font-mono text-brand-600">{h.code}</code>
+            <span className="text-caption text-subtext-color">→ {h.desc}</span>
+          </span>
+        ))}
+      </div>
+
+      {/* Textarea */}
+      <textarea
+        defaultValue={defaultValue}
+        onChange={(e) => setCharCount(e.target.value.length)}
+        placeholder={
+          placeholder ??
+          `## Objectifs\n\n- Premier principe de jeu\n- Deuxième principe\n\n**Note :** Texte en gras pour les points clés.\n\n« Citation ou note tactique »`
+        }
+        rows={rows}
+        className="w-full px-4 py-3 bg-transparent text-default-font font-mono text-xs leading-relaxed focus:outline-none resize-none placeholder:text-neutral-400"
+      />
+
+      {/* Footer */}
+      <div className="px-4 py-2 bg-neutral-100 border-t border-neutral-200 flex items-center justify-between">
+        <span className="text-caption text-subtext-color flex items-center gap-1.5">
+          <Eye className="w-3 h-3" />
+          Format Markdown supporté
+        </span>
+        <span className="text-caption text-subtext-color">{charCount} caractères</span>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Edit Slide Drawer
 // ─────────────────────────────────────────────────────────────────────────────
 
 const PHASES_LIST = ['Phase de jeu', 'Conserver - Progresser', 'Déséquilibrer - Finir'];
 
-function EditSlideDrawer({ slide, onClose }: { slide: typeof SLIDES[0]; onClose: () => void }) {
+function EditSlideDrawer({
+  slide,
+  onClose,
+}: {
+  slide: typeof SLIDES[0];
+  onClose: () => void;
+}) {
   const [title, setTitle] = useState(slide.title);
   const [phase, setPhase] = useState(slide.phase);
   const [phaseOpen, setPhaseOpen] = useState(false);
 
+  // Flatten the slide's content blocks into a single markdown string
+  // so the rich text editor shows them pre-populated.
+  const defaultContent = slide.content.join('\n');
+
   return (
     <>
       {/* Backdrop */}
-      <div
-        className="fixed inset-0 bg-black/40 z-40 backdrop-blur-sm"
-        onClick={onClose}
-      />
+      <div className="fixed inset-0 bg-black/40 z-40 backdrop-blur-sm" onClick={onClose} />
 
       {/* Drawer */}
-      <div className="fixed right-0 top-0 bottom-0 w-[480px] z-50 flex flex-col bg-neutral-50 border-l border-neutral-200 shadow-2xl">
-        {/* Header */}
+      <div className="fixed right-0 top-0 bottom-0 w-[520px] z-50 flex flex-col bg-neutral-50 border-l border-neutral-200 shadow-2xl">
+
+        {/* ── Header ── */}
         <div className="px-6 py-4 border-b border-neutral-200 flex items-center justify-between shrink-0">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-brand-50 rounded-lg">
               <Pencil className="w-4 h-4 text-brand-600" />
             </div>
             <div>
-              <h2 className="text-heading-3 text-default-font">Modifier la etape</h2>
+              <h2 className="text-heading-3 text-default-font">Modifier la étape</h2>
               <p className="text-caption text-subtext-color">Slide #{slide.id}</p>
             </div>
           </div>
@@ -123,10 +259,10 @@ function EditSlideDrawer({ slide, onClose }: { slide: typeof SLIDES[0]; onClose:
           </button>
         </div>
 
-        {/* Scrollable body */}
-        <div className="flex-1 overflow-y-auto px-6 py-5 flex flex-col gap-5">
+        {/* ── Scrollable body ── */}
+        <div className="flex-1 overflow-y-auto px-6 py-5 flex flex-col gap-6 min-h-0">
 
-          {/* Title field */}
+          {/* Title */}
           <div className="flex flex-col gap-2">
             <label className="text-caption-bold text-subtext-color uppercase tracking-wider flex items-center gap-1.5">
               <Type className="w-3.5 h-3.5" />
@@ -139,7 +275,7 @@ function EditSlideDrawer({ slide, onClose }: { slide: typeof SLIDES[0]; onClose:
             />
           </div>
 
-          {/* Phase selector */}
+          {/* Phase */}
           <div className="flex flex-col gap-2">
             <label className="text-caption-bold text-subtext-color uppercase tracking-wider flex items-center gap-1.5">
               <Layers className="w-3.5 h-3.5" />
@@ -150,7 +286,10 @@ function EditSlideDrawer({ slide, onClose }: { slide: typeof SLIDES[0]; onClose:
                 onClick={() => setPhaseOpen(!phaseOpen)}
                 className="w-full px-3 py-2.5 rounded-lg bg-neutral-100 border border-neutral-200 text-default-font text-body flex items-center justify-between focus:outline-none focus:border-brand-400 transition-all"
               >
-                <span>{phase}</span>
+                <div className="flex items-center gap-2">
+                  <span className={`w-2 h-2 rounded-full ${getPhaseStyle(phase).dot}`} />
+                  <span>{phase}</span>
+                </div>
                 <ChevronDown className={`w-4 h-4 text-subtext-color transition-transform ${phaseOpen ? 'rotate-180' : ''}`} />
               </button>
               {phaseOpen && (
@@ -194,36 +333,26 @@ function EditSlideDrawer({ slide, onClose }: { slide: typeof SLIDES[0]; onClose:
             </div>
           </div>
 
-          {/* Content blocks */}
+          {/* ── Contenu — Rich Text Editor ── */}
           <div className="flex flex-col gap-2">
-            <label className="text-caption-bold text-subtext-color uppercase tracking-wider">
-              Contenu
-            </label>
-            <div className="flex flex-col gap-2">
-              {slide.content.map((block, i) => (
-                <div key={i} className="flex items-start gap-2 group">
-                  <div className="mt-2.5 opacity-0 group-hover:opacity-100 transition-opacity cursor-grab text-subtext-color">
-                    <GripVertical className="w-4 h-4" />
-                  </div>
-                  <textarea
-                    defaultValue={block}
-                    rows={Math.max(2, Math.ceil(block.length / 60))}
-                    className="flex-1 px-3 py-2.5 rounded-lg bg-neutral-100 border border-neutral-200 text-default-font text-body focus:outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-100 transition-all resize-none font-mono text-xs"
-                  />
-                  <button className="mt-2 p-1.5 rounded text-subtext-color hover:text-red-500 hover:bg-red-50 opacity-0 group-hover:opacity-100 transition-all">
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-              ))}
-              <button className="flex items-center gap-2 px-3 py-2 rounded-lg border border-dashed border-neutral-300 text-subtext-color hover:border-brand-400 hover:text-brand-600 hover:bg-brand-50 transition-all text-caption-bold">
-                <Plus className="w-3.5 h-3.5" />
-                Ajouter un bloc de contenu
-              </button>
+            <div className="flex items-center justify-between">
+              <label className="text-caption-bold text-subtext-color uppercase tracking-wider flex items-center gap-1.5">
+                <Layers className="w-3.5 h-3.5" />
+                Contenu
+              </label>
+              <span className="text-caption text-subtext-color">{slide.content.length} bloc{slide.content.length > 1 ? 's' : ''}</span>
             </div>
+
+            <RichTextEditor
+              defaultValue={defaultContent}
+              rows={14}
+              placeholder={`## Section\n- Point clé\n- Autre point\n\nTexte libre...\n\n**Gras** pour les points importants\n\n« Citation tactique »`}
+            />
           </div>
+
         </div>
 
-        {/* Footer actions */}
+        {/* ── Footer ── */}
         <div className="shrink-0 px-6 py-4 border-t border-neutral-200 flex items-center justify-between gap-3">
           <button
             onClick={onClose}
@@ -246,7 +375,7 @@ function EditSlideDrawer({ slide, onClose }: { slide: typeof SLIDES[0]; onClose:
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Add Slide Modal (center)
+// Add Slide Modal
 // ─────────────────────────────────────────────────────────────────────────────
 
 function AddSlideModal({ onClose, afterIndex }: { onClose: () => void; afterIndex: number }) {
@@ -256,165 +385,132 @@ function AddSlideModal({ onClose, afterIndex }: { onClose: () => void; afterInde
   const [step, setStep] = useState<1 | 2>(1);
 
   return (
-    <>
-      <div className="fixed inset-0 bg-black/50 z-40 backdrop-blur-sm flex items-center justify-center p-6" onClick={onClose}>
-        <div
-          className="bg-neutral-50 border border-neutral-200 rounded-2xl shadow-2xl w-full max-w-lg flex flex-col overflow-hidden"
-          onClick={(e) => e.stopPropagation()}
-        >
-          {/* Header */}
-          <div className="px-6 pt-6 pb-4 border-b border-neutral-200 flex items-start justify-between">
-            <div>
-              <div className="flex items-center gap-2 mb-1">
-                <div className="w-1.5 h-1.5 rounded-full bg-brand-600" />
-                <span className="text-caption text-subtext-color">Étape {step} sur 2</span>
-              </div>
-              <h2 className="text-heading-2 text-default-font">
-                {step === 1 ? 'Nouvelle diapositive' : 'Contenu de la etape'}
-              </h2>
-              <p className="text-caption text-subtext-color mt-0.5">
-                {step === 1
-                  ? `Sera insérée après la slide #${afterIndex + 1}`
-                  : `Configurez le contenu pour « ${title || 'Sans titre'} »`}
-              </p>
+    <div className="fixed inset-0 bg-black/50 z-40 backdrop-blur-sm flex items-center justify-center p-6" onClick={onClose}>
+      <div
+        className="bg-neutral-50 border border-neutral-200 rounded-2xl shadow-2xl w-full max-w-lg flex flex-col overflow-hidden"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="px-6 pt-6 pb-4 border-b border-neutral-200 flex items-start justify-between">
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <div className="w-1.5 h-1.5 rounded-full bg-brand-600" />
+              <span className="text-caption text-subtext-color">Étape {step} sur 2</span>
             </div>
-            <button
-              onClick={onClose}
-              className="p-2 rounded-lg hover:bg-neutral-100 text-subtext-color transition-colors -mt-1"
-            >
-              <X className="w-4 h-4" />
-            </button>
+            <h2 className="text-heading-2 text-default-font">
+              {step === 1 ? 'Nouvelle étape' : 'Contenu de la étape'}
+            </h2>
+            <p className="text-caption text-subtext-color mt-0.5">
+              {step === 1
+                ? `Sera insérée après la slide #${afterIndex + 1}`
+                : `Configurez le contenu pour « ${title || 'Sans titre'} »`}
+            </p>
           </div>
+          <button onClick={onClose} className="p-2 rounded-lg hover:bg-neutral-100 text-subtext-color transition-colors -mt-1">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
 
-          {/* Progress bar */}
-          <div className="h-0.5 bg-neutral-200">
-            <div
-              className="h-full bg-brand-600 transition-all duration-300"
-              style={{ width: step === 1 ? '50%' : '100%' }}
-            />
-          </div>
+        {/* Progress bar */}
+        <div className="h-0.5 bg-neutral-200">
+          <div className="h-full bg-brand-600 transition-all duration-300" style={{ width: step === 1 ? '50%' : '100%' }} />
+        </div>
 
-          {/* Step 1 */}
-          {step === 1 && (
-            <div className="px-6 py-5 flex flex-col gap-4">
-              <div className="flex flex-col gap-2">
-                <label className="text-caption-bold text-subtext-color uppercase tracking-wider">Titre *</label>
-                <input
-                  autoFocus
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  placeholder="Ex: Stratégie de pressing haut"
-                  className="w-full px-3 py-2.5 rounded-lg bg-neutral-100 border border-neutral-200 text-default-font text-body focus:outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-100 transition-all placeholder:text-subtext-color"
-                />
-              </div>
-              <div className="flex flex-col gap-2">
-                <label className="text-caption-bold text-subtext-color uppercase tracking-wider">Phase</label>
-                <div className="relative">
-                  <button
-                    onClick={() => setPhaseOpen(!phaseOpen)}
-                    className="w-full px-3 py-2.5 rounded-lg bg-neutral-100 border border-neutral-200 text-default-font text-body flex items-center justify-between"
-                  >
-                    <div className="flex items-center gap-2">
-                      <span className={`w-2 h-2 rounded-full ${getPhaseStyle(phase).dot}`} />
-                      {phase}
-                    </div>
-                    <ChevronDown className={`w-4 h-4 text-subtext-color transition-transform ${phaseOpen ? 'rotate-180' : ''}`} />
-                  </button>
-                  {phaseOpen && (
-                    <div className="absolute top-full left-0 right-0 mt-1 bg-neutral-50 border border-neutral-200 rounded-lg shadow-lg z-10 overflow-hidden">
-                      {PHASES_LIST.map((p) => {
-                        const s = getPhaseStyle(p);
-                        return (
-                          <button
-                            key={p}
-                            onClick={() => { setPhase(p); setPhaseOpen(false); }}
-                            className={`w-full px-3 py-2.5 text-left text-body flex items-center gap-2.5 hover:bg-neutral-100 transition-colors ${phase === p ? 'bg-brand-50' : ''}`}
-                          >
-                            <span className={`w-2 h-2 rounded-full ${s.dot}`} />
-                            <span className={phase === p ? 'text-brand-600 font-semibold' : 'text-default-font'}>{p}</span>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Image picker placeholder */}
-              <div className="flex flex-col gap-2">
-                <label className="text-caption-bold text-subtext-color uppercase tracking-wider">Image (optionnel)</label>
-                <div className="border-2 border-dashed border-neutral-300 rounded-lg p-6 flex flex-col items-center justify-center gap-2 cursor-pointer hover:border-brand-400 hover:bg-brand-50 transition-all group">
-                  <div className="p-2 bg-neutral-100 group-hover:bg-brand-100 rounded-lg transition-colors">
-                    <ImageIcon className="w-5 h-5 text-subtext-color group-hover:text-brand-600 transition-colors" />
+        {/* Step 1 */}
+        {step === 1 && (
+          <div className="px-6 py-5 flex flex-col gap-4">
+            <div className="flex flex-col gap-2">
+              <label className="text-caption-bold text-subtext-color uppercase tracking-wider">Titre *</label>
+              <input
+                autoFocus
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="Ex: Stratégie de pressing haut"
+                className="w-full px-3 py-2.5 rounded-lg bg-neutral-100 border border-neutral-200 text-default-font text-body focus:outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-100 transition-all placeholder:text-subtext-color"
+              />
+            </div>
+            <div className="flex flex-col gap-2">
+              <label className="text-caption-bold text-subtext-color uppercase tracking-wider">Phase</label>
+              <div className="relative">
+                <button
+                  onClick={() => setPhaseOpen(!phaseOpen)}
+                  className="w-full px-3 py-2.5 rounded-lg bg-neutral-100 border border-neutral-200 text-default-font text-body flex items-center justify-between"
+                >
+                  <div className="flex items-center gap-2">
+                    <span className={`w-2 h-2 rounded-full ${getPhaseStyle(phase).dot}`} />
+                    {phase}
                   </div>
-                  <span className="text-caption text-subtext-color group-hover:text-brand-600 transition-colors">Cliquer pour sélectionner une image</span>
+                  <ChevronDown className={`w-4 h-4 text-subtext-color transition-transform ${phaseOpen ? 'rotate-180' : ''}`} />
+                </button>
+                {phaseOpen && (
+                  <div className="absolute top-full left-0 right-0 mt-1 bg-neutral-50 border border-neutral-200 rounded-lg shadow-lg z-10 overflow-hidden">
+                    {PHASES_LIST.map((p) => {
+                      const s = getPhaseStyle(p);
+                      return (
+                        <button
+                          key={p}
+                          onClick={() => { setPhase(p); setPhaseOpen(false); }}
+                          className={`w-full px-3 py-2.5 text-left text-body flex items-center gap-2.5 hover:bg-neutral-100 transition-colors ${phase === p ? 'bg-brand-50' : ''}`}
+                        >
+                          <span className={`w-2 h-2 rounded-full ${s.dot}`} />
+                          <span className={phase === p ? 'text-brand-600 font-semibold' : 'text-default-font'}>{p}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            </div>
+            <div className="flex flex-col gap-2">
+              <label className="text-caption-bold text-subtext-color uppercase tracking-wider">Image (optionnel)</label>
+              <div className="border-2 border-dashed border-neutral-300 rounded-lg p-6 flex flex-col items-center justify-center gap-2 cursor-pointer hover:border-brand-400 hover:bg-brand-50 transition-all group">
+                <div className="p-2 bg-neutral-100 group-hover:bg-brand-100 rounded-lg transition-colors">
+                  <ImageIcon className="w-5 h-5 text-subtext-color group-hover:text-brand-600 transition-colors" />
                 </div>
+                <span className="text-caption text-subtext-color group-hover:text-brand-600 transition-colors">Cliquer pour sélectionner une image</span>
               </div>
             </div>
-          )}
-
-          {/* Step 2 */}
-          {step === 2 && (
-            <div className="px-6 py-5 flex flex-col gap-4">
-              <p className="text-caption text-subtext-color">
-                Ajoutez des blocs de contenu. Utilisez <code className="bg-neutral-100 px-1 rounded text-brand-600">## Titre</code> pour les sections, <code className="bg-neutral-100 px-1 rounded text-brand-600">- item</code> pour les listes.
-              </p>
-              <div className="flex flex-col gap-2">
-                <textarea
-                  autoFocus
-                  placeholder={'## Section\n- Point clé\n- Autre point\n\nTexte libre...'}
-                  rows={6}
-                  className="w-full px-3 py-2.5 rounded-lg bg-neutral-100 border border-neutral-200 text-default-font font-mono text-xs focus:outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-100 transition-all placeholder:text-subtext-color resize-none"
-                />
-              </div>
-              <div className="flex items-center gap-2 p-3 rounded-lg bg-brand-50 border border-brand-200">
-                <div className="w-2 h-2 rounded-full bg-brand-600 shrink-0" />
-                <span className="text-caption text-brand-600">Vous pourrez modifier le contenu à tout moment via le bouton « Modifier ».</span>
-              </div>
-            </div>
-          )}
-
-          {/* Footer */}
-          <div className="px-6 py-4 border-t border-neutral-200 flex items-center justify-between">
-            {step === 2 ? (
-              <button
-                onClick={() => setStep(1)}
-                className="flex items-center gap-2 px-4 py-2 rounded-lg text-body text-subtext-color bg-neutral-100 border border-neutral-200 hover:bg-neutral-150 transition-colors"
-              >
-                <ChevronLeft className="w-4 h-4" />
-                Retour
-              </button>
-            ) : (
-              <button
-                onClick={onClose}
-                className="flex items-center gap-2 px-4 py-2 rounded-lg text-body text-subtext-color bg-neutral-100 border border-neutral-200 hover:bg-neutral-150 transition-colors"
-              >
-                <X className="w-4 h-4" />
-                Annuler
-              </button>
-            )}
-            {step === 1 ? (
-              <button
-                onClick={() => setStep(2)}
-                disabled={!title.trim()}
-                className="flex items-center gap-2 px-5 py-2 rounded-lg text-body text-white bg-brand-600 hover:bg-brand-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-              >
-                Suivant
-                <ChevronRight className="w-4 h-4" />
-              </button>
-            ) : (
-              <button
-                onClick={onClose}
-                className="flex items-center gap-2 px-5 py-2 rounded-lg text-body text-white bg-brand-600 hover:bg-brand-700 transition-colors"
-              >
-                <Plus className="w-4 h-4" />
-                Créer l'etape
-              </button>
-            )}
           </div>
+        )}
+
+        {/* Step 2 — rich text */}
+        {step === 2 && (
+          <div className="px-6 py-5 flex flex-col gap-4">
+            <RichTextEditor
+              placeholder={'## Section\n- Point clé\n- Autre point\n\nTexte libre...'}
+              rows={8}
+            />
+            <div className="flex items-center gap-2 p-3 rounded-lg bg-brand-50 border border-brand-200">
+              <div className="w-2 h-2 rounded-full bg-brand-600 shrink-0" />
+              <span className="text-caption text-brand-600">Vous pourrez modifier le contenu à tout moment via le bouton « Modifier ».</span>
+            </div>
+          </div>
+        )}
+
+        {/* Footer */}
+        <div className="px-6 py-4 border-t border-neutral-200 flex items-center justify-between">
+          {step === 2 ? (
+            <button onClick={() => setStep(1)} className="flex items-center gap-2 px-4 py-2 rounded-lg text-body text-subtext-color bg-neutral-100 border border-neutral-200 hover:bg-neutral-150 transition-colors">
+              <ChevronLeft className="w-4 h-4" />Retour
+            </button>
+          ) : (
+            <button onClick={onClose} className="flex items-center gap-2 px-4 py-2 rounded-lg text-body text-subtext-color bg-neutral-100 border border-neutral-200 hover:bg-neutral-150 transition-colors">
+              <X className="w-4 h-4" />Annuler
+            </button>
+          )}
+          {step === 1 ? (
+            <button onClick={() => setStep(2)} disabled={!title.trim()}
+              className="flex items-center gap-2 px-5 py-2 rounded-lg text-body text-white bg-brand-600 hover:bg-brand-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors">
+              Suivant<ChevronRight className="w-4 h-4" />
+            </button>
+          ) : (
+            <button onClick={onClose} className="flex items-center gap-2 px-5 py-2 rounded-lg text-body text-white bg-brand-600 hover:bg-brand-700 transition-colors">
+              <Plus className="w-4 h-4" />Créer l'étape
+            </button>
+          )}
         </div>
       </div>
-    </>
+    </div>
   );
 }
 
@@ -445,7 +541,7 @@ export function ProjetPage() {
     const handler = (e: KeyboardEvent) => {
       if (editOpen || addOpen) return;
       if (e.key === 'ArrowRight' || e.key === 'ArrowDown') { e.preventDefault(); goTo(activeIndex + 1); }
-      if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); goTo(activeIndex - 1); }
+      if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')   { e.preventDefault(); goTo(activeIndex - 1); }
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
@@ -490,13 +586,12 @@ export function ProjetPage() {
             </div>
           </div>
           <div className="flex items-center gap-3">
-            {/* Add slide button */}
             <button
               onClick={() => setAddOpen(true)}
               className="flex items-center gap-2 px-4 py-2 rounded-lg text-body text-subtext-color bg-neutral-100 border border-neutral-200 hover:bg-neutral-150 hover:text-default-font transition-colors"
             >
               <Plus className="w-4 h-4" />
-              Ajouter une etape
+              Ajouter une étape
             </button>
             <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-success-50 border border-success-200">
               <CheckCircle2 className="w-4 h-4 text-success-600" />
@@ -510,10 +605,8 @@ export function ProjetPage() {
       <div className="flex-1 flex overflow-hidden">
         <div className="flex-1 flex gap-4 p-4 overflow-hidden max-w-[1400px] mx-auto w-full">
 
-          {/* ── Left sidebar — floating panel ── */}
+          {/* Sidebar */}
           <div className="w-64 shrink-0 flex flex-col bg-neutral-50 border border-neutral-200 rounded-xl overflow-hidden shadow-sm">
-
-            {/* Progress header */}
             <div className="px-4 py-3 border-b border-neutral-200 shrink-0">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-caption-bold text-subtext-color uppercase tracking-wider">Sommaire</span>
@@ -527,7 +620,6 @@ export function ProjetPage() {
               </div>
             </div>
 
-            {/* Nav list — scrollable, fills remaining height */}
             <nav ref={navRef} className="flex-1 overflow-y-auto py-2 px-2 min-h-0">
               {SLIDES.map((s, idx) => {
                 const isActive = idx === activeIndex;
@@ -537,12 +629,7 @@ export function ProjetPage() {
                     key={s.id}
                     ref={isActive ? activeItemRef : null}
                     onClick={() => goTo(idx)}
-                    className={`
-                      w-full text-left flex items-center gap-2.5
-                      px-3 py-2 rounded-lg mb-0.5 border
-                      transition-all duration-150 group
-                      ${isActive ? 'bg-brand-50 border-brand-200' : 'border-transparent hover:bg-neutral-100'}
-                    `}
+                    className={`w-full text-left flex items-center gap-2.5 px-3 py-2 rounded-lg mb-0.5 border transition-all duration-150 group ${isActive ? 'bg-brand-50 border-brand-200' : 'border-transparent hover:bg-neutral-100'}`}
                   >
                     <span className={`w-5 h-5 rounded-md flex items-center justify-center text-caption-bold shrink-0 transition-colors ${isActive ? 'bg-brand-600 text-white' : 'bg-neutral-100 text-subtext-color group-hover:bg-neutral-200'}`}>
                       {idx + 1}
@@ -550,7 +637,6 @@ export function ProjetPage() {
                     <span className={`text-body text-xs leading-tight truncate transition-colors ${isActive ? 'font-semibold text-brand-600' : 'text-subtext-color group-hover:text-default-font'}`}>
                       {s.title}
                     </span>
-                    {/* Phase dot hint */}
                     <span className={`ml-auto w-1.5 h-1.5 rounded-full shrink-0 ${pStyle.dot} opacity-60`} />
                   </button>
                 );
@@ -558,24 +644,15 @@ export function ProjetPage() {
             </nav>
           </div>
 
-          {/* ── Right: slide content — floating panel ── */}
+          {/* Right panel */}
           <div className="flex-1 flex flex-col bg-neutral-50 border border-neutral-200 rounded-xl overflow-hidden shadow-sm min-w-0">
-
-            {/* Scrollable content area */}
             <div className="flex-1 overflow-y-auto min-h-0">
               <div className="max-w-3xl mx-auto px-6 pt-6 pb-4">
 
-                {/* Image — natural ratio */}
+                {/* Image */}
                 <div className="relative rounded-lg overflow-hidden mb-5 border border-neutral-200">
-                  <img
-                    src={image}
-                    alt={slide.title}
-                    className="w-full block"
-                    style={{ objectFit: 'cover', display: 'block' }}
-                  />
+                  <img src={image} alt={slide.title} className="w-full block" style={{ objectFit: 'cover', display: 'block' }} />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
-
-                  {/* Edit button — top right corner */}
                   <button
                     onClick={() => setEditOpen(true)}
                     className="absolute top-3 right-3 flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-black/40 hover:bg-black/60 border border-white/20 text-white text-caption-bold backdrop-blur-sm transition-all"
@@ -583,7 +660,6 @@ export function ProjetPage() {
                     <Pencil className="w-3.5 h-3.5" />
                     Modifier
                   </button>
-
                   <div className="absolute bottom-4 left-5 right-5">
                     <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full mb-2 text-caption-bold border ${phaseStyle.badge}`}>
                       <Layers className="w-3 h-3" />
@@ -593,7 +669,7 @@ export function ProjetPage() {
                   </div>
                 </div>
 
-                {/* Content card */}
+                {/* Content */}
                 <div className="bg-neutral-50 border border-neutral-200 rounded-lg p-6">
                   <SlideContent content={slide.content} />
                 </div>
@@ -601,7 +677,7 @@ export function ProjetPage() {
               </div>
             </div>
 
-            {/* ── Bottom navigation bar ── */}
+            {/* Bottom nav */}
             <div className="shrink-0 bg-neutral-50 border-t border-neutral-200 px-6 py-3 rounded-b-xl">
               <div className="max-w-3xl mx-auto flex items-center justify-between">
                 <button
@@ -609,27 +685,21 @@ export function ProjetPage() {
                   disabled={activeIndex === 0}
                   className="flex items-center gap-2 px-4 py-2 rounded-lg text-body text-subtext-color bg-neutral-100 border border-neutral-200 hover:bg-neutral-150 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                 >
-                  <ChevronLeft className="w-4 h-4" />
-                  Précédent
+                  <ChevronLeft className="w-4 h-4" />Précédent
                 </button>
-
                 <div className="flex items-center gap-1.5">
                   {SLIDES.map((_, i) => (
-                    <button 
-                      key={i}
-                      onClick={() => goTo(i)}
+                    <button key={i} onClick={() => goTo(i)}
                       className={`rounded-full transition-all duration-200 ${i === activeIndex ? 'w-6 h-2 bg-brand-600' : 'w-2 h-2 bg-neutral-200 hover:bg-neutral-300'}`}
                     />
                   ))}
                 </div>
-
                 <button
                   onClick={() => goTo(activeIndex + 1)}
                   disabled={activeIndex === SLIDES.length - 1}
                   className="flex items-center gap-2 px-4 py-2 rounded-lg text-body text-white bg-brand-600 hover:bg-brand-700 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                 >
-                  Suivant
-                  <ChevronRight className="w-4 h-4" />
+                  Suivant<ChevronRight className="w-4 h-4" />
                 </button>
               </div>
             </div>
@@ -638,9 +708,9 @@ export function ProjetPage() {
         </div>
       </div>
 
-      {/* ── Overlays ── */}
+      {/* Overlays */}
       {editOpen && <EditSlideDrawer slide={slide} onClose={() => setEditOpen(false)} />}
-      {addOpen && <AddSlideModal onClose={() => setAddOpen(false)} afterIndex={activeIndex} />}
+      {addOpen  && <AddSlideModal   onClose={() => setAddOpen(false)}  afterIndex={activeIndex} />}
     </div>
   );
 }
