@@ -1,6 +1,35 @@
 import { useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Calendar, ChevronRight, Trophy, Plus, X, ChevronDown, Users, FileText, Sparkles, ChevronLeft, Layers, CheckCircle2, ArrowRight, Bold, Italic, List, ListOrdered, Heading2, Quote, Minus, Image as ImageIcon, Upload, AlignLeft, Pencil, Trash2, Eye, EyeOff } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import {
+  Target,
+  Calendar,
+  ChevronRight,
+  Trophy,
+  Plus,
+  X,
+  ChevronDown,
+  Users,
+  FileText,
+  Sparkles,
+  ChevronLeft,
+  Layers,
+  CheckCircle2,
+  ArrowRight,
+  Bold,
+  Italic,
+  List,
+  ListOrdered,
+  Heading2,
+  Quote,
+  Minus,
+  ImageIcon,
+  Upload,
+  AlignLeft,
+  Pencil,
+  Trash2,
+  Eye,
+  EyeOff,
+} from 'lucide-react';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Mock slide data (from projetDeJeu.ts) — used for preview
@@ -770,114 +799,6 @@ function CreateModal({ onClose, onCreate }: CreateModalProps) {
               <Sparkles className="w-4 h-4" />Créer le projet
             </button>
           )}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// ProjetPage
-// ─────────────────────────────────────────────────────────────────────────────
-
-export function ProjetPage() {
-  const { season } = useParams<{ season: string }>();
-  const navigate = useNavigate();
-  const [activeIndex, setActiveIndex] = useState(0);
-
-  const slide = MOCK_SLIDE;
-  const image = MOCK_IMAGE;
-
-  const displaySeason = season ? season.replace(/-/g, '-') : '2024-2025';
-
-  const goTo = (index: number) => {
-    if (index < 0 || index > 10) return;
-    setActiveIndex(index);
-  };
-
-  return (
-    <div className="flex-1 flex flex-col overflow-hidden bg-default-background">
-      <div className="bg-neutral-50 border-b border-neutral-200 px-8 py-4 shrink-0">
-        <div className="flex items-center justify-between max-w-[1400px] mx-auto">
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() => navigate('/projet')}
-              className="p-2 bg-brand-50 rounded-lg hover:bg-brand-100 transition-colors"
-              title="Retour aux saisons"
-            >
-              <ArrowLeft className="w-5 h-5 text-brand-600" />
-            </button>
-            <div>
-              <h1 className="text-heading-2 text-default-font">Projet de Jeu</h1>
-              <div className="flex items-center gap-3 mt-0.5">
-                <span className="flex items-center gap-1.5 text-caption text-subtext-color">
-                  <Calendar className="w-3.5 h-3.5" />
-                  Saison {displaySeason}
-                </span>
-              </div>
-            </div>
-          </div>
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-success-50 border border-success-200">
-              <CheckCircle2 className="w-4 h-4 text-success-600" />
-              <span className="text-caption-bold text-success-600">Actif</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="flex-1 flex overflow-hidden">
-        <div className="flex-1 flex flex-col">
-          <div className="flex-1 overflow-y-auto">
-            <div className="max-w-4xl mx-auto px-8 py-8">
-              <div className="mb-8">
-                <h2 className="text-heading-2 text-default-font mb-4">{slide.title}</h2>
-                <span className="inline-block px-3 py-1 rounded-full bg-brand-50 border border-brand-200 text-caption-bold text-brand-600">
-                  {slide.phase}
-                </span>
-              </div>
-
-              <div className="prose prose-invert max-w-none">
-                <div className="space-y-4">
-                  {slide.content.map((paragraph, idx) => (
-                    <div key={idx} className="text-body text-default-font leading-relaxed">
-                      {paragraph}
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {image && (
-                <div className="mt-12">
-                  <img src={image} alt={slide.title} className="w-full rounded-lg" />
-                </div>
-              )}
-            </div>
-          </div>
-
-          <div className="border-t border-neutral-200 bg-neutral-50 px-8 py-4 shrink-0">
-            <div className="max-w-4xl mx-auto flex items-center justify-between">
-              <button
-                onClick={() => goTo(activeIndex - 1)}
-                disabled={activeIndex === 0}
-                className="flex items-center gap-2 px-4 py-2 rounded-lg text-body text-subtext-color bg-neutral-100 border border-neutral-200 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-neutral-150 transition-colors"
-              >
-                <ChevronLeft className="w-4 h-4" />
-                Précédent
-              </button>
-              <span className="text-body text-subtext-color">
-                Diapositive {activeIndex + 1} sur 11
-              </span>
-              <button
-                onClick={() => goTo(activeIndex + 1)}
-                disabled={activeIndex >= 10}
-                className="flex items-center gap-2 px-4 py-2 rounded-lg text-body text-subtext-color bg-neutral-100 border border-neutral-200 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-neutral-150 transition-colors"
-              >
-                Suivant
-                <ChevronRight className="w-4 h-4" />
-              </button>
-            </div>
-          </div>
         </div>
       </div>
     </div>
