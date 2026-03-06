@@ -194,7 +194,7 @@ function AddSlideModal({ onClose, onCreated, slideNumber }: AddSlideModalProps) 
               <Plus className="w-4 h-4 text-brand-600" />
             </div>
             <div>
-              <h2 className="text-heading-3 text-default-font">Nouvelle diapositive</h2>
+              <h2 className="text-heading-3 text-default-font">Nouvelle Etape</h2>
               <p className="text-caption text-subtext-color">Diapositive #{slideNumber}</p>
             </div>
           </div>
