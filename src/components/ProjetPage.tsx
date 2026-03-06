@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { useParams } from 'react-router-dom';
 import {
   ChevronLeft,
   ChevronRight,
@@ -165,6 +166,7 @@ function getPhaseStyle(phase: string) {
 // ─────────────────────────────────────────────────────────────────────────────
 
 export function ProjetPage() {
+  const { season } = useParams<{ season: string }>();
   const [activeIndex, setActiveIndex] = useState(0);
   const navRef = useRef<HTMLDivElement>(null);
   const activeItemRef = useRef<HTMLButtonElement>(null);
@@ -172,6 +174,8 @@ export function ProjetPage() {
   const slide = SLIDES[activeIndex];
   const image = PROJET_IMAGES[activeIndex % PROJET_IMAGES.length];
   const phaseStyle = getPhaseStyle(slide.phase);
+
+  const displaySeason = season === '2023-2024' ? '2023-2024' : '2024-2025';
 
   const goTo = useCallback((idx: number) => {
     if (idx >= 0 && idx < SLIDES.length) setActiveIndex(idx);
@@ -222,7 +226,7 @@ export function ProjetPage() {
               <div className="flex items-center gap-3 mt-0.5">
                 <span className="flex items-center gap-1.5 text-caption text-subtext-color">
                   <Calendar className="w-3.5 h-3.5" />
-                  {PROJET_META.saison}
+                  Saison {displaySeason}
                 </span>
                 <span className="w-1 h-1 rounded-full bg-neutral-300" />
                 <span className="text-caption text-subtext-color">{PROJET_META.description}</span>

@@ -10,6 +10,7 @@ import OrganigramTwoPage from './components/OrganigramTwoPage';
 import { TasksViewPage } from './components/TasksViewPage';
 import { ResourcesPage } from './components/ResourcesPage';
 import { ProjetPage } from './components/ProjetPage';
+import { ProjetLandingPage } from './components/ProjetLandingPage';
 import { OrganigramProvider } from './contexts/OrganigramContext';
 import { DocumentsHomePage } from './pages/DocumentsHomePage';
 import { DocumentEditorPage } from './pages/DocumentEditorPage';
@@ -26,7 +27,8 @@ function App() {
             <Route path="/planification" element={<MeetingsPage />} />
             <Route path="/categories" element={<CategoriesPage />} />
             <Route path="/resources" element={<ResourcesPage />} />
-            <Route path="/projet" element={<ProjetPage />} />
+            <Route path="/projet" element={<ProjetLandingPage />} />
+            <Route path="/projet/:season" element={<ProjetPage />} />
             <Route path="/organigram" element={<OrganigramPage />} />
             <Route path="/organigram-two" element={<OrganigramTwoPage />} />
             <Route path="/membres" element={<MembersPage />} />
