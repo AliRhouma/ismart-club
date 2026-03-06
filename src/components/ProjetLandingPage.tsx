@@ -774,7 +774,7 @@ function CreateModal({ onClose, onCreate }: CreateModalProps) {
             </div>
             <div className="flex items-center gap-2.5 p-3 rounded-lg bg-success-50 border border-success-200">
               <Sparkles className="w-4 h-4 text-success-600 shrink-0" />
-              <p className="text-caption text-success-600">Un projet vierge sera créé. Vous pourrez y ajouter des diapositives immédiatement.</p>
+              <p className="text-caption text-success-600">Un projet vierge sera créé. Vous pourrez y ajouter des Etapes immédiatement.</p>
             </div>
           </div>
         )}
