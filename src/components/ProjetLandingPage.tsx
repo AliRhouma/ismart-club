@@ -468,7 +468,7 @@ function BlankProjetPage({ name, season, category, description, onBack }: BlankP
                       <div className="w-1 h-4 rounded-full bg-brand-600" />
                       <span className="text-caption-bold text-subtext-color uppercase tracking-wider flex items-center gap-1.5">
                         <FileText className="w-3.5 h-3.5" />
-                        Contenu de la diapositive
+                        Contenu de la Etape
                       </span>
                     </div>
 
