@@ -1,4 +1,4 @@
-import { Calendar, ChevronDown, ChevronUp, User, FileText, List, ClipboardList, Flag, Bell, Layers, Network, GitBranch, FolderOpen, Target } from 'lucide-react';
+import { Calendar, ChevronDown, ChevronUp, User, FileText, List, ClipboardList, Flag, Bell, Layers, Network, GitBranch, FolderOpen, Target, Shield } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 
@@ -10,7 +10,15 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
-  { id: 'planification', label: 'Planification', icon: <Calendar className="w-4 h-4" /> },
+  {
+    id: 'planification-parent',
+    label: 'Planification',
+    icon: <Calendar className="w-4 h-4" />,
+    children: [
+      { id: 'planification', label: 'Planification', icon: <Calendar className="w-4 h-4" /> },
+      { id: 'profiles', label: 'Profiles', icon: <Shield className="w-4 h-4" /> },
+    ],
+  },
   { id: 'categories', label: 'Categories', icon: <Layers className="w-4 h-4" /> },
   { id: 'resources', label: 'Resources', icon: <FolderOpen className="w-4 h-4" /> },
   { id: 'projet', label: 'Projet', icon: <Target className="w-4 h-4" /> },
@@ -66,7 +74,7 @@ const navItems: NavItem[] = [
 export function Sidebar() {
   const navigate = useNavigate();
   const location = useLocation();
-  const [expandedItems, setExpandedItems] = useState<string[]>(['staff']);
+  const [expandedItems, setExpandedItems] = useState<string[]>(['staff', 'planification-parent']);
   const [showUserDropdown, setShowUserDropdown] = useState(false);
 
   const currentPage = location.pathname.substring(1);

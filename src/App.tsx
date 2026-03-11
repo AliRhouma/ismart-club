@@ -16,6 +16,7 @@ import { DocumentsHomePage } from './pages/DocumentsHomePage';
 import { DocumentEditorPage } from './pages/DocumentEditorPage';
 import { FicheDePosteEditorPage } from './pages/FicheDePosteEditorPage';
 import { FicheDePosteDetailPage } from './pages/FicheDePosteDetailPage';
+import ProfilesPage from './pages/ProfilesPage';
 
 function App() {
   return (
@@ -26,6 +27,7 @@ function App() {
           <Routes>
             <Route path="/" element={<Navigate to="/planification" replace />} />
             <Route path="/planification" element={<MeetingsPage />} />
+            <Route path="/profiles" element={<ProfilesPage />} />
             <Route path="/categories" element={<CategoriesPage />} />
             <Route path="/resources" element={<ResourcesPage />} />
             <Route path="/projet" element={<ProjetLandingPage />} />
