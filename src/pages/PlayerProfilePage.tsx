@@ -79,12 +79,7 @@ export default function PlayerProfilePage() {
           overflow: 'hidden',
           boxShadow: '0 12px 48px rgba(0,0,0,0.5)',
         }}>
-          {/* Decorative gradient top bar */}
-          <div style={{
-            position: 'absolute', top: 0, left: 0, right: 0, height: 3,
-            background: `linear-gradient(90deg, ${player.color || BLUE} 0%, ${BLUE} 50%, transparent 100%)`,
-            opacity: 0.7,
-          }} />
+         
 
           {/* ── REMOVED: Subtle radial glow ── */}
 
