@@ -29,13 +29,9 @@ const players = [
   { id: 8, initials: "KM", color: "#4a1a1a", name: "Karim Mansour",        email: "karim.mansour@gmail.com",      category: "Junior",    poste: "Défenseur central",        dob: "3 juin 2005" },
 ];
 
-const BADGE: Record<string, { bg: string; color: string }> = {
-  "Minime":   { bg: "rgba(0,145,255,0.12)",   color: "#52a9ff" },
-  "Senior":   { bg: "rgba(70,167,88,0.14)",   color: "#46a758" },
-  "Junior":   { bg: "rgba(234,179,8,0.12)",   color: "#d4a017" },
-  "École A":  { bg: "rgba(229,72,77,0.12)",   color: "#e5484d" },
-  "—":        { bg: "transparent",            color: "#525252" },
-};
+const BADGE_BLUE = { bg: "rgba(0,145,255,0.12)", color: "#52a9ff" };
+const BADGE_EMPTY = { bg: "transparent", color: "#525252" };
+const getBadge = (cat: string) => cat === "—" ? BADGE_EMPTY : BADGE_BLUE;
 
 /* ─── Icons ─── */
 const SearchIcon = () => (
@@ -166,7 +162,7 @@ export default function JoueursPage() {
 
   return (
     <div style={{
-      background: T.bg, minHeight: "100vh",
+      background: T.bg, minHeight: "100vh", width: "100%",
       fontFamily: "'Rubik', sans-serif", color: T.text,
       display: "flex", flexDirection: "column",
     }}>
@@ -255,7 +251,7 @@ export default function JoueursPage() {
       </div>
 
       {/* ── Table ── */}
-      <div style={{ flex: 1, padding: "0 36px 40px" }}>
+      <div style={{ flex: 1, padding: "0 36px 40px", width: "100%" }}>
         <div style={{
           borderRadius: 12, overflow: "hidden",
           border: `1px solid ${T.border}`,
@@ -266,7 +262,7 @@ export default function JoueursPage() {
           {/* Header row */}
           <div style={{
             display: "grid",
-            gridTemplateColumns: "48px 52px 1fr 150px 210px 170px 52px",
+            gridTemplateColumns: "48px 52px minmax(0,1fr) 150px 210px 170px 52px",
             alignItems: "center",
             padding: "10px 6px",
             background: `linear-gradient(180deg, ${T.raised} 0%, ${T.surface} 100%)`,
@@ -292,7 +288,7 @@ export default function JoueursPage() {
             const isSelected = selected.includes(player.id);
             const isHovered  = hoveredRow === player.id;
             const isLast     = idx === filtered.length - 1;
-            const badge      = BADGE[player.category] ?? BADGE["—"];
+            const badge      = getBadge(player.category);
 
             /* gradient composition */
             let rowBg = "transparent";
@@ -310,7 +306,7 @@ export default function JoueursPage() {
                 onMouseLeave={() => setHoveredRow(null)}
                 style={{
                   display: "grid",
-                  gridTemplateColumns: "48px 52px 1fr 150px 210px 170px 52px",
+                  gridTemplateColumns: "48px 52px minmax(0,1fr) 150px 210px 170px 52px",
                   alignItems: "center",
                   padding: "12px 6px",
                   borderBottom: isLast ? "none" : `1px solid ${T.border}`,
