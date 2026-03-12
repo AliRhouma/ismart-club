@@ -167,20 +167,11 @@ export default function JoueursPage() {
       display: "flex", flexDirection: "column",
     }}>
 
-      {/* ── Top accent rule ── */}
-      <div style={{
-        height: 1,
-        background: `linear-gradient(90deg, transparent 0%, ${T.accent}66 35%, ${T.accentHover}88 65%, transparent 100%)`,
-      }}/>
-
       <div style={{ padding: "32px 36px 0" }}>
 
         {/* Page heading */}
         <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", marginBottom: 26 }}>
           <div>
-            <p style={{ fontSize: 10.5, fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", color: T.accent, marginBottom: 5 }}>
-              Gestion de l'équipe
-            </p>
             <h1 style={{ fontSize: 25, fontWeight: 700, color: T.bright, letterSpacing: "-0.015em" }}>
               Joueurs
             </h1>
