@@ -1,9 +1,6 @@
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import {
-  ArrowLeft, Mail, Phone, MapPin, Calendar, Shield, Ruler, Weight,
-  Heart, Activity, Star, Trophy, Edit3, MessageSquare,
-} from 'lucide-react';
+import { ArrowLeft, Mail, Phone, MapPin, Calendar, Shield, Ruler, Weight, Heart, Activity, Star, Trophy, CreditCard as Edit3, MessageSquare } from 'lucide-react';
 
 const BLUE  = '#0091FF';
 const GREEN = '#46A758';
