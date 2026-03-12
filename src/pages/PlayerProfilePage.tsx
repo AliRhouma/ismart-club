@@ -86,12 +86,7 @@ export default function PlayerProfilePage() {
             opacity: 0.7,
           }} />
 
-          {/* Subtle radial glow */}
-          <div style={{
-            position: 'absolute', top: 0, left: 0, width: '50%', height: '100%',
-            background: `radial-gradient(ellipse at 15% 30%, ${player.color || BLUE}12, transparent 70%)`,
-            pointerEvents: 'none',
-          }} />
+          {/* ── REMOVED: Subtle radial glow ── */}
 
           <div style={{ position: 'relative', padding: '28px 32px 0' }}>
             <div style={{ display: 'flex', gap: 24, alignItems: 'flex-start' }}>
