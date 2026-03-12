@@ -17,6 +17,7 @@ import { DocumentEditorPage } from './pages/DocumentEditorPage';
 import { FicheDePosteEditorPage } from './pages/FicheDePosteEditorPage';
 import { FicheDePosteDetailPage } from './pages/FicheDePosteDetailPage';
 import ProfilesPage from './pages/ProfilesPage';
+import JoueursPage from './pages/JoueursPage';
 
 function App() {
   return (
@@ -28,6 +29,7 @@ function App() {
             <Route path="/" element={<Navigate to="/planification" replace />} />
             <Route path="/planification" element={<MeetingsPage />} />
             <Route path="/profiles" element={<ProfilesPage />} />
+            <Route path="/joueurs" element={<JoueursPage />} />
             <Route path="/categories" element={<CategoriesPage />} />
             <Route path="/resources" element={<ResourcesPage />} />
             <Route path="/projet" element={<ProjetLandingPage />} />
