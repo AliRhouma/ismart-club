@@ -18,6 +18,7 @@ import { FicheDePosteEditorPage } from './pages/FicheDePosteEditorPage';
 import { FicheDePosteDetailPage } from './pages/FicheDePosteDetailPage';
 import ProfilesPage from './pages/ProfilesPage';
 import JoueursPage from './pages/JoueursPage';
+import PlayerProfilePage from './pages/PlayerProfilePage';
 
 function App() {
   return (
@@ -30,6 +31,7 @@ function App() {
             <Route path="/planification" element={<MeetingsPage />} />
             <Route path="/profiles" element={<ProfilesPage />} />
             <Route path="/joueurs" element={<JoueursPage />} />
+            <Route path="/joueurs/:id" element={<PlayerProfilePage />} />
             <Route path="/categories" element={<CategoriesPage />} />
             <Route path="/resources" element={<ResourcesPage />} />
             <Route path="/projet" element={<ProjetLandingPage />} />

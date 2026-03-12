@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 /* ─── Design Tokens (mapped from your Tailwind palette) ─── */
 const T = {
@@ -146,6 +147,7 @@ const AvatarPlaceholder = () => (
 
 /* ─────────────────── Main Component ─────────────────── */
 export default function JoueursPage() {
+  const navigate = useNavigate();
   const [selected, setSelected] = useState<number[]>([]);
   const [search, setSearch] = useState("");
   const [hoveredRow, setHoveredRow] = useState<number | null>(null);
@@ -349,11 +351,17 @@ export default function JoueursPage() {
 
                 {/* Name + Email */}
                 <div style={{ paddingRight: 14 }}>
-                  <div style={{
-                    fontSize: 13.5, fontWeight: 600, letterSpacing: "-0.005em",
-                    color: isHovered ? T.bright : T.text,
-                    transition: "color 0.12s",
-                  }}>
+                  <div
+                    onClick={(e) => { e.stopPropagation(); navigate(`/joueurs/${player.id}`); }}
+                    style={{
+                      fontSize: 13.5, fontWeight: 600, letterSpacing: "-0.005em",
+                      color: isHovered ? T.bright : T.text,
+                      transition: "color 0.12s",
+                      cursor: "pointer",
+                    }}
+                    onMouseEnter={e => (e.currentTarget.style.color = T.accent)}
+                    onMouseLeave={e => (e.currentTarget.style.color = isHovered ? T.bright : T.text)}
+                  >
                     {player.name}
                   </div>
                   <div style={{ fontSize: 11.5, color: T.sub, marginTop: 2.5 }}>
