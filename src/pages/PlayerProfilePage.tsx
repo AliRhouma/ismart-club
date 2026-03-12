@@ -75,9 +75,9 @@ export default function PlayerProfilePage() {
           position: 'relative',
           background: '#181818',
           border: '1px solid #2a2a2a',
-          borderRadius: 14,
+          borderRadius: 10,
           overflow: 'hidden',
-          boxShadow: '0 12px 48px rgba(0,0,0,0.5)',
+         
         }}>
          
 
