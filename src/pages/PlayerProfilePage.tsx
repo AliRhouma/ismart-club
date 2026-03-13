@@ -358,7 +358,7 @@ export default function PlayerProfilePage() {
                       : 'text-subtext-color hover:text-default-font'
                   }`}
                 >
-                  {label}
+                  {label} 
                   {active && (
                     <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-brand-600 rounded-t" />
                   )}
