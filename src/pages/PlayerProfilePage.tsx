@@ -530,8 +530,241 @@ const statutConfig: Record<Questionnaire['statut'], { label: string; badge: stri
   en_attente: { label: 'En attente', badge: 'bg-warning-50 text-warning-600 border border-warning-200' },
 };
 
+interface QInstance {
+  num: number;
+  label: string;
+  date: string;
+  score: number | null;
+  stress: number | null;
+  courbature: number | null;
+  fatigue: number | null;
+  sleep: number | null;
+}
+
+const questionnaireInstances: Record<number, QInstance[]> = {
+  1: [
+    { num:1,  label:'Questionnaire 1 : Indice de Hooper', date:'12/02/2024', score:14, stress:1,  courbature:14, fatigue:17, sleep:3 },
+    { num:2,  label:'Questionnaire 2 : Indice de Hooper', date:'13/02/2024', score:18, stress:1,  courbature:14, fatigue:17, sleep:3 },
+    { num:3,  label:'Questionnaire 3 : Indice de Hooper', date:'14/02/2024', score:12, stress:1,  courbature:14, fatigue:17, sleep:3 },
+    { num:4,  label:'Questionnaire 4 : Indice de Hooper', date:'15/02/2024', score:null,stress:null,courbature:null,fatigue:null,sleep:null },
+    { num:5,  label:'Questionnaire 5 : Indice de Hooper', date:'16/02/2024', score:14, stress:1,  courbature:14, fatigue:17, sleep:4 },
+    { num:6,  label:'Questionnaire 6 : Indice de Hooper', date:'17/02/2024', score:16, stress:2,  courbature:12, fatigue:15, sleep:3 },
+    { num:7,  label:'Questionnaire 7 : Indice de Hooper', date:'18/02/2024', score:10, stress:3,  courbature:16, fatigue:19, sleep:2 },
+  ],
+  2: [
+    { num:1,  label:'Questionnaire 1 : Bien-être général', date:'02/09/2024', score:17, stress:2, courbature:13, fatigue:16, sleep:4 },
+    { num:2,  label:'Questionnaire 2 : Bien-être général', date:'09/09/2024', score:15, stress:3, courbature:15, fatigue:18, sleep:3 },
+    { num:3,  label:'Questionnaire 3 : Bien-être général', date:'16/09/2024', score:19, stress:1, courbature:11, fatigue:14, sleep:5 },
+    { num:4,  label:'Questionnaire 4 : Bien-être général', date:'23/09/2024', score:13, stress:4, courbature:17, fatigue:16, sleep:3 },
+    { num:5,  label:'Questionnaire 5 : Bien-être général', date:'30/09/2024', score:20, stress:1, courbature:10, fatigue:13, sleep:5 },
+    { num:6,  label:'Questionnaire 6 : Bien-être général', date:'07/10/2024', score:16, stress:2, courbature:14, fatigue:17, sleep:4 },
+    { num:7,  label:'Questionnaire 7 : Bien-être général', date:'14/10/2024', score:null,stress:null,courbature:null,fatigue:null,sleep:null },
+    { num:8,  label:'Questionnaire 8 : Bien-être général', date:'21/10/2024', score:18, stress:1, courbature:12, fatigue:15, sleep:4 },
+    { num:9,  label:'Questionnaire 9 : Bien-être général', date:'28/10/2024', score:14, stress:3, courbature:16, fatigue:18, sleep:3 },
+    { num:10, label:'Questionnaire 10 : Bien-être général',date:'04/11/2024', score:17, stress:2, courbature:13, fatigue:16, sleep:4 },
+    { num:11, label:'Questionnaire 11 : Bien-être général',date:'11/11/2024', score:11, stress:4, courbature:18, fatigue:19, sleep:2 },
+    { num:12, label:'Questionnaire 12 : Bien-être général',date:'18/11/2024', score:20, stress:1, courbature:10, fatigue:12, sleep:5 },
+  ],
+  3: [
+    { num:1, label:'Questionnaire 1 : Charge perçue (RPE)', date:'15/09/2024', score:16, stress:2, courbature:14, fatigue:16, sleep:4 },
+    { num:2, label:'Questionnaire 2 : Charge perçue (RPE)', date:'22/09/2024', score:14, stress:3, courbature:16, fatigue:18, sleep:3 },
+    { num:3, label:'Questionnaire 3 : Charge perçue (RPE)', date:'29/09/2024', score:null,stress:null,courbature:null,fatigue:null,sleep:null },
+    { num:4, label:'Questionnaire 4 : Charge perçue (RPE)', date:'06/10/2024', score:18, stress:1, courbature:12, fatigue:15, sleep:5 },
+    { num:5, label:'Questionnaire 5 : Charge perçue (RPE)', date:'13/10/2024', score:12, stress:4, courbature:17, fatigue:19, sleep:2 },
+    { num:6, label:'Questionnaire 6 : Charge perçue (RPE)', date:'20/10/2024', score:15, stress:2, courbature:13, fatigue:16, sleep:4 },
+    { num:7, label:'Questionnaire 7 : Charge perçue (RPE)', date:'27/10/2024', score:null,stress:null,courbature:null,fatigue:null,sleep:null },
+    { num:8, label:'Questionnaire 8 : Charge perçue (RPE)', date:'03/11/2024', score:17, stress:1, courbature:11, fatigue:14, sleep:5 },
+    { num:9, label:'Questionnaire 9 : Charge perçue (RPE)', date:'10/11/2024', score:13, stress:3, courbature:15, fatigue:17, sleep:3 },
+  ],
+  4: [
+    { num:1, label:'Questionnaire 1 : Récupération post-match', date:'01/10/2024', score:15, stress:2, courbature:15, fatigue:16, sleep:4 },
+    { num:2, label:'Questionnaire 2 : Récupération post-match', date:'08/10/2024', score:null,stress:null,courbature:null,fatigue:null,sleep:null },
+    { num:3, label:'Questionnaire 3 : Récupération post-match', date:'15/10/2024', score:18, stress:1, courbature:12, fatigue:14, sleep:5 },
+    { num:4, label:'Questionnaire 4 : Récupération post-match', date:'22/10/2024', score:null,stress:null,courbature:null,fatigue:null,sleep:null },
+    { num:5, label:'Questionnaire 5 : Récupération post-match', date:'29/10/2024', score:16, stress:3, courbature:14, fatigue:17, sleep:3 },
+  ],
+  5: [
+    { num:1,  label:'Questionnaire 1 : Motivation & confiance', date:'14/10/2024', score:17, stress:2, courbature:13, fatigue:15, sleep:4 },
+    { num:2,  label:'Questionnaire 2 : Motivation & confiance', date:'21/10/2024', score:19, stress:1, courbature:11, fatigue:13, sleep:5 },
+    { num:3,  label:'Questionnaire 3 : Motivation & confiance', date:'28/10/2024', score:14, stress:3, courbature:16, fatigue:18, sleep:3 },
+    { num:4,  label:'Questionnaire 4 : Motivation & confiance', date:'04/11/2024', score:null,stress:null,courbature:null,fatigue:null,sleep:null },
+    { num:5,  label:'Questionnaire 5 : Motivation & confiance', date:'11/11/2024', score:16, stress:2, courbature:14, fatigue:16, sleep:4 },
+    { num:6,  label:'Questionnaire 6 : Motivation & confiance', date:'18/11/2024', score:12, stress:4, courbature:18, fatigue:19, sleep:2 },
+    { num:7,  label:'Questionnaire 7 : Motivation & confiance', date:'25/11/2024', score:18, stress:1, courbature:11, fatigue:14, sleep:5 },
+    { num:8,  label:'Questionnaire 8 : Motivation & confiance', date:'02/12/2024', score:15, stress:3, courbature:15, fatigue:17, sleep:3 },
+    { num:9,  label:'Questionnaire 9 : Motivation & confiance', date:'09/12/2024', score:null,stress:null,courbature:null,fatigue:null,sleep:null },
+    { num:10, label:'Questionnaire 10 : Motivation & confiance',date:'16/12/2024', score:20, stress:1, courbature:10, fatigue:12, sleep:5 },
+  ],
+};
+
+function heatColor(val: number | null, max: number): string {
+  if (val === null) return 'var(--color-background-secondary, #f5f5f5)';
+  const ratio = val / max;
+  if (ratio >= 0.85) return '#e53e3e';
+  if (ratio >= 0.70) return '#fc6060';
+  if (ratio >= 0.55) return '#fc8686';
+  if (ratio >= 0.40) return '#6b1212';
+  return '#3d0a0a';
+}
+
+function scoreColor(score: number | null): string {
+  if (score === null) return '';
+  if (score >= 17) return 'text-success-600';
+  if (score >= 13) return 'text-warning-600';
+  return 'text-error-600';
+}
+
+function QuestionnaireDetail({ q, onBack }: { q: Questionnaire; onBack: () => void }) {
+  const instances = questionnaireInstances[q.id] ?? [];
+  const heatRows: { label: string; key: keyof QInstance; max: number }[] = [
+    { label: 'Fatigue',     key: 'fatigue',    max: 20 },
+    { label: 'Stress',      key: 'stress',     max: 5  },
+    { label: 'Courbature',  key: 'courbature', max: 20 },
+    { label: 'Sleep',       key: 'sleep',      max: 5  },
+  ];
+
+  return (
+    <div className="p-6">
+      {/* Back */}
+      <button
+        onClick={onBack}
+        className="flex items-center gap-2 text-sm text-brand-600 hover:text-brand-700 mb-5 bg-transparent border-none cursor-pointer p-0 transition-colors"
+      >
+        <ArrowLeft className="w-4 h-4" />
+        Retour aux questionnaires
+      </button>
+
+      {/* Header */}
+      <div className="flex items-center gap-3 mb-6">
+        <div className="w-9 h-9 rounded-lg bg-brand-50 flex items-center justify-center flex-shrink-0">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-brand-600">
+            <path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+          </svg>
+        </div>
+        <div>
+          <div className="flex items-center gap-2">
+            <h2 className="text-sm font-semibold text-default-font">{q.nom}</h2>
+            <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${statutConfig[q.statut].badge}`}>
+              {statutConfig[q.statut].label}
+            </span>
+          </div>
+          <p className="text-xs text-subtext-color mt-0.5">{q.coach} · Depuis le {q.startDate}</p>
+        </div>
+      </div>
+
+      {/* ── HEATMAP ── */}
+      <div className="bg-neutral-50 border border-neutral-200 rounded-lg p-5 mb-6 overflow-x-auto">
+        <h3 className="text-xs font-semibold text-subtext-color uppercase tracking-wide mb-4">Carte de chaleur</h3>
+        <div style={{ minWidth: 520 }}>
+          {/* Column numbers */}
+          <div className="flex mb-2" style={{ marginLeft: 100 }}>
+            {instances.map((_, i) => (
+              <div key={i} style={{ width: 44, flexShrink: 0 }} className="text-center text-xs text-subtext-color font-medium">
+                {i + 1}
+              </div>
+            ))}
+            {/* Legend spacer */}
+            <div style={{ width: 48 }} />
+          </div>
+
+          {/* Rows */}
+          {heatRows.map(({ label, key, max }) => (
+            <div key={label} className="flex items-center mb-2">
+              <div style={{ width: 100, flexShrink: 0 }} className="text-xs text-subtext-color pr-3 text-right">
+                {label}
+              </div>
+              {instances.map((inst, ci) => {
+                const val = inst[key] as number | null;
+                const bg = heatColor(val, max);
+                return (
+                  <div
+                    key={ci}
+                    title={val !== null ? `${label}: ${val}` : 'Non renseigné'}
+                    style={{ width: 36, height: 32, borderRadius: 6, background: bg, flexShrink: 0, margin: '0 4px' }}
+                  />
+                );
+              })}
+            </div>
+          ))}
+
+          {/* Legend */}
+          <div className="flex items-center gap-2 mt-4" style={{ marginLeft: 100 }}>
+            <span className="text-xs text-subtext-color">Faible</span>
+            {['#3d0a0a','#6b1212','#fc8686','#fc6060','#e53e3e'].map(c => (
+              <div key={c} style={{ width: 20, height: 12, borderRadius: 3, background: c }} />
+            ))}
+            <span className="text-xs text-subtext-color">Élevé</span>
+          </div>
+        </div>
+      </div>
+
+      {/* ── TABLE ── */}
+      <div className="flex items-center gap-2 mb-4">
+        <h3 className="text-xs font-semibold text-subtext-color uppercase tracking-wide">Tableau</h3>
+        <span className="text-xs text-subtext-color bg-neutral-100 px-2 py-0.5 rounded-full">
+          {instances.length} envois
+        </span>
+      </div>
+
+      <div className="border border-neutral-200 rounded-lg overflow-hidden">
+        <table className="w-full border-collapse text-sm" style={{ tableLayout: 'fixed' }}>
+          <thead>
+            <tr className="bg-neutral-100 border-b border-neutral-200">
+              <th className="text-left px-4 py-3 text-xs font-medium text-subtext-color" style={{ width: '38%' }}>Séances &amp; Matchs</th>
+              <th className="text-center px-3 py-3 text-xs font-medium text-subtext-color" style={{ width: '16%' }}>Date</th>
+              <th className="text-center px-3 py-3 text-xs font-semibold text-warning-600" style={{ width: '12%' }}>Score</th>
+              <th className="text-center px-3 py-3 text-xs font-medium text-subtext-color" style={{ width: '10%' }}>Stress</th>
+              <th className="text-center px-3 py-3 text-xs font-medium text-subtext-color" style={{ width: '12%' }}>Courbature</th>
+              <th className="text-center px-3 py-3 text-xs font-medium text-subtext-color" style={{ width: '12%' }}>Fatigue</th>
+            </tr>
+          </thead>
+          <tbody className="bg-neutral-50 divide-y divide-neutral-200">
+            {instances.map((inst) => (
+              <tr key={inst.num} className="hover:bg-neutral-100 transition-colors">
+                <td className="px-4 py-3 text-sm text-default-font">{inst.label}</td>
+                <td className="px-3 py-3 text-center">
+                  <span className="flex items-center justify-center gap-1 text-xs text-subtext-color tabular-nums">
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+                    </svg>
+                    {inst.date}
+                  </span>
+                </td>
+                <td className="px-3 py-3 text-center">
+                  {inst.score !== null
+                    ? <span className={`text-sm font-semibold ${scoreColor(inst.score)}`}>{inst.score}/20</span>
+                    : <span className="text-subtext-color text-sm">—</span>
+                  }
+                </td>
+                <td className="px-3 py-3 text-center text-sm text-default-font">
+                  {inst.stress !== null ? inst.stress : <span className="text-subtext-color">—</span>}
+                </td>
+                <td className="px-3 py-3 text-center text-sm text-default-font">
+                  {inst.courbature !== null ? inst.courbature : <span className="text-subtext-color">—</span>}
+                </td>
+                <td className="px-3 py-3 text-center">
+                  {inst.fatigue !== null
+                    ? <span className={inst.fatigue >= 17 ? 'text-error-600 text-sm font-semibold' : 'text-sm text-default-font'}>{inst.fatigue}</span>
+                    : <span className="text-subtext-color text-sm">—</span>
+                  }
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
 function PerformanceTab() {
-  const [selected, setSelected] = useState<number | null>(null);
+  const [detailId, setDetailId] = useState<number | null>(null);
+
+  const detail = detailId !== null ? questionnaires.find(q => q.id === detailId) : null;
+
+  if (detail) {
+    return <QuestionnaireDetail q={detail} onBack={() => setDetailId(null)} />;
+  }
 
   return (
     <div className="p-6">
@@ -544,37 +777,28 @@ function PerformanceTab() {
         </span>
       </div>
 
-      {/* Cards grid */}
+      {/* Cards */}
       <div className="flex flex-col gap-3">
         {questionnaires.map((q) => {
-          const isSelected = selected === q.id;
           const tauxReponse = Math.round((q.reponses / q.envoyes) * 100);
-
           return (
             <button
               key={q.id}
-              onClick={() => setSelected(isSelected ? null : q.id)}
-              className={`w-full text-left bg-neutral-50 rounded-lg border transition-all cursor-pointer p-0 ${
-                isSelected
-                  ? 'border-brand-600 shadow-none'
-                  : 'border-neutral-200 hover:border-brand-200'
-              }`}
+              onClick={() => setDetailId(q.id)}
+              className="w-full text-left bg-neutral-50 rounded-lg border border-neutral-200 hover:border-brand-600 transition-all cursor-pointer p-0"
             >
               <div className="p-4">
-                <div className="flex items-start justify-between gap-4">
+                <div className="flex items-center justify-between gap-4">
 
-                  {/* Left: icon + info */}
-                  <div className="flex items-start gap-3">
-                    {/* Icon */}
-                    <div className="w-9 h-9 rounded-lg bg-brand-50 flex items-center justify-center flex-shrink-0 mt-0.5">
+                  {/* Left */}
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-lg bg-brand-50 flex items-center justify-center flex-shrink-0">
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-brand-600">
                         <path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
                       </svg>
                     </div>
-
-                    {/* Name + meta */}
                     <div>
-                      <div className="flex items-center gap-2 mb-1">
+                      <div className="flex items-center gap-2 mb-0.5">
                         <span className="text-sm font-semibold text-default-font">{q.nom}</span>
                         <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${statutConfig[q.statut].badge}`}>
                           {statutConfig[q.statut].label}
@@ -582,14 +806,14 @@ function PerformanceTab() {
                       </div>
                       <div className="flex items-center gap-3 flex-wrap">
                         <span className="flex items-center gap-1 text-xs text-subtext-color">
-                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                             <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
                           </svg>
                           {q.coach}
                         </span>
-                        <span className="text-neutral-200">·</span>
+                        <span className="text-neutral-200 text-xs">·</span>
                         <span className="flex items-center gap-1 text-xs text-subtext-color">
-                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                             <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
                           </svg>
                           Depuis le {q.startDate}
@@ -598,7 +822,7 @@ function PerformanceTab() {
                     </div>
                   </div>
 
-                  {/* Right: stats */}
+                  {/* Right */}
                   <div className="flex items-center gap-5 flex-shrink-0">
                     <div className="text-center">
                       <div className="text-base font-semibold text-default-font">{q.envoyes}</div>
@@ -608,49 +832,20 @@ function PerformanceTab() {
                       <div className="text-base font-semibold text-success-600">{q.reponses}</div>
                       <div className="text-xs text-subtext-color">Réponses</div>
                     </div>
-                    {/* Progress ring visual */}
                     <div className="flex flex-col items-center gap-0.5">
                       <div className="w-10 h-10 rounded-full flex items-center justify-center"
-                        style={{
-                          background: `conic-gradient(var(--color-success-600, #16a34a) ${tauxReponse * 3.6}deg, transparent 0deg)`,
-                        }}
-                      >
+                        style={{ background: `conic-gradient(var(--color-success-600, #16a34a) ${tauxReponse * 3.6}deg, var(--color-background-secondary, #e5e7eb) 0deg)` }}>
                         <div className="w-7 h-7 rounded-full bg-neutral-50 flex items-center justify-center">
                           <span className="text-xs font-semibold text-default-font">{tauxReponse}%</span>
                         </div>
                       </div>
                       <span className="text-xs text-subtext-color">Taux</span>
                     </div>
-
-                    {/* Chevron */}
-                    <svg
-                      width="16" height="16" viewBox="0 0 24 24" fill="none"
-                      stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
-                      className={`text-subtext-color transition-transform ${isSelected ? 'rotate-180' : ''}`}
-                    >
-                      <polyline points="6 9 12 15 18 9"/>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-subtext-color">
+                      <polyline points="9 18 15 12 9 6"/>
                     </svg>
                   </div>
                 </div>
-
-                {/* Expanded detail */}
-                {isSelected && (
-                  <div className="mt-4 pt-4 border-t border-neutral-200">
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                      {[
-                        { label: 'Questionnaire',  value: q.nom },
-                        { label: 'Envoyé par',      value: q.coach },
-                        { label: 'Date de début',   value: q.startDate },
-                        { label: 'Taux de réponse', value: `${tauxReponse}%` },
-                      ].map(({ label, value }) => (
-                        <div key={label} className="bg-neutral-100 rounded-lg px-3 py-2.5">
-                          <div className="text-xs text-subtext-color mb-0.5">{label}</div>
-                          <div className="text-sm font-medium text-default-font">{value}</div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
               </div>
             </button>
           );
