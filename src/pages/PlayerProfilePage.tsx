@@ -4,7 +4,7 @@ import {
   ArrowLeft, Mail, Phone, MapPin, Calendar,
   Shield, Ruler, Weight, Heart, Activity,
   Star, Trophy, Edit3, MessageSquare,
-  Clock, Target, Zap, Square,
+  Clock, Target, Zap,
 } from 'lucide-react';
 
 const playersData: Record<string, {
@@ -86,20 +86,36 @@ const compBadge: Record<Comp, string> = {
   LL: 'bg-warning-50 text-warning-600',
 };
 
+const CardIcon = ({ color }: { color: string }) => (
+  <div style={{ width: 12, height: 16, borderRadius: 2, background: color, margin: '0 auto' }} />
+);
+
+type CompFilter = 'ALL' | 'CL' | 'LL';
+
 function MatchsTab() {
-  const wins   = lastMatches.filter(m => m.result === 'W').length;
-  const losses = lastMatches.filter(m => m.result === 'L').length;
-  const draws  = lastMatches.filter(m => m.result === 'D').length;
-  const goals  = lastMatches.reduce((s, m) => s + m.g, 0);
-  const assists = lastMatches.reduce((s, m) => s + m.a, 0);
+  const [compFilter, setCompFilter] = useState<CompFilter>('ALL');
+
+  const filtered = compFilter === 'ALL' ? lastMatches : lastMatches.filter(m => m.comp === compFilter);
+
+  const wins   = filtered.filter(m => m.result === 'W').length;
+  const losses = filtered.filter(m => m.result === 'L').length;
+  const draws  = filtered.filter(m => m.result === 'D').length;
+  const goals  = filtered.reduce((s, m) => s + m.g, 0);
+  const assists = filtered.reduce((s, m) => s + m.a, 0);
 
   const summaryCards = [
-    { label: 'Matchs joués',  value: lastMatches.length, icon: <Shield className="w-4 h-4 text-brand-600" />, accent: false },
-    { label: 'Victoires',     value: wins,               icon: <Trophy className="w-4 h-4 text-success-600" />, accent: false },
-    { label: 'Défaites',      value: losses,             icon: <Target className="w-4 h-4 text-error-600" />,   accent: false },
-    { label: 'Nuls',          value: draws,              icon: <Activity className="w-4 h-4 text-warning-600" />, accent: false },
-    { label: 'Buts',          value: goals,              icon: <Zap className="w-4 h-4 text-brand-600" />,     accent: true  },
-    { label: 'Passes déc.',   value: assists,            icon: <Star className="w-4 h-4 text-brand-600" />,    accent: true  },
+    { label: 'Matchs joués',  value: filtered.length, icon: <Shield className="w-4 h-4 text-brand-600" />, accent: false },
+    { label: 'Victoires',     value: wins,            icon: <Trophy className="w-4 h-4 text-success-600" />, accent: false },
+    { label: 'Défaites',      value: losses,          icon: <Target className="w-4 h-4 text-error-600" />,   accent: false },
+    { label: 'Nuls',          value: draws,           icon: <Activity className="w-4 h-4 text-warning-600" />, accent: false },
+    { label: 'Buts',          value: goals,           icon: <Zap className="w-4 h-4 text-brand-600" />,     accent: true  },
+    { label: 'Passes déc.',   value: assists,         icon: <Star className="w-4 h-4 text-brand-600" />,    accent: true  },
+  ];
+
+  const filterOptions: { value: CompFilter; label: string }[] = [
+    { value: 'ALL', label: 'Toutes' },
+    { value: 'CL',  label: 'Champions League' },
+    { value: 'LL',  label: 'Liga' },
   ];
 
   return (
@@ -118,12 +134,31 @@ function MatchsTab() {
         ))}
       </div>
 
-      {/* Section title */}
-      <div className="flex items-center gap-2 mb-4">
-        <h2 className="text-sm font-semibold text-default-font">Derniers matchs</h2>
-        <span className="text-xs text-subtext-color bg-neutral-100 px-2 py-0.5 rounded-full">
-          {lastMatches.length} matchs
-        </span>
+      {/* Section title + filter */}
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-2">
+          <h2 className="text-sm font-semibold text-default-font">Derniers matchs</h2>
+          <span className="text-xs text-subtext-color bg-neutral-100 px-2 py-0.5 rounded-full">
+            {filtered.length} matchs
+          </span>
+        </div>
+
+        {/* Competition filter pills */}
+        <div className="flex items-center gap-1.5 bg-neutral-100 p-1 rounded-lg">
+          {filterOptions.map(({ value, label }) => (
+            <button
+              key={value}
+              onClick={() => setCompFilter(value)}
+              className={`px-3 py-1 rounded text-xs font-medium transition-colors border-none cursor-pointer ${
+                compFilter === value
+                  ? 'bg-neutral-50 text-brand-600 shadow-sm border border-neutral-200'
+                  : 'bg-transparent text-subtext-color hover:text-default-font'
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Table */}
@@ -145,15 +180,22 @@ function MatchsTab() {
                 <span className="text-xs font-medium text-subtext-color">A</span>
               </th>
               <th className="text-center px-3 py-3 w-10" title="Cartons jaunes">
-                <Square className="w-3 h-4 text-warning-600 mx-auto fill-warning-600" />
+                <CardIcon color="#d97706" />
               </th>
               <th className="text-center px-3 py-3 w-10" title="Cartons rouges">
-                <Square className="w-3 h-4 text-error-600 mx-auto fill-error-600" />
+                <CardIcon color="#dc2626" />
               </th>
             </tr>
           </thead>
           <tbody className="bg-neutral-50 divide-y divide-neutral-200">
-            {lastMatches.map((m, i) => (
+            {filtered.length === 0 ? (
+              <tr>
+                <td colSpan={9} className="px-4 py-10 text-center text-subtext-color text-sm">
+                  Aucun match pour cette compétition.
+                </td>
+              </tr>
+            ) : null}
+            {filtered.map((m, i) => (
               <tr key={i} className="hover:bg-neutral-100 transition-colors">
 
                 {/* Date */}
@@ -358,7 +400,7 @@ export default function PlayerProfilePage() {
                       : 'text-subtext-color hover:text-default-font'
                   }`}
                 >
-                  {label} 
+                  {label}
                   {active && (
                     <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-brand-600 rounded-t" />
                   )}
