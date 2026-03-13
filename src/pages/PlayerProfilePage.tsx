@@ -1171,18 +1171,7 @@ export default function PlayerProfilePage() {
           </div>
         </div>
 
-        {/* ── STATS STRIP ── */}
-        <div className="bg-neutral-50 border border-neutral-200 rounded-lg mb-6">
-          <div className="grid grid-cols-3 md:grid-cols-6 divide-x divide-neutral-200">
-            {stats.map(({ icon, label, value, accent }) => (
-              <div key={label} className="flex flex-col items-center gap-2 py-5 px-3">
-                <div className="p-2 bg-brand-50 rounded-lg">{icon}</div>
-                <div className="text-caption text-subtext-color text-center">{label}</div>
-                <div className={`text-body-bold text-center ${accent ? 'text-brand-600' : 'text-default-font'}`}>{value}</div>
-              </div>
-            ))}
-          </div>
-        </div>
+      
 
         {/* ── TABS ── */}
         <div className="bg-neutral-50 border border-neutral-200 rounded-lg">
