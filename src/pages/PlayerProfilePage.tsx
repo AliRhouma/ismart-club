@@ -653,24 +653,22 @@ function QuestionnaireDetail({ q, onBack }: { q: Questionnaire; onBack: () => vo
       </div>
 
       {/* ── HEATMAP ── */}
-      <div className="bg-neutral-50 border border-neutral-200 rounded-lg p-5 mb-6 overflow-x-auto">
+      <div className="bg-neutral-50 border border-neutral-200 rounded-lg p-5 mb-6">
         <h3 className="text-xs font-semibold text-subtext-color uppercase tracking-wide mb-4">Carte de chaleur</h3>
-        <div style={{ minWidth: 520 }}>
+        <div style={{ width: '100%' }}>
           {/* Column numbers */}
-          <div className="flex mb-2" style={{ marginLeft: 100 }}>
+          <div className="flex mb-2" style={{ paddingLeft: 96 }}>
             {instances.map((_, i) => (
-              <div key={i} style={{ width: 44, flexShrink: 0 }} className="text-center text-xs text-subtext-color font-medium">
+              <div key={i} style={{ flex: 1, minWidth: 0 }} className="text-center text-xs text-subtext-color font-medium">
                 {i + 1}
               </div>
             ))}
-            {/* Legend spacer */}
-            <div style={{ width: 48 }} />
           </div>
 
           {/* Rows */}
           {heatRows.map(({ label, key, max }) => (
             <div key={label} className="flex items-center mb-2">
-              <div style={{ width: 100, flexShrink: 0 }} className="text-xs text-subtext-color pr-3 text-right">
+              <div style={{ width: 96, flexShrink: 0 }} className="text-xs text-subtext-color pr-3 text-right">
                 {label}
               </div>
               {instances.map((inst, ci) => {
@@ -680,7 +678,7 @@ function QuestionnaireDetail({ q, onBack }: { q: Questionnaire; onBack: () => vo
                   <div
                     key={ci}
                     title={val !== null ? `${label}: ${val}` : 'Non renseigné'}
-                    style={{ width: 36, height: 32, borderRadius: 6, background: bg, flexShrink: 0, margin: '0 4px' }}
+                    style={{ flex: 1, minWidth: 0, height: 32, borderRadius: 6, background: bg, margin: '0 3px' }}
                   />
                 );
               })}
@@ -688,7 +686,7 @@ function QuestionnaireDetail({ q, onBack }: { q: Questionnaire; onBack: () => vo
           ))}
 
           {/* Legend */}
-          <div className="flex items-center gap-2 mt-4" style={{ marginLeft: 100 }}>
+          <div className="flex items-center gap-2 mt-4" style={{ paddingLeft: 96 }}>
             <span className="text-xs text-subtext-color">Faible</span>
             {['#3d0a0a','#6b1212','#fc8686','#fc6060','#e53e3e'].map(c => (
               <div key={c} style={{ width: 20, height: 12, borderRadius: 3, background: c }} />
