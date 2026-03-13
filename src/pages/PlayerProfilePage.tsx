@@ -40,11 +40,8 @@ const TABS = [
   { id: 'seances',     label: 'Séances' },
   { id: 'performance', label: 'Performance' },
   { id: 'stats',       label: 'Statistiques' },
-  { id: 'medical',     label: 'Médical' },
   { id: 'formation',   label: 'Formation' },
-  { id: 'historique',  label: 'Historique' },
   { id: 'evaluations', label: 'Évaluations' },
-  { id: 'documents',   label: 'Documents' },
 ];
 
 type Comp = 'CL' | 'LL';
