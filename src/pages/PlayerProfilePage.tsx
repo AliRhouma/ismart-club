@@ -36,6 +36,7 @@ const TABS = [
   { id: 'infos',       label: 'Informations' },
   { id: 'matchs',      label: 'Matchs' },
   { id: 'seances',     label: 'Séances' },
+  { id: 'performance', label: 'Performance' },
   { id: 'stats',       label: 'Statistiques' },
   { id: 'medical',     label: 'Médical' },
   { id: 'historique',  label: 'Historique' },
@@ -465,6 +466,200 @@ function SeancesTab() {
   );
 }
 
+interface Questionnaire {
+  id: number;
+  nom: string;
+  coach: string;
+  envoyes: number;
+  startDate: string;
+  reponses: number;
+  statut: 'actif' | 'termine' | 'en_attente';
+}
+
+const questionnaires: Questionnaire[] = [
+  {
+    id: 1,
+    nom: 'Hooper',
+    coach: 'Coach Hatem',
+    envoyes: 7,
+    startDate: '17/08/2024',
+    reponses: 6,
+    statut: 'actif',
+  },
+  {
+    id: 2,
+    nom: 'Bien-être général',
+    coach: 'Coach Hatem',
+    envoyes: 12,
+    startDate: '02/09/2024',
+    reponses: 12,
+    statut: 'termine',
+  },
+  {
+    id: 3,
+    nom: 'Charge perçue (RPE)',
+    coach: 'Coach Slim',
+    envoyes: 9,
+    startDate: '15/09/2024',
+    reponses: 7,
+    statut: 'actif',
+  },
+  {
+    id: 4,
+    nom: 'Récupération post-match',
+    coach: 'Coach Slim',
+    envoyes: 5,
+    startDate: '01/10/2024',
+    reponses: 3,
+    statut: 'en_attente',
+  },
+  {
+    id: 5,
+    nom: 'Motivation & confiance',
+    coach: 'Coach Hatem',
+    envoyes: 10,
+    startDate: '14/10/2024',
+    reponses: 9,
+    statut: 'actif',
+  },
+];
+
+const statutConfig: Record<Questionnaire['statut'], { label: string; badge: string }> = {
+  actif:      { label: 'Actif',      badge: 'bg-success-50 text-success-600 border border-success-200' },
+  termine:    { label: 'Terminé',    badge: 'bg-neutral-100 text-subtext-color border border-neutral-200' },
+  en_attente: { label: 'En attente', badge: 'bg-warning-50 text-warning-600 border border-warning-200' },
+};
+
+function PerformanceTab() {
+  const [selected, setSelected] = useState<number | null>(null);
+
+  return (
+    <div className="p-6">
+
+      {/* Section title */}
+      <div className="flex items-center gap-2 mb-5">
+        <h2 className="text-sm font-semibold text-default-font">Liste de questionnaires</h2>
+        <span className="text-xs text-subtext-color bg-neutral-100 px-2 py-0.5 rounded-full">
+          {questionnaires.length} questionnaires
+        </span>
+      </div>
+
+      {/* Cards grid */}
+      <div className="flex flex-col gap-3">
+        {questionnaires.map((q) => {
+          const isSelected = selected === q.id;
+          const tauxReponse = Math.round((q.reponses / q.envoyes) * 100);
+
+          return (
+            <button
+              key={q.id}
+              onClick={() => setSelected(isSelected ? null : q.id)}
+              className={`w-full text-left bg-neutral-50 rounded-lg border transition-all cursor-pointer p-0 ${
+                isSelected
+                  ? 'border-brand-600 shadow-none'
+                  : 'border-neutral-200 hover:border-brand-200'
+              }`}
+            >
+              <div className="p-4">
+                <div className="flex items-start justify-between gap-4">
+
+                  {/* Left: icon + info */}
+                  <div className="flex items-start gap-3">
+                    {/* Icon */}
+                    <div className="w-9 h-9 rounded-lg bg-brand-50 flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-brand-600">
+                        <path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+                      </svg>
+                    </div>
+
+                    {/* Name + meta */}
+                    <div>
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-sm font-semibold text-default-font">{q.nom}</span>
+                        <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${statutConfig[q.statut].badge}`}>
+                          {statutConfig[q.statut].label}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-3 flex-wrap">
+                        <span className="flex items-center gap-1 text-xs text-subtext-color">
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+                          </svg>
+                          {q.coach}
+                        </span>
+                        <span className="text-neutral-200">·</span>
+                        <span className="flex items-center gap-1 text-xs text-subtext-color">
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+                          </svg>
+                          Depuis le {q.startDate}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Right: stats */}
+                  <div className="flex items-center gap-5 flex-shrink-0">
+                    <div className="text-center">
+                      <div className="text-base font-semibold text-default-font">{q.envoyes}</div>
+                      <div className="text-xs text-subtext-color">Envoyés</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-base font-semibold text-success-600">{q.reponses}</div>
+                      <div className="text-xs text-subtext-color">Réponses</div>
+                    </div>
+                    {/* Progress ring visual */}
+                    <div className="flex flex-col items-center gap-0.5">
+                      <div className="w-10 h-10 rounded-full flex items-center justify-center"
+                        style={{
+                          background: `conic-gradient(var(--color-success-600, #16a34a) ${tauxReponse * 3.6}deg, transparent 0deg)`,
+                        }}
+                      >
+                        <div className="w-7 h-7 rounded-full bg-neutral-50 flex items-center justify-center">
+                          <span className="text-xs font-semibold text-default-font">{tauxReponse}%</span>
+                        </div>
+                      </div>
+                      <span className="text-xs text-subtext-color">Taux</span>
+                    </div>
+
+                    {/* Chevron */}
+                    <svg
+                      width="16" height="16" viewBox="0 0 24 24" fill="none"
+                      stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+                      className={`text-subtext-color transition-transform ${isSelected ? 'rotate-180' : ''}`}
+                    >
+                      <polyline points="6 9 12 15 18 9"/>
+                    </svg>
+                  </div>
+                </div>
+
+                {/* Expanded detail */}
+                {isSelected && (
+                  <div className="mt-4 pt-4 border-t border-neutral-200">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                      {[
+                        { label: 'Questionnaire',  value: q.nom },
+                        { label: 'Envoyé par',      value: q.coach },
+                        { label: 'Date de début',   value: q.startDate },
+                        { label: 'Taux de réponse', value: `${tauxReponse}%` },
+                      ].map(({ label, value }) => (
+                        <div key={label} className="bg-neutral-100 rounded-lg px-3 py-2.5">
+                          <div className="text-xs text-subtext-color mb-0.5">{label}</div>
+                          <div className="text-sm font-medium text-default-font">{value}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 export default function PlayerProfilePage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -597,6 +792,8 @@ export default function PlayerProfilePage() {
             <MatchsTab />
           ) : activeTab === 'seances' ? (
             <SeancesTab />
+          ) : activeTab === 'performance' ? (
+            <PerformanceTab />
           ) : (
             <div className="p-12 text-center">
               <p className="text-body text-subtext-color">
