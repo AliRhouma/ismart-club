@@ -3,7 +3,8 @@ import { useParams, useNavigate } from 'react-router-dom';
 import {
   ArrowLeft, Mail, Phone, MapPin, Calendar,
   Shield, Ruler, Weight, Heart, Activity,
-  Star, Trophy, Edit3, MessageSquare
+  Star, Trophy, Edit3, MessageSquare,
+  Clock, Target, Zap, Square,
 } from 'lucide-react';
 
 const playersData: Record<string, {
@@ -33,6 +34,7 @@ const fallbackPlayer = {
 
 const TABS = [
   { id: 'infos',       label: 'Informations' },
+  { id: 'matchs',      label: 'Matchs' },
   { id: 'stats',       label: 'Statistiques' },
   { id: 'medical',     label: 'Médical' },
   { id: 'historique',  label: 'Historique' },
@@ -40,10 +42,207 @@ const TABS = [
   { id: 'documents',   label: 'Documents' },
 ];
 
+type Comp = 'CL' | 'LL';
+type Result = 'W' | 'L' | 'D';
+
+interface Match {
+  date: string;
+  comp: Comp;
+  home: string;
+  away: string;
+  hs: number;
+  as: number;
+  result: Result;
+  min: string;
+  g: number;
+  a: number;
+  yc: number;
+  rc: number;
+  playerHome: boolean;
+}
+
+const lastMatches: Match[] = [
+  { date: '11.03.26', comp: 'CL', home: 'Real Madrid',    away: 'Manchester City', hs: 3, as: 0, result: 'W', min: "90'", g: 3, a: 0, yc: 0, rc: 0, playerHome: true  },
+  { date: '06.03.26', comp: 'LL', home: 'Celta Vigo',     away: 'Real Madrid',     hs: 1, as: 2, result: 'W', min: "90'", g: 1, a: 0, yc: 0, rc: 0, playerHome: false },
+  { date: '02.03.26', comp: 'LL', home: 'Real Madrid',    away: 'Getafe',          hs: 0, as: 1, result: 'L', min: "90'", g: 0, a: 0, yc: 0, rc: 0, playerHome: true  },
+  { date: '25.02.26', comp: 'CL', home: 'Real Madrid',    away: 'Benfica',         hs: 2, as: 1, result: 'W', min: "90'", g: 0, a: 2, yc: 0, rc: 0, playerHome: true  },
+  { date: '21.02.26', comp: 'LL', home: 'Osasuna',        away: 'Real Madrid',     hs: 2, as: 1, result: 'L', min: "75'", g: 0, a: 1, yc: 0, rc: 0, playerHome: false },
+  { date: '17.02.26', comp: 'CL', home: 'Benfica',        away: 'Real Madrid',     hs: 0, as: 1, result: 'W', min: "90'", g: 0, a: 0, yc: 0, rc: 0, playerHome: false },
+  { date: '14.02.26', comp: 'LL', home: 'Real Madrid',    away: 'Real Sociedad',   hs: 4, as: 1, result: 'W', min: "73'", g: 1, a: 0, yc: 0, rc: 0, playerHome: true  },
+  { date: '08.02.26', comp: 'LL', home: 'Valencia',       away: 'Real Madrid',     hs: 0, as: 2, result: 'W', min: "90'", g: 0, a: 0, yc: 0, rc: 0, playerHome: false },
+  { date: '01.02.26', comp: 'LL', home: 'Real Madrid',    away: 'Rayo Vallecano',  hs: 2, as: 1, result: 'W', min: "90'", g: 0, a: 0, yc: 0, rc: 0, playerHome: true  },
+];
+
+const resultBadge: Record<Result, string> = {
+  W: 'bg-success-50 text-success-600 border border-success-200',
+  L: 'bg-error-50   text-error-600   border border-error-200',
+  D: 'bg-warning-50 text-warning-600 border border-warning-200',
+};
+
+const resultLabel: Record<Result, string> = { W: 'V', L: 'D', D: 'N' };
+
+const compBadge: Record<Comp, string> = {
+  CL: 'bg-brand-50 text-brand-600',
+  LL: 'bg-warning-50 text-warning-600',
+};
+
+function MatchsTab() {
+  const wins   = lastMatches.filter(m => m.result === 'W').length;
+  const losses = lastMatches.filter(m => m.result === 'L').length;
+  const draws  = lastMatches.filter(m => m.result === 'D').length;
+  const goals  = lastMatches.reduce((s, m) => s + m.g, 0);
+  const assists = lastMatches.reduce((s, m) => s + m.a, 0);
+
+  const summaryCards = [
+    { label: 'Matchs joués',  value: lastMatches.length, icon: <Shield className="w-4 h-4 text-brand-600" />, accent: false },
+    { label: 'Victoires',     value: wins,               icon: <Trophy className="w-4 h-4 text-success-600" />, accent: false },
+    { label: 'Défaites',      value: losses,             icon: <Target className="w-4 h-4 text-error-600" />,   accent: false },
+    { label: 'Nuls',          value: draws,              icon: <Activity className="w-4 h-4 text-warning-600" />, accent: false },
+    { label: 'Buts',          value: goals,              icon: <Zap className="w-4 h-4 text-brand-600" />,     accent: true  },
+    { label: 'Passes déc.',   value: assists,            icon: <Star className="w-4 h-4 text-brand-600" />,    accent: true  },
+  ];
+
+  return (
+    <div className="p-6">
+
+      {/* Summary strip */}
+      <div className="grid grid-cols-3 md:grid-cols-6 border border-neutral-200 rounded-lg mb-6 divide-x divide-neutral-200 bg-neutral-50">
+        {summaryCards.map(({ label, value, icon, accent }) => (
+          <div key={label} className="flex flex-col items-center gap-1.5 py-4 px-2">
+            <div className="p-2 bg-brand-50 rounded-lg">{icon}</div>
+            <span className="text-xs text-subtext-color text-center leading-tight">{label}</span>
+            <span className={`text-lg font-semibold ${accent ? 'text-brand-600' : 'text-default-font'}`}>
+              {value}
+            </span>
+          </div>
+        ))}
+      </div>
+
+      {/* Section title */}
+      <div className="flex items-center gap-2 mb-4">
+        <h2 className="text-sm font-semibold text-default-font">Derniers matchs</h2>
+        <span className="text-xs text-subtext-color bg-neutral-100 px-2 py-0.5 rounded-full">
+          {lastMatches.length} matchs
+        </span>
+      </div>
+
+      {/* Table */}
+      <div className="border border-neutral-200 rounded-lg overflow-hidden">
+        <table className="w-full border-collapse text-sm">
+          <thead>
+            <tr className="bg-neutral-100 border-b border-neutral-200">
+              <th className="text-left px-4 py-3 text-xs font-medium text-subtext-color w-24">Date</th>
+              <th className="text-center px-3 py-3 text-xs font-medium text-subtext-color w-12">Comp.</th>
+              <th className="text-left px-4 py-3 text-xs font-medium text-subtext-color">Match</th>
+              <th className="text-center px-3 py-3 text-xs font-medium text-subtext-color w-14">Résultat</th>
+              <th className="text-center px-3 py-3 w-10" title="Minutes jouées">
+                <Clock className="w-3.5 h-3.5 text-subtext-color mx-auto" />
+              </th>
+              <th className="text-center px-3 py-3 w-10" title="Buts">
+                <span className="text-xs font-medium text-subtext-color">⚽</span>
+              </th>
+              <th className="text-center px-3 py-3 w-10" title="Passes décisives">
+                <span className="text-xs font-medium text-subtext-color">A</span>
+              </th>
+              <th className="text-center px-3 py-3 w-10" title="Cartons jaunes">
+                <Square className="w-3 h-4 text-warning-600 mx-auto fill-warning-600" />
+              </th>
+              <th className="text-center px-3 py-3 w-10" title="Cartons rouges">
+                <Square className="w-3 h-4 text-error-600 mx-auto fill-error-600" />
+              </th>
+            </tr>
+          </thead>
+          <tbody className="bg-neutral-50 divide-y divide-neutral-200">
+            {lastMatches.map((m, i) => (
+              <tr key={i} className="hover:bg-neutral-100 transition-colors">
+
+                {/* Date */}
+                <td className="px-4 py-3 text-subtext-color text-xs tabular-nums">
+                  {m.date}
+                </td>
+
+                {/* Competition */}
+                <td className="px-3 py-3 text-center">
+                  <span className={`inline-block px-2 py-0.5 rounded text-xs font-semibold tracking-wide ${compBadge[m.comp]}`}>
+                    {m.comp}
+                  </span>
+                </td>
+
+                {/* Teams + scores */}
+                <td className="px-4 py-3">
+                  <div className="flex flex-col gap-0.5">
+                    <div className="flex items-center justify-between gap-4 max-w-[220px]">
+                      <span className={`text-sm ${m.playerHome ? 'font-semibold text-default-font' : 'text-subtext-color'}`}>
+                        {m.home}
+                      </span>
+                      <span className={`tabular-nums text-sm font-semibold ${m.playerHome ? 'text-default-font' : 'text-subtext-color'}`}>
+                        {m.hs}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between gap-4 max-w-[220px]">
+                      <span className={`text-sm ${!m.playerHome ? 'font-semibold text-default-font' : 'text-subtext-color'}`}>
+                        {m.away}
+                      </span>
+                      <span className={`tabular-nums text-sm font-semibold ${!m.playerHome ? 'text-default-font' : 'text-subtext-color'}`}>
+                        {m.as}
+                      </span>
+                    </div>
+                  </div>
+                </td>
+
+                {/* Result badge */}
+                <td className="px-3 py-3 text-center">
+                  <span className={`inline-flex items-center justify-center w-7 h-7 rounded-full text-xs font-bold ${resultBadge[m.result]}`}>
+                    {resultLabel[m.result]}
+                  </span>
+                </td>
+
+                {/* Minutes */}
+                <td className="px-3 py-3 text-center text-subtext-color text-xs tabular-nums">
+                  {m.min}
+                </td>
+
+                {/* Goals */}
+                <td className="px-3 py-3 text-center">
+                  <span className={`text-sm font-semibold ${m.g > 0 ? 'text-brand-600' : 'text-subtext-color'}`}>
+                    {m.g}
+                  </span>
+                </td>
+
+                {/* Assists */}
+                <td className="px-3 py-3 text-center">
+                  <span className={`text-sm font-semibold ${m.a > 0 ? 'text-brand-600' : 'text-subtext-color'}`}>
+                    {m.a}
+                  </span>
+                </td>
+
+                {/* Yellow cards */}
+                <td className="px-3 py-3 text-center">
+                  <span className={`text-sm ${m.yc > 0 ? 'text-warning-600 font-semibold' : 'text-subtext-color'}`}>
+                    {m.yc}
+                  </span>
+                </td>
+
+                {/* Red cards */}
+                <td className="px-3 py-3 text-center">
+                  <span className={`text-sm ${m.rc > 0 ? 'text-error-600 font-semibold' : 'text-subtext-color'}`}>
+                    {m.rc}
+                  </span>
+                </td>
+
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
 export default function PlayerProfilePage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState('infos');
+  const [activeTab, setActiveTab] = useState('matchs');
 
   const player = playersData[id ?? ''] ?? fallbackPlayer;
 
@@ -72,16 +271,13 @@ export default function PlayerProfilePage() {
         {/* ── HEADER CARD ── */}
         <div className="bg-neutral-50 border border-neutral-200 rounded-lg p-6 mb-6">
 
-          {/* Top row: avatar + name + actions */}
           <div className="flex items-start justify-between mb-6">
             <div className="flex items-start gap-4">
 
-              {/* Avatar */}
               <div className="w-16 h-16 rounded-lg bg-brand-600 flex items-center justify-center text-white text-heading-2 font-bold flex-shrink-0">
                 {player.initials}
               </div>
 
-              {/* Name + role */}
               <div>
                 <div className="flex items-center gap-3 mb-1.5">
                   <h1 className="text-heading-1 text-default-font">{player.name}</h1>
@@ -102,7 +298,6 @@ export default function PlayerProfilePage() {
               </div>
             </div>
 
-            {/* Action buttons */}
             <div className="flex gap-2">
               <button className="flex items-center gap-2 px-4 py-2 bg-neutral-100 border border-neutral-200 text-subtext-color rounded-lg text-body hover:bg-neutral-150 hover:text-default-font transition-colors">
                 <Edit3 className="w-4 h-4" />
@@ -115,7 +310,6 @@ export default function PlayerProfilePage() {
             </div>
           </div>
 
-          {/* Contact grid — same pattern as meeting detail info cells */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-6 border-t border-neutral-200">
             {[
               { icon: <Mail className="w-4 h-4 text-brand-600" />,     label: 'Email',             value: player.email    },
@@ -151,14 +345,14 @@ export default function PlayerProfilePage() {
 
         {/* ── TABS ── */}
         <div className="bg-neutral-50 border border-neutral-200 rounded-lg">
-          <div className="flex border-b border-neutral-200 px-6">
+          <div className="flex border-b border-neutral-200 px-6 overflow-x-auto">
             {TABS.map(({ id, label }) => {
               const active = activeTab === id;
               return (
                 <button
                   key={id}
                   onClick={() => setActiveTab(id)}
-                  className={`relative py-4 mr-6 text-body border-none bg-transparent cursor-pointer transition-colors ${
+                  className={`relative py-4 mr-6 text-body whitespace-nowrap border-none bg-transparent cursor-pointer transition-colors ${
                     active
                       ? 'text-brand-600 font-semibold'
                       : 'text-subtext-color hover:text-default-font'
@@ -173,11 +367,15 @@ export default function PlayerProfilePage() {
             })}
           </div>
 
-          <div className="p-12 text-center">
-            <p className="text-body text-subtext-color">
-              Contenu — {TABS.find(t => t.id === activeTab)?.label}
-            </p>
-          </div>
+          {activeTab === 'matchs' ? (
+            <MatchsTab />
+          ) : (
+            <div className="p-12 text-center">
+              <p className="text-body text-subtext-color">
+                Contenu — {TABS.find(t => t.id === activeTab)?.label}
+              </p>
+            </div>
+          )}
         </div>
 
       </div>
