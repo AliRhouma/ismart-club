@@ -35,6 +35,7 @@ const fallbackPlayer = {
 const TABS = [
   { id: 'infos',       label: 'Informations' },
   { id: 'matchs',      label: 'Matchs' },
+  { id: 'seances',     label: 'Séances' },
   { id: 'stats',       label: 'Statistiques' },
   { id: 'medical',     label: 'Médical' },
   { id: 'historique',  label: 'Historique' },
@@ -281,6 +282,212 @@ function MatchsTab() {
   );
 }
 
+type Presence = 'present' | 'absent' | 'justifie' | 'blesse' | 'retard';
+type SessionType = 'Entraînement' | 'Match' | 'Récupération' | 'Préparation physique' | 'Tactique';
+
+interface Session {
+  date: string;
+  name: string;
+  type: SessionType;
+  duree: string;
+  presence: Presence;
+}
+
+const sessions: Session[] = [
+  { date: '11.03.26', name: 'Entraînement collectif — Mardi matin',        type: 'Entraînement',         duree: '90 min', presence: 'present'  },
+  { date: '09.03.26', name: 'Séance tactique pré-CL',                      type: 'Tactique',             duree: '60 min', presence: 'present'  },
+  { date: '07.03.26', name: 'Récupération post-match',                     type: 'Récupération',         duree: '45 min', presence: 'present'  },
+  { date: '05.03.26', name: 'Entraînement collectif — Mercredi',           type: 'Entraînement',         duree: '90 min', presence: 'retard'   },
+  { date: '03.03.26', name: 'Préparation physique — Force',                type: 'Préparation physique', duree: '75 min', presence: 'present'  },
+  { date: '01.03.26', name: 'Entraînement collectif — Samedi',             type: 'Entraînement',         duree: '90 min', presence: 'absent'   },
+  { date: '27.02.26', name: 'Séance vidéo + tactique',                     type: 'Tactique',             duree: '50 min', presence: 'present'  },
+  { date: '25.02.26', name: 'Entraînement veille de match',                type: 'Entraînement',         duree: '60 min', presence: 'present'  },
+  { date: '23.02.26', name: 'Préparation physique — Vitesse',              type: 'Préparation physique', duree: '70 min', presence: 'blesse'   },
+  { date: '21.02.26', name: 'Entraînement collectif — Vendredi',           type: 'Entraînement',         duree: '90 min', presence: 'blesse'   },
+  { date: '19.02.26', name: 'Récupération active',                         type: 'Récupération',         duree: '40 min', presence: 'justifie' },
+  { date: '17.02.26', name: 'Séance tactique pré-CL Benfica',              type: 'Tactique',             duree: '60 min', presence: 'present'  },
+  { date: '15.02.26', name: 'Entraînement collectif — Samedi matin',       type: 'Entraînement',         duree: '90 min', presence: 'present'  },
+  { date: '13.02.26', name: 'Préparation physique — Endurance',            type: 'Préparation physique', duree: '80 min', presence: 'present'  },
+  { date: '11.02.26', name: 'Entraînement collectif — Mardi',              type: 'Entraînement',         duree: '90 min', presence: 'absent'   },
+  { date: '09.02.26', name: 'Récupération post-Valencia',                  type: 'Récupération',         duree: '45 min', presence: 'present'  },
+  { date: '07.02.26', name: 'Séance finition — Attaquants',                type: 'Entraînement',         duree: '75 min', presence: 'retard'   },
+  { date: '05.02.26', name: 'Entraînement collectif — Mercredi',           type: 'Entraînement',         duree: '90 min', presence: 'present'  },
+];
+
+const presenceConfig: Record<Presence, { label: string; badge: string }> = {
+  present:  { label: 'Présent',   badge: 'bg-success-50 text-success-600 border border-success-200' },
+  absent:   { label: 'Absent',    badge: 'bg-error-50 text-error-600 border border-error-200'       },
+  justifie: { label: 'Justifié',  badge: 'bg-warning-50 text-warning-600 border border-warning-200' },
+  blesse:   { label: 'Blessé',    badge: 'bg-error-50 text-error-600 border border-error-200'       },
+  retard:   { label: 'Retard',    badge: 'bg-brand-50 text-brand-600 border border-brand-200'       },
+};
+
+const typeConfig: Record<SessionType, string> = {
+  'Entraînement':         'bg-brand-50 text-brand-600',
+  'Match':                'bg-success-50 text-success-600',
+  'Récupération':         'bg-warning-50 text-warning-600',
+  'Préparation physique': 'bg-neutral-100 text-subtext-color',
+  'Tactique':             'bg-error-50 text-error-600',
+};
+
+type PresenceFilter = 'ALL' | Presence;
+
+function SeancesTab() {
+  const [presenceFilter, setPresenceFilter] = useState<PresenceFilter>('ALL');
+
+  const filtered = presenceFilter === 'ALL'
+    ? sessions
+    : sessions.filter(s => s.presence === presenceFilter);
+
+  const counts = {
+    total:    sessions.length,
+    present:  sessions.filter(s => s.presence === 'present').length,
+    absent:   sessions.filter(s => s.presence === 'absent').length,
+    justifie: sessions.filter(s => s.presence === 'justifie').length,
+    blesse:   sessions.filter(s => s.presence === 'blesse').length,
+    retard:   sessions.filter(s => s.presence === 'retard').length,
+  };
+
+  const tauxPresence = Math.round((counts.present / counts.total) * 100);
+
+  const summaryCards = [
+    { label: 'Séances totales', value: counts.total,    colorClass: 'text-default-font',    bg: 'bg-brand-50',   icon: '📋' },
+    { label: 'Présent',         value: counts.present,  colorClass: 'text-success-600',     bg: 'bg-success-50', icon: '✓'  },
+    { label: 'Absent',          value: counts.absent,   colorClass: 'text-error-600',       bg: 'bg-error-50',   icon: '✗'  },
+    { label: 'Justifié',        value: counts.justifie, colorClass: 'text-warning-600',     bg: 'bg-warning-50', icon: '📄' },
+    { label: 'Blessé',          value: counts.blesse,   colorClass: 'text-error-600',       bg: 'bg-error-50',   icon: '🩹' },
+    { label: 'Retard',          value: counts.retard,   colorClass: 'text-brand-600',       bg: 'bg-brand-50',   icon: '⏱' },
+  ];
+
+  const filterOptions: { value: PresenceFilter; label: string }[] = [
+    { value: 'ALL',      label: 'Toutes'    },
+    { value: 'present',  label: 'Présent'   },
+    { value: 'absent',   label: 'Absent'    },
+    { value: 'justifie', label: 'Justifié'  },
+    { value: 'blesse',   label: 'Blessé'    },
+    { value: 'retard',   label: 'Retard'    },
+  ];
+
+  return (
+    <div className="p-6">
+
+      {/* Summary strip */}
+      <div className="grid grid-cols-3 md:grid-cols-6 border border-neutral-200 rounded-lg mb-6 divide-x divide-neutral-200 bg-neutral-50">
+        {summaryCards.map(({ label, value, colorClass, bg, icon }) => (
+          <div key={label} className="flex flex-col items-center gap-1.5 py-4 px-2">
+            <div className={`w-8 h-8 rounded-lg ${bg} flex items-center justify-center text-sm`}>
+              {icon}
+            </div>
+            <span className="text-xs text-subtext-color text-center leading-tight">{label}</span>
+            <span className={`text-lg font-semibold ${colorClass}`}>{value}</span>
+          </div>
+        ))}
+      </div>
+
+      {/* Taux de présence bar */}
+      <div className="bg-neutral-50 border border-neutral-200 rounded-lg p-4 mb-6">
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-xs font-medium text-subtext-color">Taux de présence</span>
+          <span className="text-sm font-semibold text-success-600">{tauxPresence}%</span>
+        </div>
+        <div className="h-2 bg-neutral-100 rounded-full overflow-hidden">
+          <div
+            className="h-full bg-success-600 rounded-full transition-all"
+            style={{ width: `${tauxPresence}%` }}
+          />
+        </div>
+        <div className="flex gap-4 mt-3">
+          {[
+            { label: 'Présent',  pct: Math.round((counts.present  / counts.total) * 100), color: 'bg-success-600' },
+            { label: 'Absent',   pct: Math.round((counts.absent   / counts.total) * 100), color: 'bg-error-600'   },
+            { label: 'Blessé',   pct: Math.round((counts.blesse   / counts.total) * 100), color: 'bg-error-200'   },
+            { label: 'Justifié', pct: Math.round((counts.justifie / counts.total) * 100), color: 'bg-warning-600' },
+            { label: 'Retard',   pct: Math.round((counts.retard   / counts.total) * 100), color: 'bg-brand-600'   },
+          ].map(({ label, pct, color }) => (
+            <div key={label} className="flex items-center gap-1.5">
+              <div className={`w-2 h-2 rounded-full ${color}`} />
+              <span className="text-xs text-subtext-color">{label} <span className="font-medium text-default-font">{pct}%</span></span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Header row: title + filter */}
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-2">
+          <h2 className="text-sm font-semibold text-default-font">Présences aux séances</h2>
+          <span className="text-xs text-subtext-color bg-neutral-100 px-2 py-0.5 rounded-full">
+            {filtered.length} séance{filtered.length > 1 ? 's' : ''}
+          </span>
+        </div>
+
+        {/* Presence filter pills */}
+        <div className="flex items-center gap-1 bg-neutral-100 p-1 rounded-lg flex-wrap">
+          {filterOptions.map(({ value, label }) => (
+            <button
+              key={value}
+              onClick={() => setPresenceFilter(value)}
+              className={`px-3 py-1 rounded text-xs font-medium transition-colors border-none cursor-pointer ${
+                presenceFilter === value
+                  ? 'bg-neutral-50 text-brand-600 shadow-sm border border-neutral-200'
+                  : 'bg-transparent text-subtext-color hover:text-default-font'
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Table */}
+      <div className="border border-neutral-200 rounded-lg overflow-hidden">
+        <table className="w-full border-collapse text-sm">
+          <thead>
+            <tr className="bg-neutral-100 border-b border-neutral-200">
+              <th className="text-left px-4 py-3 text-xs font-medium text-subtext-color w-24">Date</th>
+              <th className="text-left px-4 py-3 text-xs font-medium text-subtext-color">Nom de la séance</th>
+              <th className="text-center px-4 py-3 text-xs font-medium text-subtext-color w-36">Type</th>
+              <th className="text-center px-4 py-3 text-xs font-medium text-subtext-color w-24">Durée</th>
+              <th className="text-center px-4 py-3 text-xs font-medium text-subtext-color w-32">Présence</th>
+            </tr>
+          </thead>
+          <tbody className="bg-neutral-50 divide-y divide-neutral-200">
+            {filtered.length === 0 ? (
+              <tr>
+                <td colSpan={5} className="px-4 py-10 text-center text-subtext-color text-sm">
+                  Aucune séance pour ce filtre.
+                </td>
+              </tr>
+            ) : filtered.map((s, i) => (
+              <tr key={i} className="hover:bg-neutral-100 transition-colors">
+                <td className="px-4 py-3 text-xs text-subtext-color tabular-nums whitespace-nowrap">
+                  {s.date}
+                </td>
+                <td className="px-4 py-3">
+                  <span className="text-sm text-default-font">{s.name}</span>
+                </td>
+                <td className="px-4 py-3 text-center">
+                  <span className={`inline-block px-2 py-0.5 rounded text-xs font-medium ${typeConfig[s.type]}`}>
+                    {s.type}
+                  </span>
+                </td>
+                <td className="px-4 py-3 text-center text-xs text-subtext-color tabular-nums">
+                  {s.duree}
+                </td>
+                <td className="px-4 py-3 text-center">
+                  <span className={`inline-block px-2.5 py-0.5 rounded-full text-xs font-medium ${presenceConfig[s.presence].badge}`}>
+                    {presenceConfig[s.presence].label}
+                  </span>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
 export default function PlayerProfilePage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -411,6 +618,8 @@ export default function PlayerProfilePage() {
 
           {activeTab === 'matchs' ? (
             <MatchsTab />
+          ) : activeTab === 'seances' ? (
+            <SeancesTab />
           ) : (
             <div className="p-12 text-center">
               <p className="text-body text-subtext-color">
@@ -423,4 +632,4 @@ export default function PlayerProfilePage() {
       </div>
     </div>
   );
-} 
+}
