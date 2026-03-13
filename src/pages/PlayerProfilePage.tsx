@@ -140,7 +140,7 @@ function MatchsTab() {
               <th className="text-center px-3 py-3 w-10" title="Minutes jouées"><Clock className="w-3.5 h-3.5 text-subtext-color mx-auto" /></th>
               <th className="text-center px-3 py-3 w-10" title="Buts"><span className="text-xs font-medium text-subtext-color">⚽</span></th>
               <th className="text-center px-3 py-3 w-10" title="Passes décisives"><span className="text-xs font-medium text-subtext-color">A</span></th>
-              <th className="text-center px-3 py-3 w-10" title="Cartons jaunes"><CardIcon color="#d97706" /></th>
+              <th className="text-center px-3 py-3 w-10" title="Cartons jaunes"><CardIcon color="#FFFF00" /></th>
               <th className="text-center px-3 py-3 w-10" title="Cartons rouges"><CardIcon color="#dc2626" /></th>
             </tr>
           </thead>
